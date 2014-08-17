@@ -69,7 +69,7 @@ int main_sw_tmp(ac, av)
   double *rec_F0, *rec_pv, *rec_rms, *rec_acp;
   int i, vecsize;
   int init_dp_f0(), dp_f0(), check_f0_params(), rflag = 0,
-      sflag = 0, iflag = 0;
+      sflag = 0;
   long sdstep = 0, total_samps;
 
   par = (F0_params *) malloc(sizeof(F0_params));
@@ -114,10 +114,6 @@ int main_sw_tmp(ac, av)
       range = optarg;
       sflag++;
       break;
-    case 'i':
-      par->frame_step = atof(optarg);
-      iflag++;
-      break;
     case 'x':
       debug_level = atoi(optarg);
       break;
@@ -134,7 +130,7 @@ int main_sw_tmp(ac, av)
   
   (void) read_params(param_file, SC_NOCOMMON, (char *)NULL);
   
-  if(!iflag && symtype("frame_step") != ST_UNDEF)
+  if(symtype("frame_step") != ST_UNDEF)
     par->frame_step = getsym_d("frame_step");
 
   if( symtype("cand_thresh") != ST_UNDEF)
