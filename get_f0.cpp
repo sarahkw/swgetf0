@@ -83,6 +83,10 @@ public:
 
   void resetParameters();
 
+  /// @brief Some consistency checks on parameter values. Throws
+  /// ParameterError if there's something wrong.
+  void checkParameters(double sample_freq);
+
   int derp();
 
 protected:
@@ -109,9 +113,7 @@ protected:
 
 private:
 
-  F0_params m_par;
-
-  static void check_f0_params(F0_params *par, double sample_freq);
+  f0_params m_par;
 
 };
 
@@ -172,7 +174,7 @@ int GetF0::derp()
   SW_FILE_PARAMS(sf, "sampling frequency");
 #undef SW_FILE_PARAMS
 
-  check_f0_params(&m_par, sf);
+  checkParameters(sf);
 
   /*SW: Removed range restricter, but this may be interesting:
     if (total_samps < ((par->frame_step * 2.0) + par->wind_dur) * sf), then
@@ -222,37 +224,34 @@ int GetF0::derp()
   exit(0);
 }
 
-/*
- * Some consistency checks on parameter values.
- */
-void GetF0::check_f0_params(F0_params *par, double sample_freq)
+void GetF0::checkParameters(double sample_freq)
 {
   std::vector<std::string> errors;
 
-  if ((par->cand_thresh < 0.01) || (par->cand_thresh > 0.99)) {
+  if ((m_par.cand_thresh < 0.01) || (m_par.cand_thresh > 0.99)) {
     errors.push_back("cand_thresh parameter must be between [0.01, 0.99].");
   }
-  if ((par->wind_dur > .1) || (par->wind_dur < .0001)) {
+  if ((m_par.wind_dur > .1) || (m_par.wind_dur < .0001)) {
     errors.push_back("wind_dur parameter must be between [0.0001, 0.1].");
   }
-  if ((par->n_cands > 100) || (par->n_cands < 3)) {
+  if ((m_par.n_cands > 100) || (m_par.n_cands < 3)) {
     errors.push_back("n_cands parameter must be between [3,100].");
   }
-  if ((par->max_f0 <= par->min_f0) || (par->max_f0 >= (sample_freq / 2.0)) ||
-      (par->min_f0 < (sample_freq / 10000.0))) {
+  if ((m_par.max_f0 <= m_par.min_f0) || (m_par.max_f0 >= (sample_freq / 2.0)) ||
+      (m_par.min_f0 < (sample_freq / 10000.0))) {
     errors.push_back(
         "min(max)_f0 parameter inconsistent with sampling frequency.");
   }
   double dstep =
-      ((double)((int)(0.5 + (sample_freq * par->frame_step)))) / sample_freq;
-  if (dstep != par->frame_step) {
+      ((double)((int)(0.5 + (sample_freq * m_par.frame_step)))) / sample_freq;
+  if (dstep != m_par.frame_step) {
     if (debug_level)
       Fprintf(stderr,
               "Frame step set to %f to exactly match signal sample rate.\n",
               dstep);
-    par->frame_step = dstep;
+    m_par.frame_step = dstep;
   }
-  if ((par->frame_step > 0.1) || (par->frame_step < (1.0 / sample_freq))) {
+  if ((m_par.frame_step > 0.1) || (m_par.frame_step < (1.0 / sample_freq))) {
     errors.push_back(
         "frame_step parameter must be between [1/sampling rate, "
         "0.1].");
