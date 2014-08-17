@@ -41,6 +41,9 @@ int dp_f0(float *fdata, int buff_size, int sdstep, double freq, F0_params *par,
           float **acpkp_pt, int *vecsize, int last_time);
 }
 
+
+
+struct f0_params;
 
 
 namespace GetF0 {
@@ -78,6 +81,8 @@ class GetF0 {
 public:
   GetF0();
 
+  void resetParameters();
+
   int derp();
 
 protected:
@@ -88,11 +93,11 @@ protected:
   ///
   /// `buffer` is not guaranteed to not be written to. (TODO: check to
   /// see if buffer can be written to.)
-  virtual long readSamples(float **buffer, long num_records) { return 0; }
+  virtual long read_samples(float **buffer, long num_records) { return 0; }
 
-  /// @brief Like `readSamples`, but read `step` samples from previous
-  /// buffer.
-  virtual long readSamplesOverlap(float **buffer, long num_records, long step)
+  /// @brief Like `read_samples`, but read `step` samples from
+  /// previous buffer.
+  virtual long read_samples_overlap(float **buffer, long num_records, long step)
   {
     return 0;
   }
@@ -106,18 +111,16 @@ private:
 
   F0_params m_par;
 
-  void init_params();
-
   static void check_f0_params(F0_params *par, double sample_freq);
 
 };
 
 GetF0::GetF0()
 {
-  init_params();
+  resetParameters();
 }
 
-void GetF0::init_params()
+void GetF0::resetParameters()
 {
   m_par.cand_thresh = 0.3;
   m_par.lag_weight = 0.3;
@@ -197,7 +200,7 @@ int GetF0::derp()
 	    buff_size, sdstep);
 
   float* fdata = nullptr;
-  actsize = readSamples(&fdata, buff_size);
+  actsize = read_samples(&fdata, buff_size);
 
   while (1) {
 
@@ -212,7 +215,7 @@ int GetF0::derp()
     if (done)
       break;
 
-    actsize = readSamplesOverlap(&fdata, buff_size, sdstep);
+    actsize = read_samples_overlap(&fdata, buff_size, sdstep);
 
   }
 
