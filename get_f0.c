@@ -32,8 +32,6 @@ static char *sccs_id = "@(#)get_f0.c	1.14	10/21/96	ERL";
 #include "f0.h"
 
 char	    *ProgName = "get_f0";
-static char *Version = "1.14";
-static char *Date = "10/21/96";
 
 int	    debug_level = 0;
 extern void fea_skiprec();
@@ -58,7 +56,7 @@ int main_sw_tmp(ac, av)
   float *fdata;
   char *range = NULL;
   FILE *ifile;
-  struct header *ihd, *ohd;
+  struct header *ihd;
   struct feasd *sd_rec;
   int done;
   long buff_size, actsize;
@@ -121,22 +119,6 @@ int main_sw_tmp(ac, av)
   /*SW: Removed range restricter, but this may be interesting:
     if (total_samps < ((par->frame_step * 2.0) + par->wind_dur) * sf), then
       input range too small*/
-
-  ohd = new_header(FT_FEA);
-  if (ohd == NULL) {
-    Fprintf(stderr, "%s: failed to create output header---exiting.\n",
-	    ProgName);
-    exit(1);
-  }
-  (void) strcpy (ohd->common.prog, ProgName);
-  (void) strcpy (ohd->common.vers, Version);
-  (void) strcpy (ohd->common.progdate, Date);
-  ohd->common.tag = NO;
-
-  add_fea_fld("F0", 1L, 0, (long *) NULL, DOUBLE, (char **) NULL, ohd);
-  add_fea_fld("prob_voice", 1L, 0, (long *) NULL, DOUBLE, (char **) NULL, ohd);
-  add_fea_fld("rms", 1L, 0, (long *) NULL, DOUBLE, (char **) NULL, ohd);
-  add_fea_fld("ac_peak", 1L, 0, (long *) NULL, DOUBLE, (char **) NULL, ohd);
 
   output_starts = par->wind_dur/2.0;
   /* Average delay due to loc. of ref. window center. */
