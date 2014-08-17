@@ -19,13 +19,13 @@
  *
  */
 
+#include "get_f0.h"
+
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
 #include <malloc.h>
 #include <limits.h>
-#include <stdexcept>
-#include <sstream>
 #include <vector>
 
 #include "f0.h"
@@ -43,121 +43,11 @@ int dp_f0(float *fdata, int buff_size, int sdstep, double freq, F0_params *par,
 
 
 
-struct f0_params;
-
-
 namespace GetF0 {
-
-
-// EXCEPTIONS
-
-#define CREATE_ERROR(_Name, _Base)                                   \
-  class _Name : public _Base {                                       \
-  public:                                                            \
-    explicit _Name(const std::string &what_arg) : _Base(what_arg) {} \
-  };
-
-CREATE_ERROR(RuntimeError, std::runtime_error);
-CREATE_ERROR(LogicError, std::logic_error);
-CREATE_ERROR(ParameterError, RuntimeError);
-CREATE_ERROR(ProcessingError, RuntimeError);
-
-#undef CREATE_ERROR
-
-
-#define THROW_ERROR(condition, exception, s) \
-  do {                                       \
-    if (condition) {                         \
-      std::stringstream ss;                  \
-      ss << s;                               \
-      throw exception(ss.str());             \
-    }                                        \
-  } while (0);
-
-
-
-class GetF0 {
-public:
-
-  typedef double SampleFrequency;
-  typedef int DebugLevel;
-
-  GetF0(SampleFrequency sampleFrequency, DebugLevel debugLevel = 0);
-
-  void resetParameters();
-
-  /// @brief Some consistency checks on parameter values. Throws
-  /// ParameterError if there's something wrong.
-  void checkParameters();
-
-  void init();
-  void run();
-
-  // ----------------------------------------
-  // Calculations available after init
-  long streamBufferSize() const;
-  long streamOverlapSize() const;
-
-  // ----------------------------------------
-  // Getters/setters
-
-  float& paramCandThresh()   { return m_par.cand_thresh;    } // only correlation peaks above this are considered
-  float& paramLagWeight()    { return m_par.lag_weight;     } // degree to which shorter lags are weighted
-  float& paramFreqWeight()   { return m_par.freq_weight;    } // weighting given to F0 trajectory smoothness
-  float& paramTransCost()    { return m_par.trans_cost;     } // fixed cost for a voicing-state transition
-  float& paramTransAmp()     { return m_par.trans_amp;      } // amplitude-change-modulated VUV trans. cost
-  float& paramTransSpec()    { return m_par.trans_spec;     } // spectral-change-modulated VUV trans. cost
-  float& paramVoiceBias()    { return m_par.voice_bias;     } // fixed bias towards the voiced hypothesis
-  float& paramDoubleCost()   { return m_par.double_cost;    } // cost for octave F0 jumps
-  float& paramMeanF0()       { return m_par.mean_f0;        } // talker-specific mean F0 (Hz)
-  float& paramMeanF0Weight() { return m_par.mean_f0_weight; } // weight to be given to deviations from mean F0
-  float& paramMinF0()        { return m_par.min_f0;         } // min. F0 to search for (Hz)
-  float& paramMaxF0()        { return m_par.max_f0;         } // max. F0 to search for (Hz)
-  float& paramFrameStep()    { return m_par.frame_step;     } // inter-frame-interval (sec)
-  float& paramWindDur()      { return m_par.wind_dur;       } // duration of correlation window (sec)
-  int  & paramNCands()       { return m_par.n_cands;        } // max. # of F0 cands. to consider at each frame
-  int  & paramConditioning() { return m_par.conditioning;   } // Specify optional signal pre-conditioning.
-
-  SampleFrequency &sampleFrequency() { return m_sampleFrequency; };
-  DebugLevel &debugLevel() { return m_debugLevel; };
-
-protected:
-
-  /// @brief Provide a `buffer` we can read `num_records` samples
-  /// from, returning how many samples we can read. Returning less
-  /// than requested samples is a termination condition.
-  ///
-  /// `buffer` is not guaranteed to not be written to. (TODO: check to
-  /// see if buffer can be written to.)
-  virtual long read_samples(float **buffer, long num_records) { return 0; }
-
-  /// @brief Like `read_samples`, but read `step` samples from
-  /// previous buffer.
-  virtual long read_samples_overlap(float **buffer, long num_records, long step)
-  {
-    return 0;
-  }
-
-  virtual void write_output(float *f0p, float *vuvp, float *rms_speech,
-                            float *acpkp, int vecsize)
-  {
-  }
-
-private:
-
-  f0_params m_par;
-  SampleFrequency m_sampleFrequency;
-  DebugLevel m_debugLevel;
-
-  bool m_initialized;
-
-  long m_streamBufferSize;
-  long m_streamOverlapSize;
-
-};
 
 GetF0::GetF0(SampleFrequency sampleFrequency, DebugLevel debugLevel)
-    : m_sampleFrequency(sampleFrequency),
+    : m_par(new f0_params),
+      m_sampleFrequency(sampleFrequency),
       m_debugLevel(debugLevel),
       m_initialized(false),
       m_streamBufferSize(0),
@@ -166,24 +56,26 @@ GetF0::GetF0(SampleFrequency sampleFrequency, DebugLevel debugLevel)
   resetParameters();
 }
 
+GetF0::~GetF0() { delete m_par; }
+
 void GetF0::resetParameters()
 {
-  m_par.cand_thresh = 0.3;
-  m_par.lag_weight = 0.3;
-  m_par.freq_weight = 0.02;
-  m_par.trans_cost = 0.005;
-  m_par.trans_amp = 0.5;
-  m_par.trans_spec = 0.5;
-  m_par.voice_bias = 0.0;
-  m_par.double_cost = 0.35;
-  m_par.min_f0 = 50;
-  m_par.max_f0 = 550;
-  m_par.frame_step = 0.01;
-  m_par.wind_dur = 0.0075;
-  m_par.n_cands = 20;
-  m_par.mean_f0 = 200;        /* unused */
-  m_par.mean_f0_weight = 0.0; /* unused */
-  m_par.conditioning = 0;     /*unused */
+  m_par->cand_thresh = 0.3;
+  m_par->lag_weight = 0.3;
+  m_par->freq_weight = 0.02;
+  m_par->trans_cost = 0.005;
+  m_par->trans_amp = 0.5;
+  m_par->trans_spec = 0.5;
+  m_par->voice_bias = 0.0;
+  m_par->double_cost = 0.35;
+  m_par->min_f0 = 50;
+  m_par->max_f0 = 550;
+  m_par->frame_step = 0.01;
+  m_par->wind_dur = 0.0075;
+  m_par->n_cands = 20;
+  m_par->mean_f0 = 200;        /* unused */
+  m_par->mean_f0_weight = 0.0; /* unused */
+  m_par->conditioning = 0;     /*unused */
 }
 
 void GetF0::init()
@@ -207,7 +99,7 @@ void GetF0::init()
    * sw: Looks like init_dp_f0 never returns errors via rcode, but put
    * under assertion.
    */
-  THROW_ERROR(init_dp_f0(m_sampleFrequency, &m_par, &m_streamBufferSize,
+  THROW_ERROR(init_dp_f0(m_sampleFrequency, m_par, &m_streamBufferSize,
                          &m_streamOverlapSize) ||
                   m_streamBufferSize > INT_MAX || m_streamOverlapSize > INT_MAX,
               LogicError, "problem in init_dp_f0().");
@@ -219,8 +111,8 @@ void GetF0::run()
 {
   THROW_ERROR(!m_initialized, LogicError, "Not initialized");
 
-  float *fdata = nullptr;
-  float *f0p, *vuvp, *rms_speech, *acpkp;
+  float* fdata = nullptr;
+  float* f0p, *vuvp, *rms_speech, *acpkp;
   int done;
   int i, vecsize;
 
@@ -231,7 +123,7 @@ void GetF0::run()
 
     THROW_ERROR(
         dp_f0(fdata, (int)actsize, (int)m_streamOverlapSize, m_sampleFrequency,
-              &m_par, &f0p, &vuvp, &rms_speech, &acpkp, &vecsize, done),
+              m_par, &f0p, &vuvp, &rms_speech, &acpkp, &vecsize, done),
         ProcessingError, "problem in dp_f0().");
 
     write_output(f0p, vuvp, rms_speech, acpkp, vecsize);
@@ -247,33 +139,33 @@ void GetF0::checkParameters()
 {
   std::vector<std::string> errors;
 
-  if ((m_par.cand_thresh < 0.01) || (m_par.cand_thresh > 0.99)) {
+  if ((m_par->cand_thresh < 0.01) || (m_par->cand_thresh > 0.99)) {
     errors.push_back("cand_thresh parameter must be between [0.01, 0.99].");
   }
-  if ((m_par.wind_dur > .1) || (m_par.wind_dur < .0001)) {
+  if ((m_par->wind_dur > .1) || (m_par->wind_dur < .0001)) {
     errors.push_back("wind_dur parameter must be between [0.0001, 0.1].");
   }
-  if ((m_par.n_cands > 100) || (m_par.n_cands < 3)) {
+  if ((m_par->n_cands > 100) || (m_par->n_cands < 3)) {
     errors.push_back("n_cands parameter must be between [3,100].");
   }
-  if ((m_par.max_f0 <= m_par.min_f0) ||
-      (m_par.max_f0 >= (m_sampleFrequency / 2.0)) ||
-      (m_par.min_f0 < (m_sampleFrequency / 10000.0))) {
+  if ((m_par->max_f0 <= m_par->min_f0) ||
+      (m_par->max_f0 >= (m_sampleFrequency / 2.0)) ||
+      (m_par->min_f0 < (m_sampleFrequency / 10000.0))) {
     errors.push_back(
         "min(max)_f0 parameter inconsistent with sampling frequency.");
   }
   double dstep =
-      ((double)((int)(0.5 + (m_sampleFrequency * m_par.frame_step)))) /
+      ((double)((int)(0.5 + (m_sampleFrequency * m_par->frame_step)))) /
       m_sampleFrequency;
-  if (dstep != m_par.frame_step) {
+  if (dstep != m_par->frame_step) {
     if (debug_level)
       Fprintf(stderr,
               "Frame step set to %f to exactly match signal sample rate.\n",
               dstep);
-    m_par.frame_step = dstep;
+    m_par->frame_step = dstep;
   }
-  if ((m_par.frame_step > 0.1) ||
-      (m_par.frame_step < (1.0 / m_sampleFrequency))) {
+  if ((m_par->frame_step > 0.1) ||
+      (m_par->frame_step < (1.0 / m_sampleFrequency))) {
     errors.push_back(
         "frame_step parameter must be between [1/sampling rate, "
         "0.1].");
@@ -282,7 +174,7 @@ void GetF0::checkParameters()
   if (!errors.empty()) {
     std::stringstream ss;
     bool first = true;
-    for (auto &error : errors) {
+    for (auto& error : errors) {
       if (!first) ss << " ";
       ss << error;
     }
@@ -302,5 +194,23 @@ long GetF0::streamOverlapSize() const
   THROW_ERROR(!m_initialized, LogicError, "Not initialized");
   return m_streamOverlapSize;
 }
+
+float& GetF0::paramCandThresh()   { return m_par->cand_thresh;    }
+float& GetF0::paramLagWeight()    { return m_par->lag_weight;     }
+float& GetF0::paramFreqWeight()   { return m_par->freq_weight;    }
+float& GetF0::paramTransCost()    { return m_par->trans_cost;     }
+float& GetF0::paramTransAmp()     { return m_par->trans_amp;      }
+float& GetF0::paramTransSpec()    { return m_par->trans_spec;     }
+float& GetF0::paramVoiceBias()    { return m_par->voice_bias;     }
+float& GetF0::paramDoubleCost()   { return m_par->double_cost;    }
+float& GetF0::paramMeanF0()       { return m_par->mean_f0;        }
+float& GetF0::paramMeanF0Weight() { return m_par->mean_f0_weight; }
+float& GetF0::paramMinF0()        { return m_par->min_f0;         }
+float& GetF0::paramMaxF0()        { return m_par->max_f0;         }
+float& GetF0::paramFrameStep()    { return m_par->frame_step;     }
+float& GetF0::paramWindDur()      { return m_par->wind_dur;       }
+int  & GetF0::paramNCands()       { return m_par->n_cands;        }
+int  & GetF0::paramConditioning() { return m_par->conditioning;   }
+
 
 } // namespace GetF0
