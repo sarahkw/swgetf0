@@ -22,8 +22,6 @@
 extern "C" {
 #endif
 
-#include <esps/esps.h>
-
 #include <assert.h>
 
 // TODO(sw) When assertion fails, have a custom assert handler so that an

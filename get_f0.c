@@ -25,9 +25,8 @@ static char *sccs_id = "@(#)get_f0.c	1.14	10/21/96	ERL";
 #include <stdlib.h>
 #include <string.h>
 #include <malloc.h>
-#include <esps/esps.h>
-#include <esps/fea.h>
-#include <esps/feasd.h>
+#include <limits.h>
+
 
 #include "f0.h"
 
@@ -153,7 +152,7 @@ int main_sw_tmp(ac, av)
 
   actsize = sw_getf0_read(fdata, buff_size);
 
-  while (TRUE) {
+  while (1) {
 
     done = (actsize < buff_size);
 

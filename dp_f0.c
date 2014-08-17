@@ -59,9 +59,11 @@ static char *sccs_id = "@(#)dp_f0.c	1.14	10/21/96	ERL";
 
 #include <math.h>
 #include <malloc.h>
-#include <esps/esps.h>
+#include <limits.h>
+#include <float.h>
 #include "f0.h"
 #include "f0_structs.h"
+#include "spsassert.h"
 
 extern int  debug_level;
   

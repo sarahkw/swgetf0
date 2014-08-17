@@ -25,9 +25,11 @@ static char *sccs_id = "@(#)sigproc.c	1.4	9/9/96	ERL";
 #include <math.h>
 #include <malloc.h>
 #include <stdlib.h>
-#include <esps/esps.h>
 #include "f0.h"
 #include "f0_structs.h"
+
+#define TRUE 1
+#define FALSE 0
 
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 /* Return a time-weighting window of type type and length n in dout.
