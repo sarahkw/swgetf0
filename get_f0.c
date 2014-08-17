@@ -60,10 +60,9 @@ int main_sw_tmp(ac, av)
   struct header *ihd, *ohd;
   struct feasd *sd_rec;
   struct fea_data *fea_rec;
-  short n_cands;
   int done;
   long buff_size, actsize, s_rec, e_rec;
-  double sf, start_time, output_starts, frame_rate;
+  double sf, output_starts, frame_rate;
   F0_params *par, *read_f0_params();
   char *param_file = NULL;
   float *f0p, *vuvp, *rms_speech, *acpkp;
@@ -185,7 +184,6 @@ int main_sw_tmp(ac, av)
   }
   if (framestep > 0)  /* If a value was specified with -S, use it. */
     par->frame_step = framestep / sf;
-  start_time = get_genhd_val("start_time", ihd, 0.0);
   if(check_f0_params(par, sf)){
     Fprintf(stderr, "%s: invalid/inconsistent parameters -- exiting.\n",
 	    ProgName);
@@ -226,27 +224,9 @@ int main_sw_tmp(ac, av)
   rec_rms = (double *) get_fea_ptr(fea_rec,"rms", ohd);
   rec_acp = (double *) get_fea_ptr(fea_rec,"ac_peak", ohd);
 
-  output_starts = ((s_rec-1) / sf) + start_time + par->wind_dur/2.0; 
+  output_starts = ((s_rec-1) / sf) + par->wind_dur/2.0; 
   /* Average delay due to loc. of ref. window center. */
   frame_rate = 1.0 / par->frame_step;
-
-  (void)add_genhd_d("record_freq", &frame_rate, 1, ohd);
-  (void)add_genhd_d("start_time", &output_starts, 1, ohd);
-  (void)add_genhd_d("src_sf", &sf, 1, ohd);
-  (void)add_genhd_f("cand_thresh", &par->cand_thresh, 1, ohd);
-  (void)add_genhd_f("lag_weight", &par->lag_weight, 1, ohd);
-  (void)add_genhd_f("freq_weight", &par->freq_weight, 1, ohd);
-  (void)add_genhd_f("trans_cost", &par->trans_cost, 1, ohd);
-  (void)add_genhd_f("trans_amp", &par->trans_amp, 1, ohd);
-  (void)add_genhd_f("trans_spec", &par->trans_spec, 1, ohd);
-  (void)add_genhd_f("voice_bias", &par->voice_bias, 1, ohd);
-  (void)add_genhd_f("double_cost", &par->double_cost, 1, ohd);
-  (void)add_genhd_f("min_f0", &par->min_f0, 1, ohd);
-  (void)add_genhd_f("max_f0", &par->max_f0, 1, ohd);
-  (void)add_genhd_f("frame_step", &par->frame_step, 1, ohd);
-  (void)add_genhd_f("wind_dur", &par->wind_dur, 1, ohd);
-  n_cands = (short) par->n_cands;
-  (void)add_genhd_s("n_cands", &n_cands, 1, ohd);
 
   write_header(ohd, ofile);
 
