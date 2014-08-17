@@ -34,7 +34,6 @@ static char *sccs_id = "@(#)get_f0.c	1.14	10/21/96	ERL";
 char	    *ProgName = "get_f0";
 
 int	    debug_level = 0;
-extern void fea_skiprec();
 
 // ----------------------------------------
 // Externs
@@ -57,14 +56,22 @@ void sw_getf0_output(float *f0p, float *vuvp, float *rms_speech, float *acpkp,
 {
 }
 
+long sw_getf0_read(float *buffer, long num_records)
+{
+  return 0;
+}
+
+/// Return how many floats we read. Skip back `step` frames.
+long sw_getf0_read_overlap(float *buffer, long num_records, long step)
+{
+  return 0;
+}
+
 int main_sw_tmp(ac, av)
     int     ac;
     char    **av;
 {
   float *fdata;
-  FILE *ifile;
-  struct header *ihd;
-  struct feasd *sd_rec;
   int done;
   long buff_size, actsize;
   double sf, output_starts, frame_rate;
@@ -114,8 +121,6 @@ int main_sw_tmp(ac, av)
   SW_FILE_PARAMS(sf, "sampling frequency");
 #undef SW_FILE_PARAMS
 
-  eopen(ProgName, av[1337], "r", FT_FEA, FEA_SD, &ihd, &ifile);
-
   if(check_f0_params(par, sf)){
     Fprintf(stderr, "%s: invalid/inconsistent parameters -- exiting.\n",
 	    ProgName);
@@ -147,12 +152,9 @@ int main_sw_tmp(ac, av)
     Fprintf(stderr, "%s: init_dp_f0 returned buff_size %ld, sdstep %ld.\n",
 	    ProgName, buff_size, sdstep);
 
-  sd_rec = allo_feasd_recs(ihd, FLOAT, buff_size, NULL, NO);
-  fdata = (float *) sd_rec->data;
+  fdata = malloc(sizeof(float) * buff_size);
 
-  fea_skiprec(ifile, 0, ihd);
-
-  actsize = get_feasd_recs(sd_rec, 0L, buff_size, ihd, ifile);
+  actsize = sw_getf0_read(fdata, buff_size);
 
   while (TRUE) {
 
@@ -169,7 +171,7 @@ int main_sw_tmp(ac, av)
     if (done)
       break;
 
-    actsize = get_feasd_orecs( sd_rec, 0L, buff_size, sdstep, ihd, ifile);
+    actsize = sw_getf0_read_overlap(fdata, buff_size, sdstep);
 
   }
 
