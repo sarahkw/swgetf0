@@ -24,7 +24,9 @@
 #include <string.h>
 #include <malloc.h>
 #include <limits.h>
-
+#include <stdexcept>
+#include <sstream>
+#include <vector>
 
 #include "f0.h"
 
@@ -39,10 +41,6 @@ int dp_f0(float *fdata, int buff_size, int sdstep, double freq, F0_params *par,
           float **acpkp_pt, int *vecsize, int last_time);
 }
 
-// ----------------------------------------
-// Forward Decl
-
-static int check_f0_params(F0_params *par, double sample_freq);
 
 // ----------------------------------------
 // SW: Library interaction
@@ -62,7 +60,53 @@ long sw_getf0_read_overlap(float *buffer, long num_records, long step)
   return 0;
 }
 
-int main_sw_tmp(int ac, char *av[])
+
+namespace GetF0 {
+
+
+// EXCEPTIONS
+
+#define CREATE_ERROR(_Name, _Base)                                   \
+  class _Name : public _Base {                                       \
+  public:                                                            \
+    explicit _Name(const std::string &what_arg) : _Base(what_arg) {} \
+  };
+
+CREATE_ERROR(RuntimeError, std::runtime_error);
+CREATE_ERROR(LogicError, std::logic_error);
+CREATE_ERROR(ParameterError, RuntimeError);
+CREATE_ERROR(ProcessingError, RuntimeError);
+CREATE_ERROR(AssertionError, LogicError);
+
+#undef CREATE_ERROR
+
+
+#define THROW_ERROR(condition, exception, s) \
+  do {                                       \
+    if (condition) {                         \
+      std::stringstream ss;                  \
+      ss << s;                               \
+      throw exception(ss.str());             \
+    }                                        \
+  } while (0);
+
+
+
+class GetF0 {
+public:
+  GetF0();
+
+  int derp();
+
+private:
+
+  static void check_f0_params(F0_params *par, double sample_freq);
+
+};
+
+
+
+int GetF0::derp()
 {
   float *fdata;
   int done;
@@ -112,10 +156,7 @@ int main_sw_tmp(int ac, char *av[])
   SW_FILE_PARAMS(sf, "sampling frequency");
 #undef SW_FILE_PARAMS
 
-  if(check_f0_params(&par, sf)){
-    Fprintf(stderr, "invalid/inconsistent parameters -- exiting.\n");
-    exit(1);
-  }
+  check_f0_params(&par, sf);
 
   /*SW: Removed range restricter, but this may be interesting:
     if (total_samps < ((par->frame_step * 2.0) + par->wind_dur) * sf), then
@@ -150,11 +191,9 @@ int main_sw_tmp(int ac, char *av[])
 
     done = (actsize < buff_size);
 
-    if (dp_f0(fdata, (int) actsize, (int) sdstep, sf, &par,
-	      &f0p, &vuvp, &rms_speech, &acpkp, &vecsize, done)) {
-      Fprintf(stderr, "problem in dp_f0().\n");
-      exit(1);
-    }
+    THROW_ERROR(dp_f0(fdata, (int)actsize, (int)sdstep, sf, &par, &f0p, &vuvp,
+                      &rms_speech, &acpkp, &vecsize, done),
+                ProcessingError, "problem in dp_f0().");
 
     sw_getf0_output(f0p, vuvp, rms_speech, acpkp, vecsize);
 
@@ -168,51 +207,52 @@ int main_sw_tmp(int ac, char *av[])
   exit(0);
 }
 
-
 /*
  * Some consistency checks on parameter values.
- * Return a positive integer if any errors detected, 0 if none.
  */
-
-static int check_f0_params(F0_params *par, double sample_freq)
+void GetF0::check_f0_params(F0_params *par, double sample_freq)
 {
-  int	  error = 0;
-  double  dstep;
+  std::vector<std::string> errors;
 
-  if((par->cand_thresh < 0.01) || (par->cand_thresh > 0.99)) {
-    Fprintf(stderr,
-	    "ERROR: cand_thresh parameter must be between [0.01, 0.99].\n");
-    error++;
+  if ((par->cand_thresh < 0.01) || (par->cand_thresh > 0.99)) {
+    errors.push_back("cand_thresh parameter must be between [0.01, 0.99].");
   }
-  if((par->wind_dur > .1) || (par->wind_dur < .0001)) {
-    Fprintf(stderr,
-	    "ERROR: wind_dur parameter must be between [0.0001, 0.1].\n");
-    error++;
+  if ((par->wind_dur > .1) || (par->wind_dur < .0001)) {
+    errors.push_back("wind_dur parameter must be between [0.0001, 0.1].");
   }
-  if((par->n_cands > 100) || (par->n_cands < 3)){
-    Fprintf(stderr,
-	    "ERROR: n_cands parameter must be between [3,100].\n"); 
-    error++;
+  if ((par->n_cands > 100) || (par->n_cands < 3)) {
+    errors.push_back("n_cands parameter must be between [3,100].");
   }
-  if((par->max_f0 <= par->min_f0) || (par->max_f0 >= (sample_freq/2.0)) ||
-     (par->min_f0 < (sample_freq/10000.0))){
-    Fprintf(stderr,
-	    "ERROR: min(max)_f0 parameter inconsistent with sampling frequency.\n"); 
-    error++;
+  if ((par->max_f0 <= par->min_f0) || (par->max_f0 >= (sample_freq / 2.0)) ||
+      (par->min_f0 < (sample_freq / 10000.0))) {
+    errors.push_back(
+        "min(max)_f0 parameter inconsistent with sampling frequency.");
   }
-  dstep = ((double)((int)(0.5 + (sample_freq * par->frame_step))))/sample_freq;
-  if(dstep != par->frame_step) {
-    if(debug_level)
+  double dstep =
+      ((double)((int)(0.5 + (sample_freq * par->frame_step)))) / sample_freq;
+  if (dstep != par->frame_step) {
+    if (debug_level)
       Fprintf(stderr,
-	      "Frame step set to %f to exactly match signal sample rate.\n",
-	      dstep);
+              "Frame step set to %f to exactly match signal sample rate.\n",
+              dstep);
     par->frame_step = dstep;
   }
-  if((par->frame_step > 0.1) || (par->frame_step < (1.0/sample_freq))){
-    Fprintf(stderr,
-	    "ERROR: frame_step parameter must be between [1/sampling rate, 0.1].\n"); 
-    error++;
+  if ((par->frame_step > 0.1) || (par->frame_step < (1.0 / sample_freq))) {
+    errors.push_back(
+        "frame_step parameter must be between [1/sampling rate, "
+        "0.1].");
   }
 
-  return(error);
+  if (!errors.empty()) {
+    std::stringstream ss;
+    bool first = true;
+    for (auto &error : errors) {
+      if (!first) ss << " ";
+      ss << error;
+    }
+
+    THROW_ERROR(true, ParameterError, ss.str());
+  }
 }
+
+} // namespace GetF0
