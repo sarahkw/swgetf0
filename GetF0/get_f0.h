@@ -40,6 +40,7 @@ CREATE_ERROR(ProcessingError, RuntimeError);
 class GetF0 {
 public:
 
+  typedef float Sample;
   typedef double SampleFrequency;
   typedef int DebugLevel;
 
@@ -91,11 +92,11 @@ protected:
   ///
   /// `buffer` is not guaranteed to not be written to. (TODO: check to
   /// see if buffer can be written to.)
-  virtual long read_samples(float **buffer, long num_records) = 0;
+  virtual long read_samples(Sample** buffer, long num_records) = 0;
 
   /// @brief Like `read_samples`, but read `step` samples from
   /// previous buffer.
-  virtual long read_samples_overlap(float** buffer, long num_records,
+  virtual long read_samples_overlap(Sample** buffer, long num_records,
                                     long step) = 0;
 
   virtual void write_output(float* f0p, float* vuvp, float* rms_speech,
