@@ -87,7 +87,7 @@ public:
   /// ParameterError if there's something wrong.
   void checkParameters(double sample_freq);
 
-  int derp();
+  void run();
 
 protected:
 
@@ -142,7 +142,7 @@ void GetF0::resetParameters()
   m_par.conditioning = 0;     /*unused */
 }
 
-int GetF0::derp()
+void GetF0::run()
 {
   int done;
   long buff_size, actsize;
@@ -220,8 +220,6 @@ int GetF0::derp()
     actsize = read_samples_overlap(&fdata, buff_size, sdstep);
 
   }
-
-  exit(0);
 }
 
 void GetF0::checkParameters(double sample_freq)
