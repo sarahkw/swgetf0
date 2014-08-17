@@ -79,15 +79,42 @@ CREATE_ERROR(AssertionError, LogicError);
 
 class GetF0 {
 public:
-  GetF0();
+
+  typedef double SampleFrequency;
+  typedef int DebugLevel;
+
+  GetF0(SampleFrequency sampleFrequency, DebugLevel debugLevel = 0);
 
   void resetParameters();
 
   /// @brief Some consistency checks on parameter values. Throws
   /// ParameterError if there's something wrong.
-  void checkParameters(double sample_freq);
+  void checkParameters();
 
   void run();
+
+  // ----------------------------------------
+  // Getters/setters
+
+  float& paramCandThresh()   { return m_par.cand_thresh;    } // only correlation peaks above this are considered
+  float& paramLagWeight()    { return m_par.lag_weight;     } // degree to which shorter lags are weighted
+  float& paramFreqWeight()   { return m_par.freq_weight;    } // weighting given to F0 trajectory smoothness
+  float& paramTransCost()    { return m_par.trans_cost;     } // fixed cost for a voicing-state transition
+  float& paramTransAmp()     { return m_par.trans_amp;      } // amplitude-change-modulated VUV trans. cost
+  float& paramTransSpec()    { return m_par.trans_spec;     } // spectral-change-modulated VUV trans. cost
+  float& paramVoiceBias()    { return m_par.voice_bias;     } // fixed bias towards the voiced hypothesis
+  float& paramDoubleCost()   { return m_par.double_cost;    } // cost for octave F0 jumps
+  float& paramMeanF0()       { return m_par.mean_f0;        } // talker-specific mean F0 (Hz)
+  float& paramMeanF0Weight() { return m_par.mean_f0_weight; } // weight to be given to deviations from mean F0
+  float& paramMinF0()        { return m_par.min_f0;         } // min. F0 to search for (Hz)
+  float& paramMaxF0()        { return m_par.max_f0;         } // max. F0 to search for (Hz)
+  float& paramFrameStep()    { return m_par.frame_step;     } // inter-frame-interval (sec)
+  float& paramWindDur()      { return m_par.wind_dur;       } // duration of correlation window (sec)
+  int  & paramNCands()       { return m_par.n_cands;        } // max. # of F0 cands. to consider at each frame
+  int  & paramConditioning() { return m_par.conditioning;   } // Specify optional signal pre-conditioning.
+
+  SampleFrequency &sampleFrequency() { return m_sampleFrequency; };
+  DebugLevel &debugLevel() { return m_debugLevel; };
 
 protected:
 
@@ -114,10 +141,13 @@ protected:
 private:
 
   f0_params m_par;
+  SampleFrequency m_sampleFrequency;
+  DebugLevel m_debugLevel;
 
 };
 
-GetF0::GetF0()
+GetF0::GetF0(SampleFrequency sampleFrequency, DebugLevel debugLevel)
+    : m_sampleFrequency(sampleFrequency), m_debugLevel(debugLevel)
 {
   resetParameters();
 }
@@ -146,35 +176,12 @@ void GetF0::run()
 {
   int done;
   long buff_size, actsize;
-  double sf, output_starts, frame_rate;
+  double output_starts, frame_rate;
   float *f0p, *vuvp, *rms_speech, *acpkp;
   int i, vecsize;
   long sdstep = 0;
 
-
-#define SW_CUSTOMIZABLE(x) //TODO(sw)
-  SW_CUSTOMIZABLE(debug_level);
-
-  SW_CUSTOMIZABLE(m_par.frame_step);
-  SW_CUSTOMIZABLE(m_par.cand_thresh);
-  SW_CUSTOMIZABLE(m_par.lag_weight);
-  SW_CUSTOMIZABLE(m_par.freq_weight);
-  SW_CUSTOMIZABLE(m_par.trans_cost);
-  SW_CUSTOMIZABLE(m_par.trans_amp);
-  SW_CUSTOMIZABLE(m_par.trans_spec);
-  SW_CUSTOMIZABLE(m_par.voice_bias);
-  SW_CUSTOMIZABLE(m_par.double_cost);
-  SW_CUSTOMIZABLE(m_par.min_f0);
-  SW_CUSTOMIZABLE(m_par.max_f0);
-  SW_CUSTOMIZABLE(m_par.wind_dur);
-  SW_CUSTOMIZABLE(m_par.n_cands);
-#undef SW_CUSTOMIZABLE
-
-#define SW_FILE_PARAMS(x, y) //TODO (sw)
-  SW_FILE_PARAMS(sf, "sampling frequency");
-#undef SW_FILE_PARAMS
-
-  checkParameters(sf);
+  checkParameters();
 
   /*SW: Removed range restricter, but this may be interesting:
     if (total_samps < ((par->frame_step * 2.0) + par->wind_dur) * sf), then
@@ -191,7 +198,7 @@ void GetF0::run()
    * sw: Looks like init_dp_f0 never returns errors via rcode, but put
    * under assertion.
    */
-  THROW_ERROR(init_dp_f0(sf, &m_par, &buff_size, &sdstep) ||
+  THROW_ERROR(init_dp_f0(m_sampleFrequency, &m_par, &buff_size, &sdstep) ||
                   buff_size > INT_MAX || sdstep > INT_MAX,
               AssertionError, "problem in init_dp_f0().");
 
@@ -208,8 +215,8 @@ void GetF0::run()
 
     done = (actsize < buff_size);
 
-    THROW_ERROR(dp_f0(fdata, (int)actsize, (int)sdstep, sf, &m_par, &f0p, &vuvp,
-                      &rms_speech, &acpkp, &vecsize, done),
+    THROW_ERROR(dp_f0(fdata, (int)actsize, (int)sdstep, m_sampleFrequency,
+                      &m_par, &f0p, &vuvp, &rms_speech, &acpkp, &vecsize, done),
                 ProcessingError, "problem in dp_f0().");
 
     writeOutput(f0p, vuvp, rms_speech, acpkp, vecsize);
@@ -222,7 +229,7 @@ void GetF0::run()
   }
 }
 
-void GetF0::checkParameters(double sample_freq)
+void GetF0::checkParameters()
 {
   std::vector<std::string> errors;
 
@@ -235,13 +242,15 @@ void GetF0::checkParameters(double sample_freq)
   if ((m_par.n_cands > 100) || (m_par.n_cands < 3)) {
     errors.push_back("n_cands parameter must be between [3,100].");
   }
-  if ((m_par.max_f0 <= m_par.min_f0) || (m_par.max_f0 >= (sample_freq / 2.0)) ||
-      (m_par.min_f0 < (sample_freq / 10000.0))) {
+  if ((m_par.max_f0 <= m_par.min_f0) ||
+      (m_par.max_f0 >= (m_sampleFrequency / 2.0)) ||
+      (m_par.min_f0 < (m_sampleFrequency / 10000.0))) {
     errors.push_back(
         "min(max)_f0 parameter inconsistent with sampling frequency.");
   }
   double dstep =
-      ((double)((int)(0.5 + (sample_freq * m_par.frame_step)))) / sample_freq;
+      ((double)((int)(0.5 + (m_sampleFrequency * m_par.frame_step)))) /
+      m_sampleFrequency;
   if (dstep != m_par.frame_step) {
     if (debug_level)
       Fprintf(stderr,
@@ -249,7 +258,8 @@ void GetF0::checkParameters(double sample_freq)
               dstep);
     m_par.frame_step = dstep;
   }
-  if ((m_par.frame_step > 0.1) || (m_par.frame_step < (1.0 / sample_freq))) {
+  if ((m_par.frame_step > 0.1) ||
+      (m_par.frame_step < (1.0 / m_sampleFrequency))) {
     errors.push_back(
         "frame_step parameter must be between [1/sampling rate, "
         "0.1].");
