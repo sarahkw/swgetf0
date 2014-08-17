@@ -26,7 +26,6 @@ static char *sccs_id = "@(#)get_f0.c	1.14	10/21/96	ERL";
 #include <string.h>
 #include <malloc.h>
 #include <esps/esps.h>
-#include <esps/range_switch.h>
 #include <esps/fea.h>
 #include <esps/feasd.h>
 
@@ -43,8 +42,6 @@ extern void fea_skiprec();
 
 
 static int check_f0_params(F0_params *par, double sample_freq);
-static void get_range(long *srec, long *erec, char *rng, int pflag, int Sflag,
-                      struct header *hd);
 
 int main_sw_tmp(ac, av)
     int     ac;
@@ -53,7 +50,6 @@ int main_sw_tmp(ac, av)
   extern char *optarg;
   extern int optind, getopt();
   char *get_cmd_line();
-  void get_range();
   float *fdata;
   char c, *ifname, *ofname, *range = NULL;
   FILE *ifile, *ofile;
@@ -61,16 +57,15 @@ int main_sw_tmp(ac, av)
   struct feasd *sd_rec;
   struct fea_data *fea_rec;
   int done;
-  long buff_size, actsize, s_rec, e_rec;
+  long buff_size, actsize;
   double sf, output_starts, frame_rate;
   F0_params *par, *read_f0_params();
   char *param_file = NULL;
   float *f0p, *vuvp, *rms_speech, *acpkp;
   double *rec_F0, *rec_pv, *rec_rms, *rec_acp;
   int i, vecsize;
-  int init_dp_f0(), dp_f0(), check_f0_params(), rflag = 0,
-      sflag = 0;
-  long sdstep = 0, total_samps;
+  int init_dp_f0(), dp_f0(), check_f0_params();
+  long sdstep = 0;
 
   par = (F0_params *) malloc(sizeof(F0_params));
   par->cand_thresh = 0.3;
@@ -94,25 +89,6 @@ int main_sw_tmp(ac, av)
     switch(c){
     case 'P':
       param_file = optarg;
-      break;
-    case 'p':
-    case 'r':
-      if( range ){
-	Fprintf(stderr, "%s: error: -r should not be used with -s.\n",
-		ProgName);
-	exit(1);
-      }
-      range = optarg;
-      rflag++;
-      break;
-    case 's':
-      if( range ){
-	Fprintf(stderr, "%s: error: -s should not be used with -r.\n",
-		ProgName);
-	exit(1);
-      }
-      range = optarg;
-      sflag++;
       break;
     case 'x':
       debug_level = atoi(optarg);
@@ -171,17 +147,10 @@ int main_sw_tmp(ac, av)
     exit(1);
   }
 
-  get_range( &s_rec, &e_rec, range, rflag, sflag, ihd );
-  if(debug_level) 
-    Fprintf(stderr, "%s: input sample range: %ld - %ld.\n",
-	    ProgName, s_rec, e_rec);
-  total_samps = e_rec - s_rec + 1;
-  if(total_samps < ((par->frame_step * 2.0) + par->wind_dur) * sf) {
-    Fprintf(stderr, "%s: input range too small for analysis by get_f0.\n",
-	    ProgName);
-    SYNTAX;
-    exit(1);
-  }
+  /*SW: Removed range restricter, but this may be interesting: 
+    if (total_samps < ((par->frame_step * 2.0) + par->wind_dur) * sf), then
+      input range too small*/
+
   ohd = new_header(FT_FEA);
   if (ohd == NULL) {
     Fprintf(stderr, "%s: failed to create output header---exiting.\n",
@@ -205,7 +174,7 @@ int main_sw_tmp(ac, av)
   rec_rms = (double *) get_fea_ptr(fea_rec,"rms", ohd);
   rec_acp = (double *) get_fea_ptr(fea_rec,"ac_peak", ohd);
 
-  output_starts = ((s_rec-1) / sf) + par->wind_dur/2.0; 
+  output_starts = par->wind_dur/2.0; 
   /* Average delay due to loc. of ref. window center. */
   frame_rate = 1.0 / par->frame_step;
 
@@ -228,16 +197,13 @@ int main_sw_tmp(ac, av)
   sd_rec = allo_feasd_recs(ihd, FLOAT, buff_size, NULL, NO);
   fdata = (float *) sd_rec->data;
   
-  fea_skiprec(ifile, s_rec - 1, ihd);
-
-  if (buff_size > total_samps)
-    buff_size = total_samps;
+  fea_skiprec(ifile, 0, ihd);
 
   actsize = get_feasd_recs(sd_rec, 0L, buff_size, ihd, ifile);
 
   while (TRUE) {
 
-    done = (actsize < buff_size) || (total_samps == buff_size);
+    done = (actsize < buff_size);
 
     if (dp_f0(fdata, (int) actsize, (int) sdstep, sf, par,
 	      &f0p, &vuvp, &rms_speech, &acpkp, &vecsize, done)) {
@@ -257,10 +223,7 @@ int main_sw_tmp(ac, av)
       break;
     
     actsize = get_feasd_orecs( sd_rec, 0L, buff_size, sdstep, ihd, ifile);
-    total_samps -= sdstep;
 
-    if (actsize > total_samps)
-      actsize = total_samps;
   }
 
   exit(0);
@@ -321,51 +284,4 @@ check_f0_params(par, sample_freq)
   }
 
   return(error);
-}
-  
-
-/*
- * This function facilitates ESPS range processing.  It sets srec and erec
- * to their parameter/common values unless a range option has been used, in
- * which case it uses the range specification to set srec and erec.  If
- * there is no range option and if start and nan do not appear in the
- * parameter/common file, then srec and erec are set to 1 and LONG_MAX.
- * Get_range assumes that read_params has been called; If a command-line
- * range option (e.g., -r range) has been used, get_range should be called
- * with positive pflag and with rng equal to the range specification.
- */
-
-static void
-get_range(srec, erec, rng, pflag, Sflag, hd)
-    long	    *srec;	/* starting record */
-    long	    *erec;	/* end record */
-    char	    *rng;	/* range string from range option */
-    int		    pflag;	/* flag for whether -r or -p used */
-    int		    Sflag;	/* flag for whether -S used */
-    struct header   *hd;	/* input file header */
-{
-    long common_nan;
-
-    if (!srec || !erec)
-    {
-	Fprintf(stderr, "get_range: NULL argument.\n");
-	return;
-    }
-
-    *srec = 1;
-    *erec = LONG_MAX;
-    if (pflag)
-        lrange_switch (rng, srec, erec, 1);
-    else if (Sflag)
-        trange_switch (rng, hd, srec, erec);
-    else {
-        if(symtype("start") == ST_INT) {
-            *srec = getsym_i("start");
-        }
-        if(symtype("nan") == ST_INT) {
-            common_nan = getsym_i("nan");
-            if (common_nan != 0)
-                *erec = *srec + common_nan - 1;
-        }
-    }
 }
