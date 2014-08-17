@@ -138,8 +138,8 @@ protected:
     return 0;
   }
 
-  virtual void writeOutput(float *f0p, float *vuvp, float *rms_speech,
-                           float *acpkp, int vecsize)
+  virtual void write_output(float *f0p, float *vuvp, float *rms_speech,
+                            float *acpkp, int vecsize)
   {
   }
 
@@ -234,7 +234,7 @@ void GetF0::run()
               &m_par, &f0p, &vuvp, &rms_speech, &acpkp, &vecsize, done),
         ProcessingError, "problem in dp_f0().");
 
-    writeOutput(f0p, vuvp, rms_speech, acpkp, vecsize);
+    write_output(f0p, vuvp, rms_speech, acpkp, vecsize);
 
     if (done) break;
 
