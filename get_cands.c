@@ -18,8 +18,6 @@
  *
  */
 
-static char *sccs_id = "@(#)get_cands.c	1.5	9/9/96	ERL";
-
 #include <stdio.h>
 #include <math.h>
 #include <malloc.h>

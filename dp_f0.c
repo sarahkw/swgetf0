@@ -18,8 +18,6 @@
  *
  */
 
-static char *sccs_id = "@(#)dp_f0.c	1.14	10/21/96	ERL";
-
 /* A fundamental frequency estimation algorithm using the normalized
    cross correlation function and dynamic programming.  The algorithm
    implemented here is similar to that presented by B. Secrest and

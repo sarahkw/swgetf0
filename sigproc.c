@@ -20,8 +20,6 @@
  *
  */
 
-static char *sccs_id = "@(#)sigproc.c	1.4	9/9/96	ERL";
-
 #include <math.h>
 #include <malloc.h>
 #include <stdlib.h>
