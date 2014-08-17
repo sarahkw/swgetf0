@@ -31,8 +31,6 @@ static char *sccs_id = "@(#)get_f0.c	1.14	10/21/96	ERL";
 
 #include "f0.h"
 
-#define SYNTAX USAGE("get_f0 [-P param_file][-{pr} range][-s range][-S frame_step_samples]\n     [-i frame_step_seconds][-x debug_level] infile outfile")
-
 char	    *ProgName = "get_f0";
 static char *Version = "1.14";
 static char *Date = "10/21/96";
@@ -43,25 +41,30 @@ extern void fea_skiprec();
 
 static int check_f0_params(F0_params *par, double sample_freq);
 
+// ----------------------------------------
+// SW: Library interaction
+void sw_getf0_output(float *f0p, float *vuvp, float *rms_speech, float *acpkp,
+                     int vecsize)
+{
+}
+
 int main_sw_tmp(ac, av)
     int     ac;
     char    **av;
 {
   extern char *optarg;
-  extern int optind, getopt();
+  extern int getopt();
   char *get_cmd_line();
   float *fdata;
-  char c, *ifname, *ofname, *range = NULL;
-  FILE *ifile, *ofile;
+  char *range = NULL;
+  FILE *ifile;
   struct header *ihd, *ohd;
   struct feasd *sd_rec;
-  struct fea_data *fea_rec;
   int done;
   long buff_size, actsize;
   double sf, output_starts, frame_rate;
   F0_params *par, *read_f0_params();
   float *f0p, *vuvp, *rms_speech, *acpkp;
-  double *rec_F0, *rec_pv, *rec_rms, *rec_acp;
   int i, vecsize;
   int init_dp_f0(), dp_f0(), check_f0_params();
   long sdstep = 0;
@@ -84,18 +87,6 @@ int main_sw_tmp(ac, av)
   par->mean_f0_weight = 0.0;  /* unused */
   par->conditioning = 0;    /*unused */
 
-  while((c = getopt(ac,av,"x:P:p:r:s:S:i:")) != EOF){
-    switch(c){
-    default:
-      SYNTAX;
-      exit(1);
-    }
-  }
-
-  if((ac - optind) != 2){
-    SYNTAX;
-    exit(1);
-  }
 
 #define SW_CUSTOMIZABLE(x) //TODO(sw)
   SW_CUSTOMIZABLE(debug_level);
@@ -119,8 +110,7 @@ int main_sw_tmp(ac, av)
   SW_FILE_PARAMS(sf, "sampling frequency");
 #undef SW_FILE_PARAMS
 
-  ifname = eopen(ProgName, av[optind], "r", FT_FEA, FEA_SD, &ihd, &ifile);
-  ofname = eopen(ProgName, av[optind+1], "w", NONE, NONE, &ohd, &ofile);
+  eopen(ProgName, av[1337], "r", FT_FEA, FEA_SD, &ihd, &ifile);
 
   if(check_f0_params(par, sf)){
     Fprintf(stderr, "%s: invalid/inconsistent parameters -- exiting.\n",
@@ -142,24 +132,16 @@ int main_sw_tmp(ac, av)
   (void) strcpy (ohd->common.vers, Version);
   (void) strcpy (ohd->common.progdate, Date);
   ohd->common.tag = NO;
-  add_source_file(ohd,ifname,ihd);
-  add_comment(ohd,get_cmd_line(ac,av));
 
   add_fea_fld("F0", 1L, 0, (long *) NULL, DOUBLE, (char **) NULL, ohd);
   add_fea_fld("prob_voice", 1L, 0, (long *) NULL, DOUBLE, (char **) NULL, ohd);
   add_fea_fld("rms", 1L, 0, (long *) NULL, DOUBLE, (char **) NULL, ohd);
   add_fea_fld("ac_peak", 1L, 0, (long *) NULL, DOUBLE, (char **) NULL, ohd);
-  fea_rec = allo_fea_rec(ohd);
-  rec_F0 = (double *) get_fea_ptr(fea_rec,"F0", ohd);
-  rec_pv = (double *) get_fea_ptr(fea_rec,"prob_voice", ohd);
-  rec_rms = (double *) get_fea_ptr(fea_rec,"rms", ohd);
-  rec_acp = (double *) get_fea_ptr(fea_rec,"ac_peak", ohd);
 
   output_starts = par->wind_dur/2.0;
   /* Average delay due to loc. of ref. window center. */
   frame_rate = 1.0 / par->frame_step;
 
-  write_header(ohd, ofile);
 
   /* Initialize variables in get_f0.c; allocate data structures;
    * determine length and overlap of input frames to read.
@@ -194,13 +176,7 @@ int main_sw_tmp(ac, av)
       exit(1);
     }
 
-    for (i = vecsize - 1; i >= 0; i--) {
-      *rec_F0 = f0p[i];
-      *rec_pv = vuvp[i];
-      *rec_rms = rms_speech[i];
-      *rec_acp = acpkp[i];
-      put_fea_rec(fea_rec, ohd, ofile);
-    }
+    sw_getf0_output(f0p, vuvp, rms_speech, acpkp, vecsize);
 
     if (done)
       break;
