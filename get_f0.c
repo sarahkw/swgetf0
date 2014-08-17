@@ -60,7 +60,6 @@ int main_sw_tmp(ac, av)
   long buff_size, actsize;
   double sf, output_starts, frame_rate;
   F0_params *par, *read_f0_params();
-  char *param_file = NULL;
   float *f0p, *vuvp, *rms_speech, *acpkp;
   double *rec_F0, *rec_pv, *rec_rms, *rec_acp;
   int i, vecsize;
@@ -87,67 +86,49 @@ int main_sw_tmp(ac, av)
 
   while((c = getopt(ac,av,"x:P:p:r:s:S:i:")) != EOF){
     switch(c){
-    case 'P':
-      param_file = optarg;
-      break;
-    case 'x':
-      debug_level = atoi(optarg);
-      break;
     default:
       SYNTAX;
       exit(1);
     }
   }
-  
+
   if((ac - optind) != 2){
     SYNTAX;
     exit(1);
   }
-  
-  (void) read_params(param_file, SC_NOCOMMON, (char *)NULL);
-  
-  if(symtype("frame_step") != ST_UNDEF)
-    par->frame_step = getsym_d("frame_step");
 
-  if( symtype("cand_thresh") != ST_UNDEF)
-    par->cand_thresh = getsym_d("cand_thresh");
-  if( symtype("lag_weight") != ST_UNDEF)
-    par->lag_weight = getsym_d("lag_weight");
-  if( symtype("freq_weight") != ST_UNDEF)
-    par->freq_weight = getsym_d("freq_weight");
-  if( symtype("trans_cost") != ST_UNDEF)
-    par->trans_cost = getsym_d("trans_cost");
-  if( symtype("trans_amp") != ST_UNDEF)
-    par->trans_amp = getsym_d("trans_amp");
-  if( symtype("trans_spec") != ST_UNDEF)
-    par->trans_spec = getsym_d("trans_spec");
-  if( symtype("voice_bias") != ST_UNDEF)
-    par->voice_bias = getsym_d("voice_bias");
-  if( symtype("double_cost") != ST_UNDEF)
-    par->double_cost = getsym_d("double_cost");
-  if( symtype("min_f0") != ST_UNDEF)
-    par->min_f0 = getsym_d("min_f0");
-  if( symtype("max_f0") != ST_UNDEF)
-    par->max_f0 = getsym_d("max_f0");
-  if( symtype("wind_dur") != ST_UNDEF)
-    par->wind_dur = getsym_d("wind_dur");
-  if( symtype("n_cands") != ST_UNDEF)
-    par->n_cands = getsym_i("n_cands");
+#define SW_CUSTOMIZABLE(x) //TODO(sw)
+  SW_CUSTOMIZABLE(debug_level);
+
+  SW_CUSTOMIZABLE(par->frame_step);
+  SW_CUSTOMIZABLE(par->cand_thresh);
+  SW_CUSTOMIZABLE(par->lag_weight);
+  SW_CUSTOMIZABLE(par->freq_weight);
+  SW_CUSTOMIZABLE(par->trans_cost);
+  SW_CUSTOMIZABLE(par->trans_amp);
+  SW_CUSTOMIZABLE(par->trans_spec);
+  SW_CUSTOMIZABLE(par->voice_bias);
+  SW_CUSTOMIZABLE(par->double_cost);
+  SW_CUSTOMIZABLE(par->min_f0);
+  SW_CUSTOMIZABLE(par->max_f0);
+  SW_CUSTOMIZABLE(par->wind_dur);
+  SW_CUSTOMIZABLE(par->n_cands);
+#undef SW_CUSTOMIZABLE
+
+#define SW_FILE_PARAMS(x, y) //TODO (sw)
+  SW_FILE_PARAMS(sf, "sampling frequency");
+#undef SW_FILE_PARAMS
 
   ifname = eopen(ProgName, av[optind], "r", FT_FEA, FEA_SD, &ihd, &ifile);
   ofname = eopen(ProgName, av[optind+1], "w", NONE, NONE, &ohd, &ofile);
-  sf = get_genhd_val("record_freq", ihd, 0.0);
-  if (sf == 0.0) {
-    Fprintf(stderr, "%s: no sampling frequency---exiting.\n", ProgName);
-    exit(1);
-  }
+
   if(check_f0_params(par, sf)){
     Fprintf(stderr, "%s: invalid/inconsistent parameters -- exiting.\n",
 	    ProgName);
     exit(1);
   }
 
-  /*SW: Removed range restricter, but this may be interesting: 
+  /*SW: Removed range restricter, but this may be interesting:
     if (total_samps < ((par->frame_step * 2.0) + par->wind_dur) * sf), then
       input range too small*/
 
@@ -174,7 +155,7 @@ int main_sw_tmp(ac, av)
   rec_rms = (double *) get_fea_ptr(fea_rec,"rms", ohd);
   rec_acp = (double *) get_fea_ptr(fea_rec,"ac_peak", ohd);
 
-  output_starts = par->wind_dur/2.0; 
+  output_starts = par->wind_dur/2.0;
   /* Average delay due to loc. of ref. window center. */
   frame_rate = 1.0 / par->frame_step;
 
@@ -190,13 +171,15 @@ int main_sw_tmp(ac, av)
     exit(1);
   }
 
+  /*SW: pass sdstep to caller so it knows how much we have to buffer. */
+
   if (debug_level)
     Fprintf(stderr, "%s: init_dp_f0 returned buff_size %ld, sdstep %ld.\n",
 	    ProgName, buff_size, sdstep);
 
   sd_rec = allo_feasd_recs(ihd, FLOAT, buff_size, NULL, NO);
   fdata = (float *) sd_rec->data;
-  
+
   fea_skiprec(ifile, 0, ihd);
 
   actsize = get_feasd_recs(sd_rec, 0L, buff_size, ihd, ifile);
@@ -221,7 +204,7 @@ int main_sw_tmp(ac, av)
 
     if (done)
       break;
-    
+
     actsize = get_feasd_orecs( sd_rec, 0L, buff_size, sdstep, ihd, ifile);
 
   }
