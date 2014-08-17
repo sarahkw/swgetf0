@@ -46,7 +46,7 @@ static int check_f0_params(F0_params *par, double sample_freq);
 static void get_range(long *srec, long *erec, char *rng, int pflag, int Sflag,
                       struct header *hd);
 
-int main(ac, av)
+int main_sw_tmp(ac, av)
     int     ac;
     char    **av;
 {
