@@ -94,6 +94,11 @@ public:
   void run();
 
   // ----------------------------------------
+  // Calculations available after init
+  long streamBufferSize() const;
+  long streamOverlapSize() const;
+
+  // ----------------------------------------
   // Getters/setters
 
   float& paramCandThresh()   { return m_par.cand_thresh;    } // only correlation peaks above this are considered
@@ -146,8 +151,8 @@ private:
 
   bool m_initialized;
 
-  long m_buffSize;
-  long m_sdstep;
+  long m_streamBufferSize;
+  long m_streamOverlapSize;
 
 };
 
@@ -155,8 +160,8 @@ GetF0::GetF0(SampleFrequency sampleFrequency, DebugLevel debugLevel)
     : m_sampleFrequency(sampleFrequency),
       m_debugLevel(debugLevel),
       m_initialized(false),
-      m_buffSize(0),
-      m_sdstep(0)
+      m_streamBufferSize(0),
+      m_streamOverlapSize(0)
 {
   resetParameters();
 }
@@ -202,8 +207,9 @@ void GetF0::init()
    * sw: Looks like init_dp_f0 never returns errors via rcode, but put
    * under assertion.
    */
-  THROW_ERROR(init_dp_f0(m_sampleFrequency, &m_par, &m_buffSize, &m_sdstep) ||
-                  m_buffSize > INT_MAX || m_sdstep > INT_MAX,
+  THROW_ERROR(init_dp_f0(m_sampleFrequency, &m_par, &m_streamBufferSize,
+                         &m_streamOverlapSize) ||
+                  m_streamBufferSize > INT_MAX || m_streamOverlapSize > INT_MAX,
               LogicError, "problem in init_dp_f0().");
 
   m_initialized = true;
@@ -213,28 +219,27 @@ void GetF0::run()
 {
   THROW_ERROR(!m_initialized, LogicError, "Not initialized");
 
-  float* fdata = nullptr;
+  float *fdata = nullptr;
   float *f0p, *vuvp, *rms_speech, *acpkp;
   int done;
   int i, vecsize;
 
-  long actsize = read_samples(&fdata, m_buffSize);
+  long actsize = read_samples(&fdata, m_streamBufferSize);
 
   while (true) {
+    done = (actsize < m_streamBufferSize);
 
-    done = (actsize < m_buffSize);
-
-    THROW_ERROR(dp_f0(fdata, (int)actsize, (int)m_sdstep, m_sampleFrequency,
-                      &m_par, &f0p, &vuvp, &rms_speech, &acpkp, &vecsize, done),
-                ProcessingError, "problem in dp_f0().");
+    THROW_ERROR(
+        dp_f0(fdata, (int)actsize, (int)m_streamOverlapSize, m_sampleFrequency,
+              &m_par, &f0p, &vuvp, &rms_speech, &acpkp, &vecsize, done),
+        ProcessingError, "problem in dp_f0().");
 
     writeOutput(f0p, vuvp, rms_speech, acpkp, vecsize);
 
-    if (done)
-      break;
+    if (done) break;
 
-    actsize = read_samples_overlap(&fdata, m_buffSize, m_sdstep);
-
+    actsize =
+        read_samples_overlap(&fdata, m_streamBufferSize, m_streamOverlapSize);
   }
 }
 
@@ -284,6 +289,18 @@ void GetF0::checkParameters()
 
     THROW_ERROR(true, ParameterError, ss.str());
   }
+}
+
+long GetF0::streamBufferSize() const
+{
+  THROW_ERROR(!m_initialized, LogicError, "Not initialized");
+  return m_streamBufferSize;
+}
+
+long GetF0::streamOverlapSize() const
+{
+  THROW_ERROR(!m_initialized, LogicError, "Not initialized");
+  return m_streamOverlapSize;
 }
 
 } // namespace GetF0
