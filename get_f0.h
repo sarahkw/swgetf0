@@ -35,6 +35,8 @@ CREATE_ERROR(ProcessingError, RuntimeError);
 
 
 
+/// Wraps ESPS get_f0. Make sure you only have one of these active in
+/// each address space because it uses global memory.
 class GetF0 {
 public:
 
