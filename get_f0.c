@@ -68,7 +68,7 @@ int main_sw_tmp(ac, av)
   float *f0p, *vuvp, *rms_speech, *acpkp;
   double *rec_F0, *rec_pv, *rec_rms, *rec_acp;
   int i, vecsize;
-  int init_dp_f0(), dp_f0(), check_f0_params(), framestep = -1, rflag = 0,
+  int init_dp_f0(), dp_f0(), check_f0_params(), rflag = 0,
       sflag = 0, iflag = 0;
   long sdstep = 0, total_samps;
 
@@ -114,20 +114,7 @@ int main_sw_tmp(ac, av)
       range = optarg;
       sflag++;
       break;
-    case 'S':
-      if( iflag ){
-	Fprintf(stderr, "%s: error: -S should not be used with -i.\n",
-		ProgName);
-	exit(1);
-      }
-      framestep = atoi(optarg);
-      break;
     case 'i':
-      if(framestep > 0){
-	Fprintf(stderr, "%s: error: -i should not be used with -S.\n",
-		ProgName);
-	exit(1);
-      }
       par->frame_step = atof(optarg);
       iflag++;
       break;
@@ -147,7 +134,7 @@ int main_sw_tmp(ac, av)
   
   (void) read_params(param_file, SC_NOCOMMON, (char *)NULL);
   
-  if( framestep < 0 && !iflag && symtype("frame_step") != ST_UNDEF)
+  if(!iflag && symtype("frame_step") != ST_UNDEF)
     par->frame_step = getsym_d("frame_step");
 
   if( symtype("cand_thresh") != ST_UNDEF)
@@ -182,8 +169,6 @@ int main_sw_tmp(ac, av)
     Fprintf(stderr, "%s: no sampling frequency---exiting.\n", ProgName);
     exit(1);
   }
-  if (framestep > 0)  /* If a value was specified with -S, use it. */
-    par->frame_step = framestep / sf;
   if(check_f0_params(par, sf)){
     Fprintf(stderr, "%s: invalid/inconsistent parameters -- exiting.\n",
 	    ProgName);
