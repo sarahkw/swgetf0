@@ -19,8 +19,6 @@
  *
  */
 
-static char *sccs_id = "@(#)get_f0.c	1.14	10/21/96	ERL";
-
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
@@ -34,12 +32,12 @@ int	    debug_level = 0;
 
 // ----------------------------------------
 // Externs
-extern int init_dp_f0(double freq, F0_params *par, long *buffsize,
-                      long *sdstep);
-extern int dp_f0(float *fdata, int buff_size, int sdstep, double freq,
-                 F0_params *par, float **f0p_pt, float **vuvp_pt,
-                 float **rms_speech_pt, float **acpkp_pt, int *vecsize,
-                 int last_time);
+extern "C" {
+int init_dp_f0(double freq, F0_params *par, long *buffsize, long *sdstep);
+int dp_f0(float *fdata, int buff_size, int sdstep, double freq, F0_params *par,
+          float **f0p_pt, float **vuvp_pt, float **rms_speech_pt,
+          float **acpkp_pt, int *vecsize, int last_time);
+}
 
 // ----------------------------------------
 // Forward Decl
@@ -64,9 +62,7 @@ long sw_getf0_read_overlap(float *buffer, long num_records, long step)
   return 0;
 }
 
-int main_sw_tmp(ac, av)
-    int     ac;
-    char    **av;
+int main_sw_tmp(int ac, char *av[])
 {
   float *fdata;
   int done;
@@ -148,7 +144,7 @@ int main_sw_tmp(ac, av)
     Fprintf(stderr, "init_dp_f0 returned buff_size %ld, sdstep %ld.\n",
 	    buff_size, sdstep);
 
-  fdata = malloc(sizeof(float) * buff_size);
+  fdata = static_cast<float*>(malloc(sizeof(float) * buff_size));
 
   actsize = sw_getf0_read(fdata, buff_size);
 
@@ -180,10 +176,7 @@ int main_sw_tmp(ac, av)
  * Return a positive integer if any errors detected, 0 if none.
  */
 
-static int
-check_f0_params(par, sample_freq)
-    F0_params   *par;
-    double      sample_freq;
+static int check_f0_params(F0_params *par, double sample_freq)
 {
   int	  error = 0;
   double  dstep;
