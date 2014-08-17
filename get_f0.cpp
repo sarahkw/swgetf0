@@ -61,7 +61,6 @@ CREATE_ERROR(RuntimeError, std::runtime_error);
 CREATE_ERROR(LogicError, std::logic_error);
 CREATE_ERROR(ParameterError, RuntimeError);
 CREATE_ERROR(ProcessingError, RuntimeError);
-CREATE_ERROR(AssertionError, LogicError);
 
 #undef CREATE_ERROR
 
@@ -91,6 +90,7 @@ public:
   /// ParameterError if there's something wrong.
   void checkParameters();
 
+  void init();
   void run();
 
   // ----------------------------------------
@@ -144,10 +144,19 @@ private:
   SampleFrequency m_sampleFrequency;
   DebugLevel m_debugLevel;
 
+  bool m_initialized;
+
+  long m_buffSize;
+  long m_sdstep;
+
 };
 
 GetF0::GetF0(SampleFrequency sampleFrequency, DebugLevel debugLevel)
-    : m_sampleFrequency(sampleFrequency), m_debugLevel(debugLevel)
+    : m_sampleFrequency(sampleFrequency),
+      m_debugLevel(debugLevel),
+      m_initialized(false),
+      m_buffSize(0),
+      m_sdstep(0)
 {
   resetParameters();
 }
@@ -172,25 +181,20 @@ void GetF0::resetParameters()
   m_par.conditioning = 0;     /*unused */
 }
 
-void GetF0::run()
+void GetF0::init()
 {
-  int done;
-  long buff_size, actsize;
-  double output_starts, frame_rate;
-  float *f0p, *vuvp, *rms_speech, *acpkp;
-  int i, vecsize;
-  long sdstep = 0;
-
   checkParameters();
 
   /*SW: Removed range restricter, but this may be interesting:
     if (total_samps < ((par->frame_step * 2.0) + par->wind_dur) * sf), then
       input range too small*/
 
-  output_starts = m_par.wind_dur/2.0;
+  // double output_starts = m_par.wind_dur/2.0;
   /* Average delay due to loc. of ref. window center. */
-  frame_rate = 1.0 / m_par.frame_step;
+  //   SW: I think this is the time delay until output actually
+  //       starts. In other words, we'll have some dropped frames.
 
+  // double frame_rate = 1.0 / m_par.frame_step;
 
   /* Initialize variables in get_f0.c; allocate data structures;
    * determine length and overlap of input frames to read.
@@ -198,24 +202,29 @@ void GetF0::run()
    * sw: Looks like init_dp_f0 never returns errors via rcode, but put
    * under assertion.
    */
-  THROW_ERROR(init_dp_f0(m_sampleFrequency, &m_par, &buff_size, &sdstep) ||
-                  buff_size > INT_MAX || sdstep > INT_MAX,
-              AssertionError, "problem in init_dp_f0().");
+  THROW_ERROR(init_dp_f0(m_sampleFrequency, &m_par, &m_buffSize, &m_sdstep) ||
+                  m_buffSize > INT_MAX || m_sdstep > INT_MAX,
+              LogicError, "problem in init_dp_f0().");
 
-  /*SW: pass sdstep to caller so it knows how much we have to buffer. */
+  m_initialized = true;
+}
 
-  if (debug_level)
-    Fprintf(stderr, "init_dp_f0 returned buff_size %ld, sdstep %ld.\n",
-	    buff_size, sdstep);
+void GetF0::run()
+{
+  THROW_ERROR(!m_initialized, LogicError, "Not initialized");
 
   float* fdata = nullptr;
-  actsize = read_samples(&fdata, buff_size);
+  float *f0p, *vuvp, *rms_speech, *acpkp;
+  int done;
+  int i, vecsize;
+
+  long actsize = read_samples(&fdata, m_buffSize);
 
   while (true) {
 
-    done = (actsize < buff_size);
+    done = (actsize < m_buffSize);
 
-    THROW_ERROR(dp_f0(fdata, (int)actsize, (int)sdstep, m_sampleFrequency,
+    THROW_ERROR(dp_f0(fdata, (int)actsize, (int)m_sdstep, m_sampleFrequency,
                       &m_par, &f0p, &vuvp, &rms_speech, &acpkp, &vecsize, done),
                 ProcessingError, "problem in dp_f0().");
 
@@ -224,7 +233,7 @@ void GetF0::run()
     if (done)
       break;
 
-    actsize = read_samples_overlap(&fdata, buff_size, sdstep);
+    actsize = read_samples_overlap(&fdata, m_buffSize, m_sdstep);
 
   }
 }
