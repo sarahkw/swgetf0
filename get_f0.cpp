@@ -104,11 +104,38 @@ protected:
 
 private:
 
+  F0_params m_par;
+
+  void init_params();
+
   static void check_f0_params(F0_params *par, double sample_freq);
 
 };
 
+GetF0::GetF0()
+{
+  init_params();
+}
 
+void GetF0::init_params()
+{
+  m_par.cand_thresh = 0.3;
+  m_par.lag_weight = 0.3;
+  m_par.freq_weight = 0.02;
+  m_par.trans_cost = 0.005;
+  m_par.trans_amp = 0.5;
+  m_par.trans_spec = 0.5;
+  m_par.voice_bias = 0.0;
+  m_par.double_cost = 0.35;
+  m_par.min_f0 = 50;
+  m_par.max_f0 = 550;
+  m_par.frame_step = 0.01;
+  m_par.wind_dur = 0.0075;
+  m_par.n_cands = 20;
+  m_par.mean_f0 = 200;        /* unused */
+  m_par.mean_f0_weight = 0.0; /* unused */
+  m_par.conditioning = 0;     /*unused */
+}
 
 int GetF0::derp()
 {
@@ -119,55 +146,38 @@ int GetF0::derp()
   int i, vecsize;
   long sdstep = 0;
 
-  F0_params par;
-  par.cand_thresh = 0.3;
-  par.lag_weight = 0.3;
-  par.freq_weight = 0.02;
-  par.trans_cost = 0.005;
-  par.trans_amp = 0.5;
-  par.trans_spec = 0.5;
-  par.voice_bias = 0.0;
-  par.double_cost = 0.35;
-  par.min_f0 = 50;
-  par.max_f0 = 550;
-  par.frame_step = 0.01;
-  par.wind_dur = 0.0075;
-  par.n_cands = 20;
-  par.mean_f0 = 200;     /* unused */
-  par.mean_f0_weight = 0.0;  /* unused */
-  par.conditioning = 0;    /*unused */
 
 #define SW_CUSTOMIZABLE(x) //TODO(sw)
   SW_CUSTOMIZABLE(debug_level);
 
-  SW_CUSTOMIZABLE(par.frame_step);
-  SW_CUSTOMIZABLE(par.cand_thresh);
-  SW_CUSTOMIZABLE(par.lag_weight);
-  SW_CUSTOMIZABLE(par.freq_weight);
-  SW_CUSTOMIZABLE(par.trans_cost);
-  SW_CUSTOMIZABLE(par.trans_amp);
-  SW_CUSTOMIZABLE(par.trans_spec);
-  SW_CUSTOMIZABLE(par.voice_bias);
-  SW_CUSTOMIZABLE(par.double_cost);
-  SW_CUSTOMIZABLE(par.min_f0);
-  SW_CUSTOMIZABLE(par.max_f0);
-  SW_CUSTOMIZABLE(par.wind_dur);
-  SW_CUSTOMIZABLE(par.n_cands);
+  SW_CUSTOMIZABLE(m_par.frame_step);
+  SW_CUSTOMIZABLE(m_par.cand_thresh);
+  SW_CUSTOMIZABLE(m_par.lag_weight);
+  SW_CUSTOMIZABLE(m_par.freq_weight);
+  SW_CUSTOMIZABLE(m_par.trans_cost);
+  SW_CUSTOMIZABLE(m_par.trans_amp);
+  SW_CUSTOMIZABLE(m_par.trans_spec);
+  SW_CUSTOMIZABLE(m_par.voice_bias);
+  SW_CUSTOMIZABLE(m_par.double_cost);
+  SW_CUSTOMIZABLE(m_par.min_f0);
+  SW_CUSTOMIZABLE(m_par.max_f0);
+  SW_CUSTOMIZABLE(m_par.wind_dur);
+  SW_CUSTOMIZABLE(m_par.n_cands);
 #undef SW_CUSTOMIZABLE
 
 #define SW_FILE_PARAMS(x, y) //TODO (sw)
   SW_FILE_PARAMS(sf, "sampling frequency");
 #undef SW_FILE_PARAMS
 
-  check_f0_params(&par, sf);
+  check_f0_params(&m_par, sf);
 
   /*SW: Removed range restricter, but this may be interesting:
     if (total_samps < ((par->frame_step * 2.0) + par->wind_dur) * sf), then
       input range too small*/
 
-  output_starts = par.wind_dur/2.0;
+  output_starts = m_par.wind_dur/2.0;
   /* Average delay due to loc. of ref. window center. */
-  frame_rate = 1.0 / par.frame_step;
+  frame_rate = 1.0 / m_par.frame_step;
 
 
   /* Initialize variables in get_f0.c; allocate data structures;
@@ -176,7 +186,7 @@ int GetF0::derp()
    * sw: Looks like init_dp_f0 never returns errors via rcode, but put
    * under assertion.
    */
-  THROW_ERROR(init_dp_f0(sf, &par, &buff_size, &sdstep) ||
+  THROW_ERROR(init_dp_f0(sf, &m_par, &buff_size, &sdstep) ||
                   buff_size > INT_MAX || sdstep > INT_MAX,
               AssertionError, "problem in init_dp_f0().");
 
@@ -193,7 +203,7 @@ int GetF0::derp()
 
     done = (actsize < buff_size);
 
-    THROW_ERROR(dp_f0(fdata, (int)actsize, (int)sdstep, sf, &par, &f0p, &vuvp,
+    THROW_ERROR(dp_f0(fdata, (int)actsize, (int)sdstep, sf, &m_par, &f0p, &vuvp,
                       &rms_speech, &acpkp, &vecsize, done),
                 ProcessingError, "problem in dp_f0().");
 
