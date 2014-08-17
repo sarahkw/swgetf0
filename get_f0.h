@@ -91,19 +91,15 @@ protected:
   ///
   /// `buffer` is not guaranteed to not be written to. (TODO: check to
   /// see if buffer can be written to.)
-  virtual long read_samples(float **buffer, long num_records) { return 0; }
+  virtual long read_samples(float **buffer, long num_records) = 0;
 
   /// @brief Like `read_samples`, but read `step` samples from
   /// previous buffer.
-  virtual long read_samples_overlap(float **buffer, long num_records, long step)
-  {
-    return 0;
-  }
+  virtual long read_samples_overlap(float** buffer, long num_records,
+                                    long step) = 0;
 
-  virtual void write_output(float *f0p, float *vuvp, float *rms_speech,
-                            float *acpkp, int vecsize)
-  {
-  }
+  virtual void write_output(float* f0p, float* vuvp, float* rms_speech,
+                            float* acpkp, int vecsize) = 0;
 
 private:
 
