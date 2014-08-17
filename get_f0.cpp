@@ -204,7 +204,7 @@ int GetF0::derp()
   float* fdata = nullptr;
   actsize = read_samples(&fdata, buff_size);
 
-  while (1) {
+  while (true) {
 
     done = (actsize < buff_size);
 
