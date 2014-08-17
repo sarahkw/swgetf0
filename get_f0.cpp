@@ -42,24 +42,6 @@ int dp_f0(float *fdata, int buff_size, int sdstep, double freq, F0_params *par,
 }
 
 
-// ----------------------------------------
-// SW: Library interaction
-void sw_getf0_output(float *f0p, float *vuvp, float *rms_speech, float *acpkp,
-                     int vecsize)
-{
-}
-
-long sw_getf0_read(float *buffer, long num_records)
-{
-  return 0;
-}
-
-/// Return how many floats we read. Skip back `step` frames.
-long sw_getf0_read_overlap(float *buffer, long num_records, long step)
-{
-  return 0;
-}
-
 
 namespace GetF0 {
 
@@ -98,6 +80,28 @@ public:
 
   int derp();
 
+protected:
+
+  /// @brief Provide a `buffer` we can read `num_records` samples
+  /// from, returning how many samples we can read. Returning less
+  /// than requested samples is a termination condition.
+  ///
+  /// `buffer` is not guaranteed to not be written to. (TODO: check to
+  /// see if buffer can be written to.)
+  virtual long readSamples(float **buffer, long num_records) { return 0; }
+
+  /// @brief Like `readSamples`, but read `step` samples from previous
+  /// buffer.
+  virtual long readSamplesOverlap(float **buffer, long num_records, long step)
+  {
+    return 0;
+  }
+
+  virtual void writeOutput(float *f0p, float *vuvp, float *rms_speech,
+                           float *acpkp, int vecsize)
+  {
+  }
+
 private:
 
   static void check_f0_params(F0_params *par, double sample_freq);
@@ -108,7 +112,6 @@ private:
 
 int GetF0::derp()
 {
-  float *fdata;
   int done;
   long buff_size, actsize;
   double sf, output_starts, frame_rate;
@@ -169,13 +172,13 @@ int GetF0::derp()
 
   /* Initialize variables in get_f0.c; allocate data structures;
    * determine length and overlap of input frames to read.
+   *
+   * sw: Looks like init_dp_f0 never returns errors via rcode, but put
+   * under assertion.
    */
-  if (init_dp_f0(sf, &par, &buff_size, &sdstep)
-      || buff_size > INT_MAX || sdstep > INT_MAX)
-  {
-    Fprintf(stderr, "problem in init_dp_f0().\n");
-    exit(1);
-  }
+  THROW_ERROR(init_dp_f0(sf, &par, &buff_size, &sdstep) ||
+                  buff_size > INT_MAX || sdstep > INT_MAX,
+              AssertionError, "problem in init_dp_f0().");
 
   /*SW: pass sdstep to caller so it knows how much we have to buffer. */
 
@@ -183,9 +186,8 @@ int GetF0::derp()
     Fprintf(stderr, "init_dp_f0 returned buff_size %ld, sdstep %ld.\n",
 	    buff_size, sdstep);
 
-  fdata = static_cast<float*>(malloc(sizeof(float) * buff_size));
-
-  actsize = sw_getf0_read(fdata, buff_size);
+  float* fdata = nullptr;
+  actsize = readSamples(&fdata, buff_size);
 
   while (1) {
 
@@ -195,12 +197,12 @@ int GetF0::derp()
                       &rms_speech, &acpkp, &vecsize, done),
                 ProcessingError, "problem in dp_f0().");
 
-    sw_getf0_output(f0p, vuvp, rms_speech, acpkp, vecsize);
+    writeOutput(f0p, vuvp, rms_speech, acpkp, vecsize);
 
     if (done)
       break;
 
-    actsize = sw_getf0_read_overlap(fdata, buff_size, sdstep);
+    actsize = readSamplesOverlap(&fdata, buff_size, sdstep);
 
   }
 
