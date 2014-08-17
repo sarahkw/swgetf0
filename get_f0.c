@@ -36,6 +36,17 @@ char	    *ProgName = "get_f0";
 int	    debug_level = 0;
 extern void fea_skiprec();
 
+// ----------------------------------------
+// Externs
+extern int init_dp_f0(double freq, F0_params *par, long *buffsize,
+                      long *sdstep);
+extern int dp_f0(float *fdata, int buff_size, int sdstep, double freq,
+                 F0_params *par, float **f0p_pt, float **vuvp_pt,
+                 float **rms_speech_pt, float **acpkp_pt, int *vecsize,
+                 int last_time);
+
+// ----------------------------------------
+// Forward Decl
 
 static int check_f0_params(F0_params *par, double sample_freq);
 
@@ -50,21 +61,16 @@ int main_sw_tmp(ac, av)
     int     ac;
     char    **av;
 {
-  extern char *optarg;
-  extern int getopt();
-  char *get_cmd_line();
   float *fdata;
-  char *range = NULL;
   FILE *ifile;
   struct header *ihd;
   struct feasd *sd_rec;
   int done;
   long buff_size, actsize;
   double sf, output_starts, frame_rate;
-  F0_params *par, *read_f0_params();
+  F0_params *par;
   float *f0p, *vuvp, *rms_speech, *acpkp;
   int i, vecsize;
-  int init_dp_f0(), dp_f0(), check_f0_params();
   long sdstep = 0;
 
   par = (F0_params *) malloc(sizeof(F0_params));
