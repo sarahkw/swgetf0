@@ -31,8 +31,6 @@ static char *sccs_id = "@(#)get_f0.c	1.14	10/21/96	ERL";
 
 #include "f0.h"
 
-char	    *ProgName = "get_f0";
-
 int	    debug_level = 0;
 
 // ----------------------------------------
@@ -122,8 +120,7 @@ int main_sw_tmp(ac, av)
 #undef SW_FILE_PARAMS
 
   if(check_f0_params(par, sf)){
-    Fprintf(stderr, "%s: invalid/inconsistent parameters -- exiting.\n",
-	    ProgName);
+    Fprintf(stderr, "invalid/inconsistent parameters -- exiting.\n");
     exit(1);
   }
 
@@ -142,15 +139,15 @@ int main_sw_tmp(ac, av)
   if (init_dp_f0(sf, par, &buff_size, &sdstep)
       || buff_size > INT_MAX || sdstep > INT_MAX)
   {
-    Fprintf(stderr, "%s: problem in init_dp_f0().\n", ProgName);
+    Fprintf(stderr, "problem in init_dp_f0().\n");
     exit(1);
   }
 
   /*SW: pass sdstep to caller so it knows how much we have to buffer. */
 
   if (debug_level)
-    Fprintf(stderr, "%s: init_dp_f0 returned buff_size %ld, sdstep %ld.\n",
-	    ProgName, buff_size, sdstep);
+    Fprintf(stderr, "init_dp_f0 returned buff_size %ld, sdstep %ld.\n",
+	    buff_size, sdstep);
 
   fdata = malloc(sizeof(float) * buff_size);
 
@@ -162,7 +159,7 @@ int main_sw_tmp(ac, av)
 
     if (dp_f0(fdata, (int) actsize, (int) sdstep, sf, par,
 	      &f0p, &vuvp, &rms_speech, &acpkp, &vecsize, done)) {
-      Fprintf(stderr, "%s: problem in dp_f0().\n", ProgName);
+      Fprintf(stderr, "problem in dp_f0().\n");
       exit(1);
     }
 
@@ -194,41 +191,36 @@ check_f0_params(par, sample_freq)
 
   if((par->cand_thresh < 0.01) || (par->cand_thresh > 0.99)) {
     Fprintf(stderr,
-	    "%s: ERROR: cand_thresh parameter must be between [0.01, 0.99].\n",
-	    ProgName);
+	    "ERROR: cand_thresh parameter must be between [0.01, 0.99].\n");
     error++;
   }
   if((par->wind_dur > .1) || (par->wind_dur < .0001)) {
     Fprintf(stderr,
-	    "%s: ERROR: wind_dur parameter must be between [0.0001, 0.1].\n",
-	    ProgName);
+	    "ERROR: wind_dur parameter must be between [0.0001, 0.1].\n");
     error++;
   }
   if((par->n_cands > 100) || (par->n_cands < 3)){
     Fprintf(stderr,
-	    "%s: ERROR: n_cands parameter must be between [3,100].\n",
-	    ProgName); 
+	    "ERROR: n_cands parameter must be between [3,100].\n"); 
     error++;
   }
   if((par->max_f0 <= par->min_f0) || (par->max_f0 >= (sample_freq/2.0)) ||
      (par->min_f0 < (sample_freq/10000.0))){
     Fprintf(stderr,
-	    "%s: ERROR: min(max)_f0 parameter inconsistent with sampling frequency.\n",
-	    ProgName); 
+	    "ERROR: min(max)_f0 parameter inconsistent with sampling frequency.\n"); 
     error++;
   }
   dstep = ((double)((int)(0.5 + (sample_freq * par->frame_step))))/sample_freq;
   if(dstep != par->frame_step) {
     if(debug_level)
       Fprintf(stderr,
-	      "%s: Frame step set to %f to exactly match signal sample rate.\n",
-	      ProgName, dstep);
+	      "Frame step set to %f to exactly match signal sample rate.\n",
+	      dstep);
     par->frame_step = dstep;
   }
   if((par->frame_step > 0.1) || (par->frame_step < (1.0/sample_freq))){
     Fprintf(stderr,
-	    "%s: ERROR: frame_step parameter must be between [1/sampling rate, 0.1].\n",
-	    ProgName); 
+	    "ERROR: frame_step parameter must be between [1/sampling rate, 0.1].\n"); 
     error++;
   }
 

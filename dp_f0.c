@@ -64,7 +64,6 @@ static char *sccs_id = "@(#)dp_f0.c	1.14	10/21/96	ERL";
 #include "f0_structs.h"
 
 extern int  debug_level;
-extern char *ProgName;
   
 /*
  * READ_SIZE: length of input data frame in sec to read
@@ -281,7 +280,7 @@ init_dp_f0(freq, par, buffsize, sdstep)
   }
 
   if(debug_level){
-    Fprintf(stderr, "%s: done with initialization:\n", ProgName);
+    Fprintf(stderr, "done with initialization:\n");
     Fprintf(stderr,
 	    " size_cir_buffer:%d  xcorr frame size:%d start lag:%d nlags:%d\n",
 	    size_cir_buffer, size, start, nlags);
@@ -317,8 +316,8 @@ dp_f0(fdata, buff_size, sdstep, freq,
 
   if(debug_level)
     Fprintf(stderr,
-	    "%s: ******* Computing %d dp frames ******** from %d points\n",
-	    ProgName, nframes, buff_size);
+	    "******* Computing %d dp frames ******** from %d points\n",
+	    nframes, buff_size);
 
   /* Now downsample the signal for coarse peak estimates. */
 
@@ -330,7 +329,7 @@ dp_f0(fdata, buff_size, sdstep, freq,
     dsdata = downsample(fdata, buff_size, sdstep, freq, &samsds, decimate, 
 			first_time, last_time);
     if (!dsdata) {
-      Fprintf(stderr, "%s: can't get downsampled data.\n", ProgName);
+      Fprintf(stderr, "can't get downsampled data.\n");
       return 1;
     }
   }
@@ -339,7 +338,7 @@ dp_f0(fdata, buff_size, sdstep, freq,
 
   stat = get_stationarity(fdata, freq, buff_size, nframes, step, first_time);
   if (!stat) { 
-    Fprintf(stderr, "%s: can't get stationarity\n", ProgName);
+    Fprintf(stderr, "can't get stationarity\n");
     return(1);
   }
   sta = stat->stat;
@@ -362,13 +361,13 @@ dp_f0(fdata, buff_size, sdstep, freq,
 
       if(cir_buff_growth_count > 5){
 	Fprintf(stderr,
-		"%s: too many requests (%d) for dynamically allocating space.\n   There may be a problem in finding converged path.\n",
-		ProgName, cir_buff_growth_count);
+		"too many requests (%d) for dynamically allocating space.\n   There may be a problem in finding converged path.\n",
+		cir_buff_growth_count);
 	return(1);
       }
       if(debug_level) 
-	Fprintf(stderr, "%s: allocating %d more frames for DP circ. buffer.\n",
-		ProgName, size_cir_buffer);
+	Fprintf(stderr, "allocating %d more frames for DP circ. buffer.\n",
+		size_cir_buffer);
       frm = alloc_frame(nlags, par->n_cands);
       headF->next = frm;
       frm->prev = headF;
@@ -498,8 +497,8 @@ dp_f0(fdata, buff_size, sdstep, freq,
     float patherrmin;
       
     if(debug_level)
-      Fprintf(stderr, "%s: available frames for backtracking: %d\n", 
-	      ProgName, num_active_frames);
+      Fprintf(stderr, "available frames for backtracking: %d\n", 
+	      num_active_frames);
       
     patherrmin = FLT_MAX;
     best_cand = 0;
@@ -539,8 +538,8 @@ dp_f0(fdata, buff_size, sdstep, freq,
 	  best_cand = pcands[0];
 	  if(debug_level)
 	    Fprintf(stderr,
-		    "%s: paths went back %d frames before converging\n",
-		    ProgName, frmcnt);
+		    "paths went back %d frames before converging\n",
+		    frmcnt);
 	  break;
 	}
 	if(frm == tailF){	/* Used all available data? */
@@ -551,8 +550,8 @@ dp_f0(fdata, buff_size, sdstep, freq,
 	    checkpath_done = 1;
 	    cmpthF = headF;
 	    Fprintf(stderr,
-		    "%s: WARNING: no converging path found after going back %d frames, will use the lowest cost path\n",
-		    ProgName, num_active_frames);
+		    "WARNING: no converging path found after going back %d frames, will use the lowest cost path\n",
+		    num_active_frames);
 	  }
 	  break;
 	} /* end if (frm ...) */
@@ -569,8 +568,8 @@ dp_f0(fdata, buff_size, sdstep, freq,
 	output_buf_size *= 2;
 	if(debug_level)
 	  Fprintf(stderr,
-		  "%s: reallocating space for output frames: %d\n",
-		  ProgName, output_buf_size);
+		  "reallocating space for output frames: %d\n",
+		  output_buf_size);
 	rms_speech = (float *) realloc((char *) rms_speech,
 				       sizeof(float) * output_buf_size);
 	spsassert(rms_speech, "rms_speech realloc failed in dp_f0()");
@@ -626,7 +625,7 @@ dp_f0(fdata, buff_size, sdstep, freq,
   } /* end if() */
 
   if (debug_level)
-    Fprintf(stderr, "%s: writing out %d frames.\n", ProgName, *vecsize);
+    Fprintf(stderr, "writing out %d frames.\n", *vecsize);
   
   *f0p_pt = f0p;
   *vuvp_pt = vuvp;
@@ -856,8 +855,8 @@ get_stationarity(fdata, freq, buff_size, nframes, frame_step, first_time)
 
   if((order = 2.0 + (freq/1000.0)) > BIGSORD) {
     Fprintf(stderr,
-	    "%s: Optimim order (%d) exceeds that allowable (%d); reduce Fs\n",
-	    ProgName, order, BIGSORD);
+	    "Optimim order (%d) exceeds that allowable (%d); reduce Fs\n",
+	    order, BIGSORD);
     order = BIGSORD;
   }
 
