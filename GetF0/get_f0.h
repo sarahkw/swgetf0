@@ -94,8 +94,9 @@ protected:
   /// see if buffer can be written to.)
   virtual long read_samples(Sample** buffer, long num_records) = 0;
 
-  /// @brief Like `read_samples`, but read `step` samples from
-  /// previous buffer.
+  /// @brief Like `read_samples`, but only read `step` new
+  /// samples. Fill up the rest of the request with the tail end of
+  /// the previous buffer.
   virtual long read_samples_overlap(Sample** buffer, long num_records,
                                     long step) = 0;
 
