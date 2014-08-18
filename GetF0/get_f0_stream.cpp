@@ -1,37 +1,9 @@
 
+#include "get_f0_stream.h"
+
 #include <cstring>
 
-#include "get_f0.h"
-
 namespace GetF0 {
-
-class GetF0Stream : public GetF0 {
-public:
-
-  GetF0Stream(SampleFrequency sampleFrequency, DebugLevel debugLevel = 0);
-
-  virtual ~GetF0Stream();
-
-  void init() override;
-
-protected:
-
-  long read_samples(Sample** buffer, long num_records) override;
-
-  long read_samples_overlap(Sample** buffer, long num_records,
-                            long step) override;
-
-  virtual long read_stream_samples(Sample** buffer, long num_records) = 0;
-
-private:
-
-  Sample* m_buffer;
-
-  bool m_eof;
-
-};
-
-
 
 GetF0Stream::GetF0Stream(SampleFrequency sampleFrequency, DebugLevel debugLevel)
     : GetF0(sampleFrequency, debugLevel), m_buffer(nullptr), m_eof(false)
