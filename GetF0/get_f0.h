@@ -53,7 +53,7 @@ public:
   /// ParameterError if there's something wrong.
   void checkParameters();
 
-  void init();
+  virtual void init();
   void run();
 
   // ----------------------------------------
