@@ -104,6 +104,9 @@ private:
   SampleVector& m_samples;
 
   unsigned m_position;
+
+public:
+  int m_count;
 };
 
 GetF0_impl::GetF0_impl(SampleFrequency sampleFrequency, SampleVector& samples)
@@ -132,6 +135,7 @@ long GetF0_impl::read_samples_overlap(float** buffer, long num_records,
 void GetF0_impl::write_output(float* f0p, float* vuvp, float* rms_speech,
                               float* acpkp, int vecsize)
 {
+  m_count += vecsize;
   for (int i = 0; i < vecsize; ++i) {
     if (i > 0 && i % 10 == 0) {
       std::cout << std::endl;
@@ -160,9 +164,14 @@ int main(int argc, char* argv[])
 
   GetF0_impl::SampleFrequency freq = 16000;
   GetF0_impl f0(freq, samples);
-
   f0.init();
+
+  std::cout << "buf: " << f0.streamBufferSize() << std::endl;
+  std::cout << "overlap: " << f0.streamOverlapSize() << std::endl;
+
   f0.run();
+
+  std::cout << "Returned samples is " << f0.m_count << std::endl;
 
   return 0;
 }
