@@ -103,29 +103,29 @@ private:
 
   SampleVector& m_samples;
 
-  SampleVector::iterator m_samples_iter;
+  unsigned m_position;
 };
 
-GetF0_impl::GetF0_impl(SampleFrequency sampleFrequency,
-                       SampleVector& samples)
-    : GetF0(sampleFrequency), m_samples(samples)
+GetF0_impl::GetF0_impl(SampleFrequency sampleFrequency, SampleVector& samples)
+    : GetF0(sampleFrequency), m_samples(samples), m_position(0)
 {
-  m_samples_iter = m_samples.begin();
 }
 
 long GetF0_impl::read_samples(float** buffer, long num_records) {
-  auto range = std::min<unsigned long>(
-      num_records, m_samples.size() - (m_samples_iter - m_samples.begin()));
-  *buffer = &*m_samples_iter;
-  m_samples_iter += num_records;
+  auto range = std::min<long>(
+      num_records, m_samples.size() - m_position);
+  *buffer = &m_samples[m_position];
+  m_position += range;
   return range;
 }
 
 long GetF0_impl::read_samples_overlap(float** buffer, long num_records,
                                       long step)
 {
-  m_samples_iter -= step;
-  // TODO assert it's not past beginning
+  // (num_records - step) old records
+  // (step) new records
+
+  m_position -= (num_records - step);
   return read_samples(buffer, num_records);
 }
 
