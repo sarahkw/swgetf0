@@ -95,8 +95,11 @@ protected:
   virtual long read_samples(Sample** buffer, long num_records) = 0;
 
   /// @brief Like `read_samples`, but only read `step` new
-  /// samples. Fill up the rest of the request with the tail end of
-  /// the previous buffer.
+  /// samples. Fill up the beginning of the request with the tail end
+  /// of the previous buffer.
+  ///
+  /// In other words, read (num_records - step) old records and (step)
+  /// new records.
   virtual long read_samples_overlap(Sample** buffer, long num_records,
                                     long step) = 0;
 
