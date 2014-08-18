@@ -92,19 +92,20 @@ long GetF0Stream::read_samples_overlap(Sample** buffer, long num_records,
 
   THROW_ERROR(m_eof, LogicError, "still reading after EOF");
 
+  auto newSamples = streamOverlapSize();
   auto oldSamples = streamBufferSize() - streamOverlapSize();
 
   Sample* incomingBuffer;
-  auto newSamples = read_stream_samples(&incomingBuffer, streamOverlapSize());
+  auto actualNewSamples = read_stream_samples(&incomingBuffer, newSamples);
 
-  if (newSamples != streamOverlapSize()) {
+  if (actualNewSamples != newSamples) {
     m_eof = true;
   }
 
-  std::memmove(m_buffer, m_buffer + streamOverlapSize(), oldSamples);
-  std::memcpy(m_buffer + oldSamples, incomingBuffer, newSamples);
+  std::memmove(m_buffer, m_buffer + newSamples, oldSamples);
+  std::memcpy(m_buffer + oldSamples, incomingBuffer, actualNewSamples);
 
-  return oldSamples + newSamples;
+  return oldSamples + actualNewSamples;
 }
 
 } // namespace GetF0
