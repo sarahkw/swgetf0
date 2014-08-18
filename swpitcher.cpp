@@ -97,8 +97,8 @@ protected:
   long read_samples_overlap(float** buffer, long num_records,
                             long step) override;
 
-  void write_output(float* f0p, float* vuvp, float* rms_speech, float* acpkp,
-                    int vecsize) override;
+  void write_output_reversed(float* f0p, float* vuvp, float* rms_speech,
+                             float* acpkp, int vecsize) override;
 
 private:
 
@@ -133,8 +133,9 @@ long GetF0_impl::read_samples_overlap(float** buffer, long num_records,
   return read_samples(buffer, num_records);
 }
 
-void GetF0_impl::write_output(float* f0p, float* vuvp, float* rms_speech,
-                              float* acpkp, int vecsize)
+void GetF0_impl::write_output_reversed(float* f0p, float* vuvp,
+                                       float* rms_speech, float* acpkp,
+                                       int vecsize)
 {
   std::reverse_copy(f0p, f0p + vecsize, std::back_inserter(m_outputVector));
 }

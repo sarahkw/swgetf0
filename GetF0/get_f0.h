@@ -100,8 +100,13 @@ protected:
   virtual long read_samples_overlap(Sample** buffer, long num_records,
                                     long step) = 0;
 
-  virtual void write_output(float* f0p, float* vuvp, float* rms_speech,
-                            float* acpkp, int vecsize) = 0;
+  /// @brief Callback to handle an output. The returned vectors are
+  /// reversed.
+  ///
+  /// In some cases we can save an iteration if the implementer
+  /// reverses to proper order.
+  virtual void write_output_reversed(float* f0p, float* vuvp, float* rms_speech,
+                                     float* acpkp, int vecsize) = 0;
 
 private:
 

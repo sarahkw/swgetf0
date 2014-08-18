@@ -126,7 +126,7 @@ void GetF0::run()
               m_par, &f0p, &vuvp, &rms_speech, &acpkp, &vecsize, done),
         ProcessingError, "problem in dp_f0().");
 
-    write_output(f0p, vuvp, rms_speech, acpkp, vecsize);
+    write_output_reversed(f0p, vuvp, rms_speech, acpkp, vecsize);
 
     if (done) break;
 
