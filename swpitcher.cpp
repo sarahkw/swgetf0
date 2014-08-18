@@ -163,6 +163,9 @@ int main(int argc, char* argv[])
 
   std::cout << "Returned " << f0.m_outputVector.size() << " data points."
             << std::endl;
+  std::cout << "streamBufferSize " << f0.streamBufferSize() << std::endl;
+  std::cout << "streamOverlapSize " << f0.streamOverlapSize() << std::endl;
+
   std::cout << std::endl;
 
   for (int i = 0; i < f0.m_outputVector.size(); ++i) {
