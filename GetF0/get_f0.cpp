@@ -114,7 +114,7 @@ void GetF0::run()
   float* fdata = nullptr;
   float* f0p, *vuvp, *rms_speech, *acpkp;
   int done;
-  int i, vecsize;
+  int vecsize;
 
   long actsize = read_samples(&fdata, m_streamBufferSize);
 
