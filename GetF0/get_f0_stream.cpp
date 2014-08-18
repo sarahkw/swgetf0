@@ -1,4 +1,6 @@
 
+#include <cstring>
+
 #include "get_f0.h"
 
 namespace GetF0 {
@@ -25,12 +27,14 @@ private:
 
   Sample* m_buffer;
 
+  bool m_eof;
+
 };
 
 
 
 GetF0Stream::GetF0Stream(SampleFrequency sampleFrequency, DebugLevel debugLevel)
-    : GetF0(sampleFrequency, debugLevel), m_buffer(nullptr)
+    : GetF0(sampleFrequency, debugLevel), m_buffer(nullptr), m_eof(false)
 {
 }
 
@@ -45,17 +49,62 @@ void GetF0Stream::init()
   GetF0::init();
 
   m_buffer = new Sample[streamBufferSize()];
+
+  // If this isn't true we can have out of bounds array access.
+  THROW_ERROR(streamBufferSize() < streamOverlapSize(), LogicError,
+              "streamBufferSize() needs to be larger than streamOverlapSize()");
 }
 
 long GetF0Stream::read_samples(Sample** buffer, long num_records)
 {
-  return 0;
+  THROW_ERROR(streamBufferSize() != num_records, LogicError,
+              "not implemented: read samples request of length less than "
+              "streamBufferSize");
+
+  THROW_ERROR(m_eof, LogicError, "still reading after EOF");
+
+  auto bytesFromStream = read_stream_samples(buffer, num_records);
+
+  if (bytesFromStream == num_records) {
+    // Not EOF; we probably might get a read next with an overlap so
+    // prepare for it.
+
+    // We'll be doing a memmove later
+    std::memcpy(m_buffer + streamOverlapSize(), *buffer + streamOverlapSize(),
+                streamBufferSize() - streamOverlapSize());
+  }
+  else {
+    m_eof = true;
+  }
+
+  return bytesFromStream;
 }
 
 long GetF0Stream::read_samples_overlap(Sample** buffer, long num_records,
                                        long step)
 {
-  return 0;
+  THROW_ERROR(
+      streamBufferSize() != num_records || streamOverlapSize() != step,
+      LogicError,
+      "not implemented: read samples overlap request of length less than "
+      "streamBufferSize");  // TODO not sure if we need to be so strict, have to
+                            // think about it
+
+  THROW_ERROR(m_eof, LogicError, "still reading after EOF");
+
+  auto oldSamples = streamBufferSize() - streamOverlapSize();
+
+  Sample* incomingBuffer;
+  auto newSamples = read_stream_samples(&incomingBuffer, streamOverlapSize());
+
+  if (newSamples != streamOverlapSize()) {
+    m_eof = true;
+  }
+
+  std::memmove(m_buffer, m_buffer + streamOverlapSize(), oldSamples);
+  std::memcpy(m_buffer + oldSamples, incomingBuffer, newSamples);
+
+  return oldSamples + newSamples;
 }
 
 } // namespace GetF0
