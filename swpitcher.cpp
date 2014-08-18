@@ -136,7 +136,7 @@ long GetF0_impl::read_samples_overlap(float** buffer, long num_records,
 void GetF0_impl::write_output(float* f0p, float* vuvp, float* rms_speech,
                               float* acpkp, int vecsize)
 {
-  std::copy(f0p, f0p + vecsize, std::back_inserter(m_outputVector));
+  std::reverse_copy(f0p, f0p + vecsize, std::back_inserter(m_outputVector));
 }
 
 } // namespace anonymous
