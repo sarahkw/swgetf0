@@ -30,18 +30,13 @@ void GetF0Stream::init()
 long GetF0Stream::read_samples(Sample** buffer, long num_records)
 {
   THROW_ERROR(streamBufferSize() != num_records, LogicError,
-              "not implemented: read samples request of length less than "
-              "streamBufferSize");
+              "not implemented: we can only read streamBufferSize");
 
   THROW_ERROR(m_eof, LogicError, "still reading after EOF");
 
   auto bytesFromStream = read_stream_samples(buffer, num_records);
 
   if (bytesFromStream == num_records) {
-    // Not EOF; we probably might get a read next with an overlap so
-    // prepare for it.
-
-    // We'll be doing a memmove later
     std::memcpy(m_buffer + streamOverlapSize(), *buffer + streamOverlapSize(),
                 streamBufferSize() - streamOverlapSize());
   }
@@ -55,14 +50,16 @@ long GetF0Stream::read_samples(Sample** buffer, long num_records)
 long GetF0Stream::read_samples_overlap(Sample** buffer, long num_records,
                                        long step)
 {
-  THROW_ERROR(
-      streamBufferSize() != num_records || streamOverlapSize() != step,
-      LogicError,
-      "not implemented: read samples overlap request of length less than "
-      "streamBufferSize");  // TODO not sure if we need to be so strict, have to
-                            // think about it
+  THROW_ERROR(streamBufferSize() != num_records || streamOverlapSize() != step,
+              LogicError,
+              "not implemented: we can only read streamBufferSize and overlap "
+              "streamOverlapSize");  // TODO not sure if we need to be so
+                                     // strict, have to
+                                     // think about it
 
   THROW_ERROR(m_eof, LogicError, "still reading after EOF");
+
+  // TODO assert if we didn't read_samples yet
 
   auto newSamples = streamOverlapSize();
   auto oldSamples = streamBufferSize() - streamOverlapSize();
