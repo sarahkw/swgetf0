@@ -28,32 +28,6 @@ int readFile(const std::string& fileName, std::vector<DestFormat>& output)
     return 1;
   }
 
-  if (std::fseek(inputFile, 0, SEEK_END) == -1) {
-    std::perror("Cannot seek to end");
-    return 1;
-  }
-
-  auto endPosition = std::ftell(inputFile);
-  if (endPosition == -1) {
-    std::perror("Cannot get end position");
-    return 1;
-  }
-
-  if (std::fseek(inputFile, 0, SEEK_SET) == -1) {
-    std::perror("Cannot seek to beginning");
-    return 1;
-  }
-
-  if (endPosition % sizeof(SourceFormat) != 0) {
-    std::cerr << "Assertion failed: File size not a multiple of format type"
-              << std::endl;
-    return 1;
-  }
-
-  auto numberSamples = endPosition / sizeof(SourceFormat);
-
-  output.reserve(numberSamples);
-
   enum { BUFFER_SIZE = 4096 };
   SourceFormat buffer[BUFFER_SIZE];
   size_t readSize;
