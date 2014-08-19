@@ -8,7 +8,6 @@
 
 #include "GetF0/get_f0.h"
 
-
 namespace {
 
 template <class SourceFormat, class DestFormat>
@@ -53,19 +52,14 @@ int readFile(const std::string& fileName, std::vector<DestFormat>& output)
   return 0;
 }
 
-
-
-class GetF0_impl : public GetF0::GetF0 {
+class GetF0VectorImpl : public GetF0::GetF0 {
 public:
-
   typedef std::vector<Sample> SampleVector;
   typedef std::vector<float> OutputVector;
 
-  GetF0_impl(SampleFrequency sampleFrequency,
-	     SampleVector& samples);
+  GetF0VectorImpl(SampleFrequency sampleFrequency, SampleVector& samples);
 
 protected:
-
   long read_samples(float** buffer, long num_records) override;
 
   long read_samples_overlap(float** buffer, long num_records,
@@ -75,7 +69,6 @@ protected:
                              float* acpkp, int vecsize) override;
 
 private:
-
   SampleVector& m_samples;
 
   unsigned m_position;
@@ -84,21 +77,22 @@ public:
   OutputVector m_outputVector;
 };
 
-GetF0_impl::GetF0_impl(SampleFrequency sampleFrequency, SampleVector& samples)
+GetF0VectorImpl::GetF0VectorImpl(SampleFrequency sampleFrequency,
+                                 SampleVector& samples)
     : GetF0(sampleFrequency), m_samples(samples), m_position(0)
 {
 }
 
-long GetF0_impl::read_samples(float** buffer, long num_records) {
-  auto range = std::min<long>(
-      num_records, m_samples.size() - m_position);
+long GetF0VectorImpl::read_samples(float** buffer, long num_records)
+{
+  auto range = std::min<long>(num_records, m_samples.size() - m_position);
   *buffer = &m_samples[m_position];
   m_position += range;
   return range;
 }
 
-long GetF0_impl::read_samples_overlap(float** buffer, long num_records,
-                                      long step)
+long GetF0VectorImpl::read_samples_overlap(float** buffer, long num_records,
+                                           long step)
 {
   // (num_records - step) old records
   // (step) new records
@@ -107,31 +101,28 @@ long GetF0_impl::read_samples_overlap(float** buffer, long num_records,
   return read_samples(buffer, num_records);
 }
 
-void GetF0_impl::write_output_reversed(float* f0p, float* vuvp,
-                                       float* rms_speech, float* acpkp,
-                                       int vecsize)
+void GetF0VectorImpl::write_output_reversed(float* f0p, float* vuvp,
+                                            float* rms_speech, float* acpkp,
+                                            int vecsize)
 {
   std::reverse_copy(f0p, f0p + vecsize, std::back_inserter(m_outputVector));
 }
 
-} // namespace anonymous
-
-
+}  // namespace anonymous
 
 int main(int argc, char* argv[])
 {
   typedef short DiskSample;
 
-  GetF0_impl::SampleVector samples;
-  if (readFile<DiskSample, GetF0_impl::Sample>(argv[1], samples) != 0) {
+  GetF0VectorImpl::SampleVector samples;
+  if (readFile<DiskSample, GetF0VectorImpl::Sample>(argv[1], samples) != 0) {
     return 1;
   }
 
   std::cout << "Read " << samples.size() << " samples." << std::endl;
 
-
-  GetF0_impl::SampleFrequency freq = 16000;
-  GetF0_impl f0(freq, samples);
+  GetF0VectorImpl::SampleFrequency freq = 16000;
+  GetF0VectorImpl f0(freq, samples);
   f0.init();
   f0.run();
 
