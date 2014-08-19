@@ -21,33 +21,22 @@ struct StaticCaster {
 };
 
 template <class SourceFormat, class DestFormat>
-int readFile(const std::string& fileName, std::vector<DestFormat>& output)
+int readSamples(std::vector<DestFormat>& output)
 {
-  std::FILE* inputFile = std::fopen(fileName.c_str(), "rb");
-  if (inputFile == nullptr) {
-    std::perror("Cannot open input");
-    return 1;
-  }
-
   enum { BUFFER_SIZE = 4096 };
   SourceFormat buffer[BUFFER_SIZE];
   size_t readSize;
 
   do {
-    readSize = std::fread(buffer, sizeof(SourceFormat), BUFFER_SIZE, inputFile);
+    readSize = std::fread(buffer, sizeof(SourceFormat), BUFFER_SIZE, stdin);
 
     std::transform(buffer, buffer + readSize, std::back_inserter(output),
                    StaticCaster<SourceFormat, DestFormat>());
 
   } while (readSize == BUFFER_SIZE);
 
-  if (std::ferror(inputFile) != 0) {
-    std::perror("Error reading file");
-    return 1;
-  }
-
-  if (std::fclose(inputFile) != 0) {
-    std::perror("Error closing file");
+  if (std::ferror(stdin) != 0) {
+    std::perror("Error reading samples");
     return 1;
   }
 
@@ -61,7 +50,7 @@ int main(int argc, char* argv[])
   typedef short DiskSample;
 
   GetF0VectorImpl::SampleVector samples;
-  if (readFile<DiskSample, GetF0VectorImpl::Sample>(argv[1], samples) != 0) {
+  if (readSamples<DiskSample, GetF0VectorImpl::Sample>(samples) != 0) {
     return 1;
   }
 
