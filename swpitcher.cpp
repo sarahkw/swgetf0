@@ -69,7 +69,7 @@ int implementation_vector()
   std::cout << "streamBufferSize " << f0.streamBufferSize() << std::endl;
   std::cout << "streamOverlapSize " << f0.streamOverlapSize() << std::endl;
 
-  std::cout << std::endl;
+  std::cout << std::endl; // Blank line for debug drawer
 
   for (int i = 0; i < f0.m_outputVector.size(); ++i) {
     if (i > 0 && i % 10 == 0) {
@@ -83,8 +83,35 @@ int implementation_vector()
   return 0;
 }
 
+int implementation_stream()
+{
+  using GetF0::GetF0StreamImpl;
+
+  class Foo : public GetF0StreamImpl<DiskSample> {
+  public:
+    Foo() : GetF0StreamImpl<DiskSample>(stdin, 16000) {}
+
+    void write_output_reversed(float* f0p, float* vuvp, float* rms_speech,
+                               float* acpkp, int vecsize) override
+    {
+      for (int i = vecsize; i >= 0; --i) {
+	std::cout << f0p[i] << " ";
+      }
+    }
+
+  } f0;
+
+  std::cout << std::endl; // Blank line for debug drawer
+
+  f0.init();
+  f0.run();
+
+  return 0;
+}
+
 int main(int argc, char* argv[])
 {
 
-  return implementation_vector();
+  //return implementation_vector();
+  return implementation_stream();
 }
