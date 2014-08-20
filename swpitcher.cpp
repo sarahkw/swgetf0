@@ -57,28 +57,20 @@ int implementation_vector()
     return 1;
   }
 
-  std::cout << "Read " << samples.size() << " samples." << std::endl;
+  std::cerr << "Read " << samples.size() << " samples." << std::endl;
 
   GetF0VectorImpl::SampleFrequency freq = 16000;
   GetF0VectorImpl f0(freq, samples);
   f0.init();
   f0.run();
 
-  std::cout << "Returned " << f0.m_outputVector.size() << " data points."
+  std::cerr << "Returned " << f0.m_outputVector.size() << " data points."
             << std::endl;
-  std::cout << "streamBufferSize " << f0.streamBufferSize() << std::endl;
-  std::cout << "streamOverlapSize " << f0.streamOverlapSize() << std::endl;
+  std::cerr << "streamBufferSize " << f0.streamBufferSize() << std::endl;
+  std::cerr << "streamOverlapSize " << f0.streamOverlapSize() << std::endl;
 
-  std::cout << std::endl; // Blank line for debug drawer
-
-  for (int i = 0; i < f0.m_outputVector.size(); ++i) {
-    if (i > 0 && i % 10 == 0) {
-      std::cout << std::endl;
-    }
-
-    std::cout << f0.m_outputVector[i] << " ";
-  }
-  std::cout << std::endl;
+  std::fwrite(f0.m_outputVector.data(), sizeof(GetF0VectorImpl::Sample),
+              f0.m_outputVector.size(), stdout);
 
   return 0;
 }
@@ -94,9 +86,11 @@ int implementation_stream()
     void write_output_reversed(float* f0p, float* vuvp, float* rms_speech,
                                float* acpkp, int vecsize) override
     {
-      for (int i = vecsize; i >= 0; --i) {
-	std::cout << f0p[i] << " ";
-      }
+      // safe to reverse in place since next iteration will rewrite
+      // the whole buffer
+      std::reverse(f0p, f0p + vecsize);
+
+      std::fwrite(f0p, sizeof(Sample), vecsize, stdout);
     }
 
   } f0;
