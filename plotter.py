@@ -1,22 +1,22 @@
 #!/usr/bin/env python2.7
 
 import sys
-import re
+import ctypes
 from matplotlib import pyplot
 
 
+def read_floats():
+    while True:
+        ret = sys.stdin.read(4)
+        if ret == "":
+            return
+        yield ctypes.c_float.from_buffer_copy(ret).value
+
 def main():
-    while sys.stdin.readline().strip() != "":
-        pass
-
-    numbers = sys.stdin.read()
-    numbers = re.split(r"[ \n]", numbers)
-
-    numbers = [float(n) for n in numbers if n.strip() != ""]
 
     x = []
     y = []
-    for i, n in enumerate(numbers):
+    for i, n in enumerate(read_floats()):
         if n == 0:
             continue
         x.append(i / 100.)
