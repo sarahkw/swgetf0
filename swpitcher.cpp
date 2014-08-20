@@ -91,6 +91,7 @@ int implementation_stream()
       std::reverse(f0p, f0p + vecsize);
 
       std::fwrite(f0p, sizeof(Sample), vecsize, stdout);
+      std::fflush(stdout); // streaming
     }
 
   } f0;
