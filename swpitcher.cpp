@@ -111,7 +111,16 @@ int implementation_stream()
 
 int main(int argc, char* argv[])
 {
+  auto implementation = atoi(argv[1]);
 
-  //return implementation_vector();
-  return implementation_stream();
+  if (implementation == 0) {
+    return implementation_vector();
+  }
+  else if (implementation == 1) {
+    return implementation_stream();
+  }
+  else {
+    std::cerr << "Bad implementation." << std::endl;
+    return 1;
+  }
 }

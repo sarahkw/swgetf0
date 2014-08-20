@@ -61,13 +61,14 @@ long GetF0Stream::read_samples_overlap(Sample** buffer, long num_records,
   auto newSamples = streamOverlapSize();
   auto oldSamples = streamBufferSize() - streamOverlapSize();
 
-  std::memmove(m_buffer, m_buffer + newSamples, oldSamples);
+  std::memmove(m_buffer, m_buffer + newSamples, oldSamples * sizeof(Sample));
 
   auto actualNewSamples = read_stream_samples(m_buffer + oldSamples, newSamples);
   if (actualNewSamples != newSamples) {
     m_eof = true;
   }
 
+  *buffer = m_buffer;
   return oldSamples + actualNewSamples;
 }
 
