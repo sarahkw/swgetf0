@@ -9,6 +9,7 @@
 #include "GetF0/get_f0.h"
 
 #include "GetF0VectorImpl.h"
+#include "GetF0StreamImpl.h"
 
 namespace {
 
@@ -45,9 +46,11 @@ int readSamples(std::vector<DestFormat>& output)
 
 }  // namespace anonymous
 
-int main(int argc, char* argv[])
+typedef short DiskSample;
+
+int implementation_vector()
 {
-  typedef short DiskSample;
+  using GetF0::GetF0VectorImpl;
 
   GetF0VectorImpl::SampleVector samples;
   if (readSamples<DiskSample, GetF0VectorImpl::Sample>(samples) != 0) {
@@ -78,4 +81,10 @@ int main(int argc, char* argv[])
   std::cout << std::endl;
 
   return 0;
+}
+
+int main(int argc, char* argv[])
+{
+
+  return implementation_vector();
 }

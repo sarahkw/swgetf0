@@ -34,16 +34,13 @@ long GetF0Stream::read_samples(Sample** buffer, long num_records)
 
   THROW_ERROR(m_eof, LogicError, "still reading after EOF");
 
-  auto bytesFromStream = read_stream_samples(buffer, num_records);
+  auto bytesFromStream = read_stream_samples(m_buffer, num_records);
 
-  if (bytesFromStream == num_records) {
-    std::memcpy(m_buffer + streamOverlapSize(), *buffer + streamOverlapSize(),
-                streamBufferSize() - streamOverlapSize());
-  }
-  else {
+  if (bytesFromStream != num_records) {
     m_eof = true;
   }
 
+  *buffer = m_buffer;
   return bytesFromStream;
 }
 
@@ -64,15 +61,12 @@ long GetF0Stream::read_samples_overlap(Sample** buffer, long num_records,
   auto newSamples = streamOverlapSize();
   auto oldSamples = streamBufferSize() - streamOverlapSize();
 
-  Sample* incomingBuffer;
-  auto actualNewSamples = read_stream_samples(&incomingBuffer, newSamples);
+  std::memmove(m_buffer, m_buffer + newSamples, oldSamples);
 
+  auto actualNewSamples = read_stream_samples(m_buffer + oldSamples, newSamples);
   if (actualNewSamples != newSamples) {
     m_eof = true;
   }
-
-  std::memmove(m_buffer, m_buffer + newSamples, oldSamples);
-  std::memcpy(m_buffer + oldSamples, incomingBuffer, actualNewSamples);
 
   return oldSamples + actualNewSamples;
 }

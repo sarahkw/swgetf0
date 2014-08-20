@@ -2,6 +2,8 @@
 
 #include <algorithm>
 
+using namespace GetF0;
+
 GetF0VectorImpl::GetF0VectorImpl(SampleFrequency sampleFrequency,
                                  SampleVector& samples)
     : GetF0(sampleFrequency), m_samples(samples), m_position(0)

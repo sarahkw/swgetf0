@@ -4,7 +4,9 @@
 #include <vector>
 #include "GetF0/get_f0.h"
 
-class GetF0VectorImpl : public GetF0::GetF0 {
+namespace GetF0 {
+
+class GetF0VectorImpl : public GetF0 {
 public:
   typedef std::vector<Sample> SampleVector;
   typedef std::vector<float> OutputVector;
@@ -28,5 +30,7 @@ private:
 public:
   OutputVector m_outputVector;
 };
+
+}
 
 #endif
