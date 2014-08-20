@@ -95,8 +95,6 @@ int implementation_stream()
 
   } f0;
 
-  std::cout << std::endl; // Blank line for debug drawer
-
   f0.init();
   f0.run();
 
