@@ -23,7 +23,9 @@ TEST(CircularBufferZeroTest, TestThrow)
 
 TEST_F(CircularBufferTest, ReadEmptyBuffer)
 {
-  ASSERT_EQ(m_cb3.begin(), m_cb3.end());
+  ASSERT_TRUE(m_cb3.begin() == m_cb3.end());
+
+  ASSERT_EQ(m_cb3.size(), 0);
 }
 
 TEST_F(CircularBufferTest, ReadWithoutLoop)
@@ -47,6 +49,8 @@ TEST_F(CircularBufferTest, ReadWithoutLoop)
 
   ASSERT_TRUE(iter == m_cb3.end())
       << "Make sure after we read the whole buffer, we stop reading.";
+
+  ASSERT_EQ(m_cb3.size(), 3);
 }
 
 TEST_F(CircularBufferTest, ReadLoop)
@@ -72,6 +76,8 @@ TEST_F(CircularBufferTest, ReadLoop)
 
   ASSERT_TRUE(iter == m_cb3.end())
       << "Make sure after we read the whole buffer, we stop reading.";
+
+  ASSERT_EQ(m_cb3.size(), 3);
 }
 
 TEST_F(CircularBufferTest, ReadLoopTwiceWithIteratorWrite)
@@ -96,4 +102,6 @@ TEST_F(CircularBufferTest, ReadLoopTwiceWithIteratorWrite)
 
   ASSERT_TRUE(iter == m_cb3.end())
       << "Make sure after we read the whole buffer, we stop reading.";
+
+  ASSERT_EQ(m_cb3.size(), 3);
 }
