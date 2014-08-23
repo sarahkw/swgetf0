@@ -73,3 +73,27 @@ TEST_F(CircularBufferTest, ReadLoop)
   ASSERT_TRUE(iter == m_cb3.end())
       << "Make sure after we read the whole buffer, we stop reading.";
 }
+
+TEST_F(CircularBufferTest, ReadLoopTwiceWithIteratorWrite)
+{
+  const int values[] = {1, 2, 3, 4, 5, 6, 7};
+  for (auto value : values) {
+    m_cb3.push_back(value);
+  }
+
+  auto iter = m_cb3.begin();
+  ASSERT_TRUE(iter != m_cb3.end());
+  ASSERT_EQ(*iter, 5);
+  ++iter;
+
+  ASSERT_TRUE(iter != m_cb3.end());
+  ASSERT_EQ(*iter, 6);
+  ++iter;
+
+  ASSERT_TRUE(iter != m_cb3.end());
+  ASSERT_EQ(*iter, 7);
+  ++iter;
+
+  ASSERT_TRUE(iter == m_cb3.end())
+      << "Make sure after we read the whole buffer, we stop reading.";
+}

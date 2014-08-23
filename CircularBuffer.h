@@ -8,9 +8,11 @@
 template <class T>
 class CircularBuffer {
 public:
-  class iterator {
+
+  class iterator : public std::iterator<T, std::forward_iterator_tag> {
   public:
-    T operator*() { return m_cb.m_data[m_ptr]; }
+
+    T& operator*() { return m_cb.m_data[m_ptr]; }
     iterator& operator++()
     {
       m_ptr++;
@@ -56,12 +58,12 @@ public:
 
   void push_back(const T& val)
   {
+    m_data[m_ptr++] = val;
+
     if (m_size < m_capacity)
       m_size++;
     else
       m_begin = (m_begin + 1) % m_capacity;
-
-    m_data[m_ptr++] = val;
 
     if (m_ptr == m_capacity) {
       m_ptr = 0;
@@ -78,10 +80,11 @@ private:
   friend class iterator;
 
   size_t m_capacity;
-  size_t m_size;
 
+  size_t m_size;
   size_t m_begin;
   size_t m_ptr;
+
   T* m_data;
 };
 
