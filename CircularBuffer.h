@@ -24,8 +24,7 @@ public:
     }
     bool operator==(const iterator& o) const
     {
-      if (m_oneMoreLoop) return false;
-      return m_ptr == o.m_ptr;
+      return m_oneMoreLoop == o.m_oneMoreLoop && m_ptr == o.m_ptr;
     }
     bool operator!=(const iterator& o) const { return !(*this == o); }
 
