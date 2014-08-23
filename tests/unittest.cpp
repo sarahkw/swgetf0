@@ -24,10 +24,7 @@ TEST(CircularBufferZeroTest, TestThrow)
 
 TEST_F(CircularBufferTest, ReadEmptyBuffer)
 {
-  bool hasReadAnything = false;
-  for (auto item : m_cb3) {
-    FAIL() << "Item was returned.";
-  }
+  ASSERT_EQ(m_cb3.begin(), m_cb3.end());
 }
 
 TEST_F(CircularBufferTest, ReadWithoutLoop)
