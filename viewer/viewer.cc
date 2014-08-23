@@ -1,55 +1,21 @@
+#include "viewer.h"
 
 #include <cstdlib>
 #include <ctime>
-#include <memory>
-#include <list>
-#include <mutex>
 
 #include <GL/gl.h>
-#include <SDL.h>
 
-#include "video/Text.h"
-#include "video/Driver.h"
+
 #include "base/Log.h"
 #include "base/Guard.h"
 
-#include "../CircularBuffer.h"
 
 namespace viewer {
-
-class Viewer {
-public:
-  Viewer(std::size_t bufferCapacity) : m_cb(bufferCapacity), m_driver(NULL) {}
-
-  virtual ~Viewer()
-  {
-    if (m_driver != nullptr) delete m_driver;
-  }
-
-  CircularBuffer<float>& cb() { return m_cb; }
-
-  std::mutex& mutex() { return m_mutex; }
-
-  int run();
-
-  void tick(Uint32 timeDelta) {}
-
-  void draw();
-
-private:
-  std::mutex m_mutex;
-  CircularBuffer<float> m_cb;
-
-  video::Driver *m_driver;
-  int m_width, m_height;
-};
-
 
 int Viewer::run() {
   typedef base::PtrGuard<SDL_Surface, SDL_FreeSurface> SurfaceGuard;
   typedef base::RunGuard<SDL_Quit> SDLQuitGuard;
 
-  std::unique_ptr<video::Driver> driver;
   Uint32 last_time;
   Uint32 fps = 120;
 
@@ -116,9 +82,9 @@ int Viewer::run() {
       return 1;
     }
 
-    driver->beginScene();
+    m_driver->beginScene();
     draw();
-    driver->endScene();
+    m_driver->endScene();
 
     last_time = this_time;
 
@@ -160,9 +126,4 @@ void Viewer::draw()
     m_driver->draw2DLine(0, ypos, m_width, ypos, video::Color(255, 0, 0, 255));
   }
 }
-}
-
-int main(int argc, char* argv[])
-{
-  return 0;
 }
