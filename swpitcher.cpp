@@ -10,6 +10,7 @@
 
 #include "GetF0VectorImpl.h"
 #include "GetF0StreamImpl.h"
+#include "CircularBuffer.h"
 
 namespace {
 
@@ -59,7 +60,7 @@ int implementation_vector()
 
   std::cerr << "Read " << samples.size() << " samples." << std::endl;
 
-  GetF0VectorImpl::SampleFrequency freq = 16000;
+  GetF0VectorImpl::SampleFrequency freq = 44100;
   GetF0VectorImpl f0(freq, samples);
   f0.init();
   f0.run();
@@ -81,7 +82,7 @@ int implementation_stream()
 
   class Foo : public GetF0StreamImpl<DiskSample> {
   public:
-    Foo() : GetF0StreamImpl<DiskSample>(stdin, 16000) {}
+    Foo() : GetF0StreamImpl<DiskSample>(stdin, 44100) {}
 
     void write_output_reversed(float* f0p, float* vuvp, float* rms_speech,
                                float* acpkp, int vecsize) override
@@ -102,6 +103,41 @@ int implementation_stream()
   return 0;
 }
 
+int implementation_viewer()
+{
+  using GetF0::GetF0StreamImpl;
+
+  class Foo : public GetF0StreamImpl<DiskSample> {
+  public:
+
+    enum {
+      SECONDS = 10
+    };
+
+    Foo()
+        : GetF0StreamImpl<DiskSample>(stdin, 44100),
+          m_cb(pitchFrameRate() * SECONDS)
+    {
+    }
+
+    void write_output_reversed(float* f0p, float* vuvp, float* rms_speech,
+                               float* acpkp, int vecsize) override
+    {
+      for (int i = vecsize; i >= 0; --i) {
+	m_cb.push_back(f0p[i]);
+      }
+    }
+
+    CircularBuffer<Sample> m_cb;
+
+  } f0;
+
+  f0.init();
+  f0.run();
+
+  return 0;
+}
+
 int main(int argc, char* argv[])
 {
   auto implementation = atoi(argv[1]);
@@ -111,6 +147,9 @@ int main(int argc, char* argv[])
   }
   else if (implementation == 1) {
     return implementation_stream();
+  }
+  else if (implementation == 2) {
+    return implementation_viewer();
   }
   else {
     std::cerr << "Bad implementation." << std::endl;

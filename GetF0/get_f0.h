@@ -60,6 +60,7 @@ public:
   // Calculations available after init
   long streamBufferSize() const;
   long streamOverlapSize() const;
+  double pitchFrameRate() const;
 
   // ----------------------------------------
   // Getters/setters

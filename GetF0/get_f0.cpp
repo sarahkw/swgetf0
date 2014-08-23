@@ -91,8 +91,6 @@ void GetF0::init()
   //   SW: I think this is the time delay until output actually
   //       starts. In other words, we'll have some dropped frames.
 
-  // double frame_rate = 1.0 / m_par.frame_step;
-
   /* Initialize variables in get_f0.c; allocate data structures;
    * determine length and overlap of input frames to read.
    *
@@ -193,6 +191,11 @@ long GetF0::streamOverlapSize() const
 {
   THROW_ERROR(!m_initialized, LogicError, "Not initialized");
   return m_streamOverlapSize;
+}
+
+double GetF0::pitchFrameRate() const
+{
+  return 1.0 / m_par->frame_step;
 }
 
 float& GetF0::paramCandThresh()   { return m_par->cand_thresh;    }
