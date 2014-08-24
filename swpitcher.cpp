@@ -126,7 +126,7 @@ int implementation_viewer()
 
       auto& cb = m_viewer.cb();
 
-      for (int i = vecsize; i >= 0; --i) {
+      for (int i = vecsize - 1; i >= 0; --i) {
         cb.push_back(f0p[i]);
       }
     }
