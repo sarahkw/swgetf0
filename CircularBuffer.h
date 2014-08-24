@@ -71,7 +71,7 @@ public:
 
   size_t size() const { return m_size; }
 
-  virtual ~CircularBuffer() { delete m_data; }
+  virtual ~CircularBuffer() { delete [] m_data; }
 
 private:
   // Disable copy and assign
