@@ -111,7 +111,7 @@ int implementation_viewer()
 
   class Foo : public GetF0StreamImpl<DiskSample> {
   public:
-    enum { SECONDS = 10 };
+    enum { SECONDS = 5 };
 
     Foo()
         : GetF0StreamImpl<DiskSample>(stdin, 44100),
@@ -138,8 +138,6 @@ int implementation_viewer()
   f0.init();
 
   std::thread viewerThread(std::bind(&viewer::Viewer::run, &f0.m_viewer));
-  sleep(1000);
-
   f0.run();
 
   viewerThread.join();

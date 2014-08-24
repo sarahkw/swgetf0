@@ -3,6 +3,8 @@
 
 #include <algorithm>
 #include <cstdio>
+#include <cstring>
+#include <cerrno>
 
 #include "GetF0/get_f0_stream.h"
 
@@ -32,17 +34,33 @@ public:
   long read_stream_samples(Sample* buffer, long num_records) override
   {
     SourceFormat tmpBuffer[num_records];
-    auto readSize =
-        std::fread(tmpBuffer, sizeof(SourceFormat), num_records, m_file);
 
-    if (readSize != num_records && std::ferror(m_file)) {
-      // TODO throw exception
+    long totalReadSize = 0;
+
+    while (totalReadSize < num_records) {
+      auto requestSize = num_records - totalReadSize;
+
+      auto readSize = std::fread(tmpBuffer + totalReadSize,
+                                 sizeof(SourceFormat), requestSize, m_file);
+      totalReadSize += readSize;
+
+      if (readSize != requestSize) {
+        if (errno == EINTR) {
+          continue;
+        }
+        else if (std::feof(m_file)) {
+          break;
+        }
+
+        THROW_ERROR(std::ferror(m_file), RuntimeError,
+                    "fread returned errno " << std::strerror(errno));
+      }
     }
 
-    std::transform(tmpBuffer, tmpBuffer + readSize, buffer,
+    std::transform(tmpBuffer, tmpBuffer + totalReadSize, buffer,
                    StaticCaster<SourceFormat, Sample>());
 
-    return readSize;
+    return totalReadSize;
   }
 
 private:
