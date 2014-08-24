@@ -3,8 +3,6 @@
 
 #include <mutex>
 
-#include <SDL.h>
-
 #include "../CircularBuffer.h"
 #include "video/Driver.h"
 
@@ -25,7 +23,7 @@ public:
 
   int run();
 
-  void tick(Uint32 timeDelta) {}
+  void tick(unsigned timeDelta) {}
 
   void draw();
 

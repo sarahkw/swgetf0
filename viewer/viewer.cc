@@ -4,7 +4,7 @@
 #include <ctime>
 
 #include <GL/gl.h>
-
+#include <SDL.h>
 
 #include "base/Log.h"
 #include "base/Guard.h"
@@ -15,9 +15,6 @@ namespace viewer {
 int Viewer::run() {
   typedef base::PtrGuard<SDL_Surface, SDL_FreeSurface> SurfaceGuard;
   typedef base::RunGuard<SDL_Quit> SDLQuitGuard;
-
-  Uint32 last_time;
-  Uint32 fps = 120;
 
   if (SDL_Init(SDL_INIT_TIMER | SDL_INIT_VIDEO) != 0) {
     VIEWER_LOG_ERROR << SDL_GetError() << VIEWER_LOG_END;
@@ -55,6 +52,9 @@ int Viewer::run() {
 
   // Seed random number generator
   srand(time(NULL));
+
+  Uint32 last_time;
+  Uint32 fps = 120;
 
   // Initialize time difference counter
   last_time = SDL_GetTicks();
