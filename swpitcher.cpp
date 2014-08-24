@@ -5,12 +5,14 @@
 #include <cstdio>
 #include <cstring>
 #include <cassert>
+#include <thread>
+#include <unistd.h>
 
 #include "GetF0/get_f0.h"
+#include "viewer/viewer.h"
 
 #include "GetF0VectorImpl.h"
 #include "GetF0StreamImpl.h"
-#include "CircularBuffer.h"
 
 namespace {
 
@@ -109,31 +111,38 @@ int implementation_viewer()
 
   class Foo : public GetF0StreamImpl<DiskSample> {
   public:
-
-    enum {
-      SECONDS = 10
-    };
+    enum { SECONDS = 10 };
 
     Foo()
         : GetF0StreamImpl<DiskSample>(stdin, 44100),
-          m_cb(pitchFrameRate() * SECONDS)
+          m_viewer(pitchFrameRate() * SECONDS)
     {
     }
 
     void write_output_reversed(float* f0p, float* vuvp, float* rms_speech,
                                float* acpkp, int vecsize) override
     {
+      std::lock_guard<std::mutex> lockGuard(m_viewer.mutex());
+
+      auto& cb = m_viewer.cb();
+
       for (int i = vecsize; i >= 0; --i) {
-	m_cb.push_back(f0p[i]);
+        cb.push_back(f0p[i]);
       }
     }
 
-    CircularBuffer<Sample> m_cb;
+    viewer::Viewer m_viewer;
 
   } f0;
 
   f0.init();
+
+  std::thread viewerThread(std::bind(&viewer::Viewer::run, &f0.m_viewer));
+  sleep(1000);
+
   f0.run();
+
+  viewerThread.join();
 
   return 0;
 }

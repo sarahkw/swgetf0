@@ -1,11 +1,6 @@
 Import("env")
 
-env_viewer = env.Clone()
-env_viewer.MergeFlags(['!sdl-config --cflags --libs'])
-env_viewer.MergeFlags('-lSDL_ttf')
-env_viewer.MergeFlags('-lGL')
-
-objs = env_viewer.Object([
+objs = env.Object([
         'base/ColorPalette.cc',
         'viewer.cc',
         'video/Color.cc',
