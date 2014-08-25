@@ -121,9 +121,17 @@ void Viewer::draw()
     position += noteWidth;
   }
 
+  // G3
   {
     double ypos = (196 - minNote) * (m_height / (maxNote - minNote));
     m_driver->draw2DLine(0, ypos, m_width, ypos, video::Color(255, 0, 0, 255));
   }
+
+  // A3
+  {
+    double ypos = (220 - minNote) * (m_height / (maxNote - minNote));
+    m_driver->draw2DLine(0, ypos, m_width, ypos, video::Color(100, 0, 0, 255));
+  }
+
 }
 }
