@@ -12,6 +12,11 @@
 
 namespace viewer {
 
+namespace {
+const float MINNOTE = 100;
+const float MAXNOTE = 300;
+}
+
 int Viewer::run() {
   typedef base::PtrGuard<SDL_Surface, SDL_FreeSurface> SurfaceGuard;
   typedef base::RunGuard<SDL_Quit> SDLQuitGuard;
@@ -69,6 +74,11 @@ int Viewer::run() {
       case SDL_QUIT:
 	goto end;
 	break;
+      case SDL_MOUSEBUTTONDOWN: {
+	double ypos = m_height - event.button.y;
+        double note = ypos / (m_height / (MAXNOTE - MINNOTE)) + MINNOTE;
+        std::cerr << "note = " << note << std::endl;
+      } break;
       default:
 	break;
       }
@@ -102,9 +112,6 @@ void Viewer::draw()
 {
   std::lock_guard<std::mutex> lockGuard(mutex());
 
-  const float minNote = 50;
-  const float maxNote = 300;
-
   const double noteWidth = 2;
   // const double noteHeight = 20;
 
@@ -112,7 +119,7 @@ void Viewer::draw()
   for (auto note : cb()) {
     if (note != 0) {  // TODO float compare
 
-      double ypos = (note - minNote) * (m_height / (maxNote - minNote));
+      double ypos = (note - MINNOTE) * (m_height / (MAXNOTE - MINNOTE));
 
       m_driver->draw2DRectangle(position, ypos - 1, position + noteWidth,
                                 ypos + 1, video::Color(255, 255, 255, 255));
@@ -123,15 +130,22 @@ void Viewer::draw()
 
   // G3
   {
-    double ypos = (196 - minNote) * (m_height / (maxNote - minNote));
+    double ypos = (196 - MINNOTE) * (m_height / (MAXNOTE - MINNOTE));
     m_driver->draw2DLine(0, ypos, m_width, ypos, video::Color(255, 0, 0, 255));
   }
 
-  // A3
+  // A3 - reach
   {
-    double ypos = (220 - minNote) * (m_height / (maxNote - minNote));
+    double ypos = (220 - MINNOTE) * (m_height / (MAXNOTE - MINNOTE));
     m_driver->draw2DLine(0, ypos, m_width, ypos, video::Color(100, 0, 0, 255));
   }
+
+  // C3 - don't go here
+  {
+    double ypos = (131 - MINNOTE) * (m_height / (MAXNOTE - MINNOTE));
+    m_driver->draw2DLine(0, ypos, m_width, ypos, video::Color(100, 0, 0, 255));
+  }
+
 
 }
 }
