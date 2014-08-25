@@ -62,7 +62,7 @@ int implementation_vector()
 
   std::cerr << "Read " << samples.size() << " samples." << std::endl;
 
-  GetF0VectorImpl::SampleFrequency freq = 44100;
+  GetF0VectorImpl::SampleFrequency freq = 96000;
   GetF0VectorImpl f0(freq, samples);
   f0.init();
   f0.run();
@@ -84,7 +84,7 @@ int implementation_stream()
 
   class Foo : public GetF0StreamImpl<DiskSample> {
   public:
-    Foo() : GetF0StreamImpl<DiskSample>(stdin, 44100) {}
+    Foo() : GetF0StreamImpl<DiskSample>(stdin, 96000) {}
 
     void write_output_reversed(float* f0p, float* vuvp, float* rms_speech,
                                float* acpkp, int vecsize) override
@@ -114,7 +114,7 @@ int implementation_viewer()
     enum { SECONDS = 5 };
 
     Foo()
-        : GetF0StreamImpl<DiskSample>(stdin, 44100),
+        : GetF0StreamImpl<DiskSample>(stdin, 96000),
           m_viewer(pitchFrameRate() * SECONDS)
     {
     }
