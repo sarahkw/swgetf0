@@ -140,6 +140,12 @@ void Viewer::draw()
     m_driver->draw2DLine(0, ypos, m_width, ypos, video::Color(100, 0, 0, 255));
   }
 
+  // C4 - wow!
+  {
+    double ypos = (262 - MINNOTE) * (m_height / (MAXNOTE - MINNOTE));
+    m_driver->draw2DLine(0, ypos, m_width, ypos, video::Color(100, 0, 0, 255));
+  }
+
   // C3 - don't go here
   {
     double ypos = (131 - MINNOTE) * (m_height / (MAXNOTE - MINNOTE));
