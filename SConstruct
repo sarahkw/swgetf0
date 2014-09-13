@@ -13,6 +13,7 @@ objs_getf0 = SConscript("GetF0/SConscript", 'env')
 objs_viewer = SConscript("viewer/SConscript", 'env')
 
 SConscript("tests/SConscript", "env")
+SConscript("echo/SConscript", "env")
 
 env.Program('swpitcher', [Glob("*.cpp"), objs_getf0, objs_viewer])
 
