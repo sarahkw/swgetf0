@@ -22,7 +22,7 @@ struct StaticCaster {
 
 template <class SourceFormat>
 class GetF0StreamImpl : public GetF0Stream {
-private:
+protected:
 
   struct IStream {
     virtual size_t read(void* ptr, size_t size, size_t nmemb) = 0;
@@ -54,6 +54,16 @@ public:
       : GetF0Stream(sampleFrequency, debugLevel), m_stream(new FileStream(file))
   {
   }
+
+protected:
+
+  GetF0StreamImpl(IStream* stream, SampleFrequency sampleFrequency,
+                  DebugLevel debugLevel = 0)
+      : GetF0Stream(sampleFrequency, debugLevel), m_stream(stream)
+  {
+  }
+
+public:
 
   virtual ~GetF0StreamImpl() { delete m_stream; }
 

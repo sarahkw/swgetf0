@@ -1,5 +1,7 @@
 env = Environment(CXXFLAGS="-std=c++11 -g -Wall")
 
+env.ParseConfig('pkg-config libpulse-simple --libs --cflags')
+
 env.MergeFlags(['!sdl-config --cflags --libs'])
 env.MergeFlags('-lSDL_ttf')
 env.MergeFlags('-lGL')
