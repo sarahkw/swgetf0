@@ -10,6 +10,12 @@ namespace viewer {
 
 class Viewer {
 public:
+
+  struct Point {
+    float f0;
+    float rms;
+  };
+
   Viewer(std::size_t bufferCapacity) : m_cb(bufferCapacity), m_driver(NULL) {}
 
   virtual ~Viewer()
@@ -17,7 +23,7 @@ public:
     if (m_driver != nullptr) delete m_driver;
   }
 
-  CircularBuffer<float>& cb() { return m_cb; }
+  CircularBuffer<Point>& cb() { return m_cb; }
 
   std::mutex& mutex() { return m_mutex; }
 
@@ -29,7 +35,7 @@ public:
 
 private:
   std::mutex m_mutex;
-  CircularBuffer<float> m_cb;
+  CircularBuffer<Point> m_cb;
 
   video::Driver *m_driver;
   int m_width, m_height;

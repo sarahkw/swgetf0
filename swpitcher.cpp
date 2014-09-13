@@ -36,6 +36,7 @@ int implementation_stream()
   return 0;
 }
 
+/*
 int implementation_viewer()
 {
   using GetF0::GetF0StreamImpl;
@@ -75,6 +76,7 @@ int implementation_viewer()
 
   return 0;
 }
+*/
 
 int implementation_pulse()
 {
@@ -130,7 +132,7 @@ int implementation_pulse()
       auto& cb = m_viewer.cb();
 
       for (int i = vecsize - 1; i >= 0; --i) {
-        cb.push_back(f0p[i]);
+        cb.push_back({f0p[i], rms_speech[i]});
       }
     }
 
@@ -155,9 +157,11 @@ int main(int argc, char* argv[])
   if (implementation == 1) {
     return implementation_stream();
   }
+  /*
   else if (implementation == 2) {
     return implementation_viewer();
   }
+  */
   else if (implementation == 3) {
     return implementation_pulse();
   }

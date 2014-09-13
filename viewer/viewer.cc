@@ -117,12 +117,18 @@ void Viewer::draw()
 
   double position = 0;
   for (auto note : cb()) {
-    if (note != 0) {  // TODO float compare
+    if (note.f0 != 0) {  // TODO float compare
 
-      double ypos = (note - MINNOTE) * (m_height / (MAXNOTE - MINNOTE));
+      double ypos = (note.f0 - MINNOTE) * (m_height / (MAXNOTE - MINNOTE));
 
       m_driver->draw2DRectangle(position, ypos - 1, position + noteWidth,
                                 ypos + 1, video::Color(255, 255, 255, 255));
+
+
+      ypos = note.rms * (m_height / 3 / 24000.0) + (2.0 * m_height / 3);
+
+      m_driver->draw2DRectangle(position, ypos - 1, position + noteWidth,
+                                ypos + 1, video::Color(0, 100, 100, 255));
     }
 
     position += noteWidth;
