@@ -127,9 +127,10 @@ void Viewer::draw()
 
       m_driver->draw2DRectangle(position, ypos - 1, position + noteWidth,
                                 ypos + 1, video::Color(255, 255, 255, 255));
+    }
 
-
-      ypos = note.rms * (m_height / 3 / 24000.0) + (2.0 * m_height / 3);
+    {
+      double ypos = note.rms * (m_height / 3 / 24000.0) + (2.0 * m_height / 3);
 
       m_driver->draw2DRectangle(position, ypos - 1, position + noteWidth,
                                 ypos + 1, video::Color(0, 100, 100, 255));
