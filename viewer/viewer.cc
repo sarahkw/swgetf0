@@ -112,6 +112,10 @@ void Viewer::draw()
 {
   std::lock_guard<std::mutex> lockGuard(mutex());
 
+  auto noteToPos = [this](double note) {
+    return (note - MINNOTE) * (m_height / (MAXNOTE - MINNOTE));
+  };
+
   const double noteWidth = 2;
   // const double noteHeight = 20;
 
@@ -119,7 +123,7 @@ void Viewer::draw()
   for (auto note : cb()) {
     if (note.f0 != 0) {  // TODO float compare
 
-      double ypos = (note.f0 - MINNOTE) * (m_height / (MAXNOTE - MINNOTE));
+      double ypos = noteToPos(note.f0);
 
       m_driver->draw2DRectangle(position, ypos - 1, position + noteWidth,
                                 ypos + 1, video::Color(255, 255, 255, 255));
@@ -136,25 +140,25 @@ void Viewer::draw()
 
   // G3
   {
-    double ypos = (196 - MINNOTE) * (m_height / (MAXNOTE - MINNOTE));
+    double ypos = noteToPos(196);
     m_driver->draw2DLine(0, ypos, m_width, ypos, video::Color(255, 0, 0, 255));
   }
 
   // A3 - reach
   {
-    double ypos = (220 - MINNOTE) * (m_height / (MAXNOTE - MINNOTE));
+    double ypos = noteToPos(220);
     m_driver->draw2DLine(0, ypos, m_width, ypos, video::Color(100, 0, 0, 255));
   }
 
   // C4 - wow!
   {
-    double ypos = (262 - MINNOTE) * (m_height / (MAXNOTE - MINNOTE));
+    double ypos = noteToPos(262);
     m_driver->draw2DLine(0, ypos, m_width, ypos, video::Color(100, 0, 0, 255));
   }
 
   // C3 - don't go here
   {
-    double ypos = (131 - MINNOTE) * (m_height / (MAXNOTE - MINNOTE));
+    double ypos = noteToPos(131);
     m_driver->draw2DLine(0, ypos, m_width, ypos, video::Color(100, 0, 0, 255));
   }
 
