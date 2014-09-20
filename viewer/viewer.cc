@@ -139,15 +139,15 @@ void Viewer::draw()
     position += noteWidth;
   }
 
-  // G3
+  // A3
   {
-    double ypos = noteToPos(196);
+    double ypos = noteToPos(220);
     m_driver->draw2DLine(0, ypos, m_width, ypos, video::Color(255, 0, 0, 255));
   }
 
-  // A3 - reach
+  // B3
   {
-    double ypos = noteToPos(220);
+    double ypos = noteToPos(247);
     m_driver->draw2DLine(0, ypos, m_width, ypos, video::Color(100, 0, 0, 255));
   }
 
