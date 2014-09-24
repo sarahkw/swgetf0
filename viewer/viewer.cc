@@ -13,8 +13,8 @@
 namespace viewer {
 
 namespace {
-const float MINNOTE = 100;
-const float MAXNOTE = 300;
+const float MINNOTE = 150;
+const float MAXNOTE = 350;
 }
 
 int Viewer::run() {
@@ -145,6 +145,12 @@ void Viewer::draw()
     m_driver->draw2DLine(0, ypos, m_width, ypos, video::Color(255, 0, 0, 255));
   }
 
+  // A#3
+  {
+    double ypos = noteToPos(233);
+    m_driver->draw2DLine(0, ypos, m_width, ypos, video::Color(50, 0, 0, 255));
+  }
+
   // B3
   {
     double ypos = noteToPos(247);
@@ -157,11 +163,23 @@ void Viewer::draw()
     m_driver->draw2DLine(0, ypos, m_width, ypos, video::Color(100, 0, 0, 255));
   }
 
-  // C3 - don't go here
+  // D4
   {
-    double ypos = noteToPos(131);
+    double ypos = noteToPos(294);
     m_driver->draw2DLine(0, ypos, m_width, ypos, video::Color(100, 0, 0, 255));
   }
+
+  // E4
+  {
+    double ypos = noteToPos(330);
+    m_driver->draw2DLine(0, ypos, m_width, ypos, video::Color(100, 0, 0, 255));
+  }
+
+  // // C3 - don't go here
+  // {
+  //   double ypos = noteToPos(131);
+  //   m_driver->draw2DLine(0, ypos, m_width, ypos, video::Color(100, 0, 0, 255));
+  // }
 
 
 }
