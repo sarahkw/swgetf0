@@ -13,8 +13,8 @@
 namespace viewer {
 
 namespace {
-const float MINNOTE = 150;
-const float MAXNOTE = 350;
+const float MINNOTE = 100;
+const float MAXNOTE = 400;
 }
 
 int Viewer::run() {
@@ -35,7 +35,7 @@ int Viewer::run() {
   SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
-  SurfaceGuard screen(SDL_SetVideoMode(1024, 600, 24, SDL_OPENGL));
+  SurfaceGuard screen(SDL_SetVideoMode(1024, 800, 24, SDL_OPENGL));
   if (!screen) {
     VIEWER_LOG_ERROR << SDL_GetError() << VIEWER_LOG_END;
     return 1;
@@ -139,6 +139,12 @@ void Viewer::draw()
     position += noteWidth;
   }
 
+  // G3
+  {
+    double ypos = noteToPos(196);
+    m_driver->draw2DLine(0, ypos, m_width, ypos, video::Color(100, 0, 0, 255));
+  }
+
   // A3
   {
     double ypos = noteToPos(220);
@@ -175,11 +181,11 @@ void Viewer::draw()
     m_driver->draw2DLine(0, ypos, m_width, ypos, video::Color(100, 0, 0, 255));
   }
 
-  // // C3 - don't go here
-  // {
-  //   double ypos = noteToPos(131);
-  //   m_driver->draw2DLine(0, ypos, m_width, ypos, video::Color(100, 0, 0, 255));
-  // }
+  // C3
+  {
+    double ypos = noteToPos(131);
+    m_driver->draw2DLine(0, ypos, m_width, ypos, video::Color(100, 0, 0, 255));
+  }
 
 
 }
