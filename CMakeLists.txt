@@ -20,6 +20,15 @@ pkg_check_modules(PA_SIMPLE REQUIRED libpulse-simple)
 include_directories(${SDL_INCLUDE_DIR} ${SDLTTF_INCLUDE_DIR} ${OPENGL_INCLUDE_DIR} ${PA_SIMPLE_INCLUDE_DIRS})
 
 ################################################################################
+# swpitcher.qt
+
+find_package(Qt4 REQUIRED QtCore QtGui)
+include(${QT_USE_FILE})
+QT4_WRAP_UI(QT4FILES_UI ui/mainwindow.ui)
+add_executable(swpitcher.qt swpitcher.qt.cpp ${QT4FILES_UI})
+target_link_libraries(swpitcher.qt ${QT_LIBRARIES})
+
+################################################################################
 # swpitcher
 
 add_executable(swpitcher
