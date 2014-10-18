@@ -5,6 +5,11 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 add_subdirectory(GetF0)
 
+option(ENABLE_TESTS "Compile unit tests" OFF)
+if(ENABLE_TESTS)
+  add_subdirectory(tests)
+endif(ENABLE_TESTS)
+
 find_package(SDL REQUIRED)
 find_package(SDL_ttf REQUIRED)
 find_package(OpenGL REQUIRED)
