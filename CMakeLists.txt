@@ -4,7 +4,18 @@ project(swpitcher)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 add_subdirectory(GetF0)
-set(LIBS ${LIBS} GetF0)
+
+find_package(SDL REQUIRED)
+find_package(SDL_ttf REQUIRED)
+find_package(OpenGL REQUIRED)
+# sw: TODO: Apparently it's not good to use PkgConfig directly
+find_package(PkgConfig)
+pkg_check_modules(PA_SIMPLE REQUIRED libpulse-simple)
+
+include_directories(${SDL_INCLUDE_DIR} ${SDLTTF_INCLUDE_DIR} ${OPENGL_INCLUDE_DIR} ${PA_SIMPLE_INCLUDE_DIRS})
+
+################################################################################
+# swpitcher
 
 add_executable(swpitcher
   CircularBuffer.cpp
@@ -16,17 +27,14 @@ add_executable(swpitcher
   viewer/base/ColorPalette.cc
   viewer/viewer.cc
 )
+target_link_libraries(swpitcher
+  GetF0
+  ${SDL_LIBRARY} ${SDLTTF_LIBRARY} ${OPENGL_gl_LIBRARY} ${PA_SIMPLE_LIBRARIES})
 
-find_package(SDL REQUIRED)
-find_package(SDL_ttf REQUIRED)
-find_package(OpenGL REQUIRED)
-# sw: TODO: Apparently it's not good to use PkgConfig directly
-find_package(PkgConfig)
-pkg_check_modules(PA_SIMPLE REQUIRED libpulse-simple)
+################################################################################
+# echo
 
-include_directories(${SDL_INCLUDE_DIR} ${SDLTTF_INCLUDE_DIR} ${OPENGL_INCLUDE_DIR} ${PA_SIMPLE_INCLUDE_DIRS})
-set(LIBS ${LIBS} ${SDL_LIBRARY} ${SDLTTF_LIBRARY} ${OPENGL_gl_LIBRARY} ${PA_SIMPLE_LIBRARIES})
-
-
-target_link_libraries(swpitcher ${LIBS})
-
+add_executable(echo/echo
+  echo/echo.c
+)
+target_link_libraries(echo/echo ${PA_SIMPLE_LIBRARIES})
