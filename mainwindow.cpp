@@ -6,10 +6,11 @@ void ViewerWidget::initializeGL() {}
 void ViewerWidget::resizeGL(int w, int h) {}
 void ViewerWidget::paintGL() {}
 
-MainWindow::MainWindow() {
+MainWindow::MainWindow(std::size_t bufferCapacity) : m_cb(bufferCapacity)
+{
   m_ui.setupUi(this);
 
-  ViewerWidget *vw = new ViewerWidget(this);
+  ViewerWidget* vw = new ViewerWidget(this);
 
   setCentralWidget(vw);
 }

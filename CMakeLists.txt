@@ -28,9 +28,14 @@ find_package(Qt5Widgets REQUIRED)
 find_package(Qt5OpenGL REQUIRED)
 QT5_WRAP_UI(QTFILES_UI ui/mainwindow.ui)
 QT5_WRAP_CPP(QTFILES_CPP mainwindow.h)
-add_executable(swpitcher.qt swpitcher.qt.cpp mainwindow.cpp
+add_executable(swpitcher.qt
+  swpitcher.qt.cpp
+  mainwindow.cpp
+  CircularBuffer.cpp
+  GetF0StreamImpl.cpp
   ${QTFILES_UI} ${QTFILES_CPP})
 qt5_use_modules(swpitcher.qt Widgets OpenGL)
+target_link_libraries(swpitcher.qt GetF0 ${PA_SIMPLE_LIBRARIES})
 
 ################################################################################
 # swpitcher

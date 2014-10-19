@@ -2,6 +2,9 @@
 
 #include <QGLWidget>
 
+#include "CircularBuffer.h"
+#include <mutex>
+
 class ViewerWidget : public QGLWidget {
   Q_OBJECT
 
@@ -20,10 +23,23 @@ class MainWindow : public QMainWindow {
 
 public:
 
-  MainWindow();
+  struct Point {
+    float f0;
+    float rms;
+  };
+
+  MainWindow(std::size_t bufferCapacity);
+
+  CircularBuffer<Point>& cb() { return m_cb; }
+
+  std::mutex& mutex() { return m_mutex; }
+
 
 private:
 
   Ui::MainWindow m_ui;
+
+  std::mutex m_mutex;
+  CircularBuffer<Point> m_cb;
 
 };
