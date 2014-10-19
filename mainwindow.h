@@ -5,9 +5,7 @@ class MainWindow : public QMainWindow {
 
 public:
 
-  MainWindow() {
-    m_ui.setupUi(this);
-  }
+  MainWindow();
 
 private:
 
