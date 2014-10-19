@@ -9,75 +9,6 @@
 
 typedef short DiskSample;
 
-int implementation_stream()
-{
-  using GetF0::GetF0StreamImpl;
-
-  class Foo : public GetF0StreamImpl<DiskSample> {
-  public:
-    Foo() : GetF0StreamImpl<DiskSample>(stdin, 96000) {}
-
-    void write_output_reversed(float* f0p, float* vuvp, float* rms_speech,
-                               float* acpkp, int vecsize) override
-    {
-      // safe to reverse in place since next iteration will rewrite
-      // the whole buffer
-      std::reverse(f0p, f0p + vecsize);
-
-      std::fwrite(f0p, sizeof(Sample), vecsize, stdout);
-      std::fflush(stdout); // streaming
-    }
-
-  } f0;
-
-  f0.init();
-  f0.run();
-
-  return 0;
-}
-
-/*
-int implementation_viewer()
-{
-  using GetF0::GetF0StreamImpl;
-
-  class Foo : public GetF0StreamImpl<DiskSample> {
-  public:
-    enum { SECONDS = 5 };
-
-    Foo()
-        : GetF0StreamImpl<DiskSample>(stdin, 96000),
-          m_viewer(pitchFrameRate() * SECONDS)
-    {
-    }
-
-    void write_output_reversed(float* f0p, float* vuvp, float* rms_speech,
-                               float* acpkp, int vecsize) override
-    {
-      std::lock_guard<std::mutex> lockGuard(m_viewer.mutex());
-
-      auto& cb = m_viewer.cb();
-
-      for (int i = vecsize - 1; i >= 0; --i) {
-        cb.push_back(f0p[i]);
-      }
-    }
-
-    viewer::Viewer m_viewer;
-
-  } f0;
-
-  f0.init();
-
-  std::thread viewerThread(std::bind(&viewer::Viewer::run, &f0.m_viewer));
-  f0.run();
-
-  viewerThread.join();
-
-  return 0;
-}
-*/
-
 int implementation_pulse()
 {
   pa_simple* s;
@@ -152,21 +83,5 @@ int implementation_pulse()
 
 int main(int argc, char* argv[])
 {
-  auto implementation = atoi(argv[1]);
-
-  if (implementation == 1) {
-    return implementation_stream();
-  }
-  /*
-  else if (implementation == 2) {
-    return implementation_viewer();
-  }
-  */
-  else if (implementation == 3) {
-    return implementation_pulse();
-  }
-  else {
-    std::cerr << "Bad implementation." << std::endl;
-    return 1;
-  }
+  return implementation_pulse();
 }
