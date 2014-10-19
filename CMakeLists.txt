@@ -22,12 +22,13 @@ include_directories(${SDL_INCLUDE_DIR} ${SDLTTF_INCLUDE_DIR} ${OPENGL_INCLUDE_DI
 ################################################################################
 # swpitcher.qt
 
-find_package(Qt4 REQUIRED QtCore QtGui)
-include(${QT_USE_FILE})
-QT4_WRAP_UI(QT4FILES_UI ui/mainwindow.ui)
-QT4_WRAP_CPP(QT4FILES_CPP mainwindow.h)
-add_executable(swpitcher.qt swpitcher.qt.cpp ${QT4FILES_UI} ${QT4FILES_CPP})
-target_link_libraries(swpitcher.qt ${QT_LIBRARIES})
+  # TODO um, don't release this
+set(CMAKE_PREFIX_PATH "/home/sarah/Qt/5.3/gcc_64/lib/cmake")
+find_package(Qt5Widgets REQUIRED)
+QT5_WRAP_UI(QTFILES_UI ui/mainwindow.ui)
+QT5_WRAP_CPP(QTFILES_CPP mainwindow.h)
+add_executable(swpitcher.qt swpitcher.qt.cpp ${QTFILES_UI} ${QTFILES_CPP})
+qt5_use_modules(swpitcher.qt Widgets)
 
 ################################################################################
 # swpitcher
