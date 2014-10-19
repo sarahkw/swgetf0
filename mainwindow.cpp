@@ -68,57 +68,65 @@ void ViewerWidget::renderNow() {
     position += noteWidth;
   }
 
+  const QPen penNormal(QColor(100, 0, 0));
+  const QPen penSub(QColor(50, 0, 0)); // not much attention
+  const QPen penTarget(QColor(255, 0, 0));
+
   // G3
   {
     double ypos = noteToPos(196);
-    QPen pen(QColor(100, 0, 0));
-    painter.setPen(pen);
+    painter.setPen(penNormal);
     painter.drawLine(0, ypos, m_width, ypos);
   }
 
-#if 0
   // A3
   {
     double ypos = noteToPos(220);
-    m_driver->draw2DLine(0, ypos, m_width, ypos, video::Color(255, 0, 0, 255));
+    painter.setPen(penTarget);
+    painter.drawLine(0, ypos, m_width, ypos);
   }
 
   // A#3
   {
     double ypos = noteToPos(233);
-    m_driver->draw2DLine(0, ypos, m_width, ypos, video::Color(50, 0, 0, 255));
+    painter.setPen(penSub);
+    painter.drawLine(0, ypos, m_width, ypos);
   }
 
   // B3
   {
     double ypos = noteToPos(247);
-    m_driver->draw2DLine(0, ypos, m_width, ypos, video::Color(100, 0, 0, 255));
+    painter.setPen(penNormal);
+    painter.drawLine(0, ypos, m_width, ypos);
   }
 
   // C4 - wow!
   {
     double ypos = noteToPos(262);
-    m_driver->draw2DLine(0, ypos, m_width, ypos, video::Color(100, 0, 0, 255));
+    painter.setPen(penNormal);
+    painter.drawLine(0, ypos, m_width, ypos);
   }
 
   // D4
   {
     double ypos = noteToPos(294);
-    m_driver->draw2DLine(0, ypos, m_width, ypos, video::Color(100, 0, 0, 255));
+    painter.setPen(penNormal);
+    painter.drawLine(0, ypos, m_width, ypos);
   }
 
   // E4
   {
     double ypos = noteToPos(330);
-    m_driver->draw2DLine(0, ypos, m_width, ypos, video::Color(100, 0, 0, 255));
+    painter.setPen(penNormal);
+    painter.drawLine(0, ypos, m_width, ypos);
   }
 
   // C3
   {
     double ypos = noteToPos(131);
-    m_driver->draw2DLine(0, ypos, m_width, ypos, video::Color(100, 0, 0, 255));
+    painter.setPen(penNormal);
+    painter.drawLine(0, ypos, m_width, ypos);
   }
-#endif
 
   renderLater();
 }
