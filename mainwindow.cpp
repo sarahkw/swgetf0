@@ -8,11 +8,19 @@ const float MAXNOTE = 400;
 }
 
 ViewerWidget::ViewerWidget(QWidget* parent)
-    : QGLWidget(parent), m_parent(dynamic_cast<MainWindow*>(parent))
+    : QGLWidget(parent),
+      m_parent(dynamic_cast<MainWindow*>(parent)),
+      m_update_pending(false)
 {
 }
 
-void ViewerWidget::paintEvent(QPaintEvent* event) {
+void ViewerWidget::renderLater() {
+    if (!m_update_pending) {
+        m_update_pending = true;
+        QCoreApplication::postEvent(this, new QEvent(QEvent::UpdateRequest));
+    }
+}
+void ViewerWidget::renderNow() {
   QPainter painter(this);
 
   painter.fillRect(rect(), Qt::black);
@@ -24,32 +32,40 @@ void ViewerWidget::paintEvent(QPaintEvent* event) {
   std::lock_guard<std::mutex> lockGuard(m_parent->mutex());
 
   auto noteToPos = [this, m_height](double note) {
-    return (note - MINNOTE) * (m_height / (MAXNOTE - MINNOTE));
+    return m_height - (note - MINNOTE) * (m_height / (MAXNOTE - MINNOTE));
   };
 
   const double noteWidth = 2;
 
-#if 0
+  QPen pen(QColor(255, 255, 255));
+  painter.setPen(pen);
+
+  QBrush brush(QColor(255, 255, 255));
+  painter.setBrush(brush);
+
   double position = 0;
-  for (auto note : cb()) {
+  for (auto note : m_parent->cb()) {
     if (note.f0 != 0) {  // TODO float compare
 
       double ypos = noteToPos(note.f0);
 
-      m_driver->draw2DRectangle(position, ypos - 1, position + noteWidth,
-                                ypos + 1, video::Color(255, 255, 255, 255));
+//      m_driver->draw2DRectangle(position, ypos - 1, position + noteWidth,
+//                                ypos + 1, video::Color(255, 255, 255, 255));
+
+      painter.drawRect(position, ypos - 1, noteWidth, noteWidth);
     }
 
+#if 0
     {
       double ypos = note.rms * (m_height / 3 / 24000.0) + (2.0 * m_height / 3);
 
       m_driver->draw2DRectangle(position, ypos - 1, position + noteWidth,
                                 ypos + 1, video::Color(0, 100, 100, 255));
     }
+#endif
 
     position += noteWidth;
   }
-#endif
 
   // G3
   {
@@ -102,6 +118,24 @@ void ViewerWidget::paintEvent(QPaintEvent* event) {
     m_driver->draw2DLine(0, ypos, m_width, ypos, video::Color(100, 0, 0, 255));
   }
 #endif
+
+  renderLater();
+}
+
+bool ViewerWidget::event(QEvent* event)
+{
+  switch (event->type()) {
+  case QEvent::UpdateRequest:
+    m_update_pending = false;
+    renderNow();
+    return true;
+  default:
+    return QGLWidget::event(event);
+  }
+}
+
+void ViewerWidget::paintEvent(QPaintEvent* event) {
+  renderNow();
 }
 
 MainWindow::MainWindow(std::size_t bufferCapacity) : m_cb(bufferCapacity)

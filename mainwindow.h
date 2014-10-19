@@ -13,13 +13,21 @@ class ViewerWidget : public QGLWidget {
 public:
   ViewerWidget(QWidget* parent);
 
+public slots:
+  void renderLater();
+  void renderNow();
+
 protected:
+
+  bool event(QEvent *event) override;
 
   void paintEvent(QPaintEvent *) override;
 
 private:
 
   MainWindow *m_parent;
+
+  bool m_update_pending;
 };
 
 class MainWindow : public QMainWindow {
