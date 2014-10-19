@@ -5,6 +5,8 @@
 #include "CircularBuffer.h"
 #include <mutex>
 
+class MainWindow;
+
 class ViewerWidget : public QGLWidget {
   Q_OBJECT
 
@@ -13,9 +15,11 @@ public:
 
 protected:
 
-  void initializeGL() override;
-  void resizeGL(int w, int h) override;
-  void paintGL() override;
+  void paintEvent(QPaintEvent *) override;
+
+private:
+
+  MainWindow *m_parent;
 };
 
 class MainWindow : public QMainWindow {
