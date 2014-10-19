@@ -20,10 +20,16 @@ void ViewerWidget::renderLater() {
         QCoreApplication::postEvent(this, new QEvent(QEvent::UpdateRequest));
     }
 }
+
 void ViewerWidget::renderNow() {
   QPainter painter(this);
 
   painter.fillRect(rect(), Qt::black);
+
+  const QPen penWhite(QColor(255, 255, 255));
+  const QPen penRMS(QColor(0, 100, 100));
+  const QBrush brushWhite(QColor(255, 255, 255));
+  const QBrush brushRMS(QColor(0, 100, 100));
 
 
   int m_width = 1024;
@@ -37,11 +43,6 @@ void ViewerWidget::renderNow() {
 
   const double noteWidth = 2;
 
-  QPen pen(QColor(255, 255, 255));
-  painter.setPen(pen);
-
-  QBrush brush(QColor(255, 255, 255));
-  painter.setBrush(brush);
 
   double position = 0;
   for (auto note : m_parent->cb()) {
@@ -49,20 +50,20 @@ void ViewerWidget::renderNow() {
 
       double ypos = noteToPos(note.f0);
 
-//      m_driver->draw2DRectangle(position, ypos - 1, position + noteWidth,
-//                                ypos + 1, video::Color(255, 255, 255, 255));
+      painter.setPen(penWhite);
+      painter.setBrush(brushWhite);
 
       painter.drawRect(position, ypos - 1, noteWidth, noteWidth);
     }
 
-#if 0
     {
-      double ypos = note.rms * (m_height / 3 / 24000.0) + (2.0 * m_height / 3);
+      double ypos = m_height - (note.rms * (m_height / 3 / 24000.0) + (2.0 * m_height / 3));
 
-      m_driver->draw2DRectangle(position, ypos - 1, position + noteWidth,
-                                ypos + 1, video::Color(0, 100, 100, 255));
+      painter.setPen(penRMS);
+      painter.setBrush(brushRMS);
+
+      painter.drawRect(position, ypos - 1, noteWidth, noteWidth);
     }
-#endif
 
     position += noteWidth;
   }
