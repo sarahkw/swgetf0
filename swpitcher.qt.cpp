@@ -1,4 +1,7 @@
 #include <QApplication>
+#include <QAudioInput> // not final
+#include <QAudioDeviceInfo> // not final
+#include <QDebug> // not final
 
 #include "mainwindow.h"
 
@@ -23,6 +26,19 @@ int main(int argc, char* argv[])
 {
   QApplication app(argc, argv);
 
+  /*
+  // test
+  for (auto recordDevice :
+       QAudioDeviceInfo::availableDevices(QAudio::AudioInput)) {
+    qDebug() << "Device:" << recordDevice.deviceName()
+             << recordDevice.preferredFormat();
+  }
+
+  qDebug() << "Default:" << QAudioDeviceInfo::defaultInputDevice().deviceName();
+
+  return 0;
+
+  */
 
 ////////////////////////////////////////////////////////////////////////////////
 //

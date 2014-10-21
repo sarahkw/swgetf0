@@ -26,6 +26,7 @@ include_directories(${SDL_INCLUDE_DIR} ${SDLTTF_INCLUDE_DIR} ${OPENGL_INCLUDE_DI
 set(CMAKE_PREFIX_PATH "/home/sarah/Qt/5.3/gcc_64/lib/cmake")
 find_package(Qt5Widgets REQUIRED)
 find_package(Qt5OpenGL REQUIRED)
+find_package(Qt5Multimedia REQUIRED)
 QT5_WRAP_UI(QTFILES_UI ui/mainwindow.ui)
 QT5_WRAP_CPP(QTFILES_CPP mainwindow.h)
 add_executable(swpitcher.qt
@@ -34,7 +35,7 @@ add_executable(swpitcher.qt
   CircularBuffer.cpp
   GetF0StreamImpl.cpp
   ${QTFILES_UI} ${QTFILES_CPP})
-qt5_use_modules(swpitcher.qt Widgets OpenGL)
+qt5_use_modules(swpitcher.qt Widgets OpenGL Multimedia)
 target_link_libraries(swpitcher.qt GetF0 ${PA_SIMPLE_LIBRARIES})
 
 ################################################################################
