@@ -42,41 +42,6 @@ int main(int argc, char* argv[])
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-#if 0
-  pa_simple* s;
-  pa_sample_spec ss;
-  ss.format = PA_SAMPLE_S16LE;
-  ss.channels = 1;
-  ss.rate = 96000;
-  s = pa_simple_new(NULL,         // Use the default server.
-                    "swpitcher",  // Our application's name.
-                    PA_STREAM_RECORD,
-                    NULL,      // Use the default device.
-                    "Record",  // Description of our stream.
-                    &ss,       // Our sample format.
-                    NULL,      // Use default channel map
-                    NULL,      // Use default buffering attributes.
-                    NULL       // Ignore error code.
-                    );
-  if (s == nullptr) {
-    std::cerr << "Pulse failed." << std::endl;
-  }
-#endif
-
-  QAudioInput* audio;
-  {
-    QAudioFormat format;
-    // Set up the desired format, for example:
-    format.setSampleRate(96000);
-    format.setChannelCount(1);
-    format.setSampleSize(16);
-    format.setCodec("audio/pcm");
-    format.setByteOrder(QAudioFormat::LittleEndian);
-    format.setSampleType(QAudioFormat::SignedInt);
-
-    audio = new QAudioInput(format);
-  }
-
   using GetF0::GetF0StreamImpl;
 
   class Foo : public GetF0StreamImpl<DiskSample> {
@@ -137,22 +102,72 @@ int main(int argc, char* argv[])
 
     MainWindow *m_viewer;
 
-  } f0(audio->start()); //f0(s);
+  };
 
-  f0.init();
+  Foo* f0;
+
+  if (std::string(argv[1]) == "q") {
+    std::cout << "QT Audio" << std::endl;
+
+    QAudioInput* audio;
+    {
+      QAudioFormat format;
+      // Set up the desired format, for example:
+      format.setSampleRate(96000);
+      format.setChannelCount(1);
+      format.setSampleSize(16);
+      format.setCodec("audio/pcm");
+      format.setByteOrder(QAudioFormat::LittleEndian);
+      format.setSampleType(QAudioFormat::SignedInt);
+
+      audio = new QAudioInput(format);
+    }
+
+    f0 = new Foo(audio->start());
+
+  } else if (std::string(argv[1]) == "p") {
+    std::cout << "PulseAudio" << std::endl;
+
+    pa_simple* s;
+    pa_sample_spec ss;
+    ss.format = PA_SAMPLE_S16LE;
+    ss.channels = 1;
+    ss.rate = 96000;
+    s = pa_simple_new(NULL,         // Use the default server.
+                      "swpitcher",  // Our application's name.
+                      PA_STREAM_RECORD,
+                      NULL,      // Use the default device.
+                      "Record",  // Description of our stream.
+                      &ss,       // Our sample format.
+                      NULL,      // Use default channel map
+                      NULL,      // Use default buffering attributes.
+                      NULL       // Ignore error code.
+                      );
+    if (s == nullptr) {
+      std::cerr << "Pulse failed." << std::endl;
+    }
+
+    f0 = new Foo(s);
+
+  } else {
+    return 1;
+  }
+
+
+  f0->init();
 
 //
 ////////////////////////////////////////////////////////////////////////////////
 
   enum { SECONDS = 5 };
 
-  MainWindow mainWindow(f0.pitchFrameRate() * SECONDS);
+  MainWindow mainWindow(f0->pitchFrameRate() * SECONDS);
   mainWindow.show();
 
-  f0.setViewer(&mainWindow);
+  f0->setViewer(&mainWindow);
 
   // Run on new thread
-  std::thread inputThread(std::bind(&Foo::run, &f0));
+  std::thread inputThread(std::bind(&Foo::run, f0));
 
   return app.exec();
 }
