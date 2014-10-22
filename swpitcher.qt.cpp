@@ -42,6 +42,7 @@ int main(int argc, char* argv[])
 
 ////////////////////////////////////////////////////////////////////////////////
 //
+#if 0
   pa_simple* s;
   pa_sample_spec ss;
   ss.format = PA_SAMPLE_S16LE;
@@ -59,6 +60,21 @@ int main(int argc, char* argv[])
                     );
   if (s == nullptr) {
     std::cerr << "Pulse failed." << std::endl;
+  }
+#endif
+
+  QAudioInput* audio;
+  {
+    QAudioFormat format;
+    // Set up the desired format, for example:
+    format.setSampleRate(96000);
+    format.setChannelCount(1);
+    format.setSampleSize(16);
+    format.setCodec("audio/pcm");
+    format.setByteOrder(QAudioFormat::LittleEndian);
+    format.setSampleType(QAudioFormat::SignedInt);
+
+    audio = new QAudioInput(format);
   }
 
   using GetF0::GetF0StreamImpl;
@@ -83,10 +99,10 @@ int main(int argc, char* argv[])
 
       size_t read(void* ptr, size_t size, size_t nmemb) override
       {
-        return m_ioDevice->read(static_cast<char*>(ptr), size * nmemb);
+        return m_ioDevice->read(static_cast<char*>(ptr), size * nmemb) / size;
       }
 
-      int feof() override { return m_ioDevice->atEnd(); }
+      int feof() override { return 0; }
 
       int ferror() override
       {
@@ -121,7 +137,7 @@ int main(int argc, char* argv[])
 
     MainWindow *m_viewer;
 
-  } f0(s);
+  } f0(audio->start()); //f0(s);
 
   f0.init();
 
