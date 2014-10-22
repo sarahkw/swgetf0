@@ -78,8 +78,30 @@ int main(int argc, char* argv[])
       pa_simple* s;
     };
 
-    Foo(pa_simple* s)
-      : GetF0StreamImpl<DiskSample>(new PulseStream(s), 96000)
+    struct QIOStream : public IStream {
+      QIOStream(QIODevice* ioDevice) : m_ioDevice(ioDevice) {}
+
+      size_t read(void* ptr, size_t size, size_t nmemb) override
+      {
+        return m_ioDevice->read(static_cast<char*>(ptr), size * nmemb);
+      }
+
+      int feof() override { return m_ioDevice->atEnd(); }
+
+      int ferror() override
+      {
+        return 0;  // TODO
+      }
+
+      QIODevice* m_ioDevice;
+    };
+
+    Foo(pa_simple* s) : GetF0StreamImpl<DiskSample>(new PulseStream(s), 96000)
+    {
+    }
+
+    Foo(QIODevice* ioDevice)
+        : GetF0StreamImpl<DiskSample>(new QIOStream(ioDevice), 96000)
     {
     }
 
