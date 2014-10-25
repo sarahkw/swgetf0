@@ -9,9 +9,13 @@ const float MAXNOTE = 400;
 
 ViewerWidget::ViewerWidget(QWidget* parent)
     : QGLWidget(parent),
+      m_timer(new QTimer(this)),
       m_parent(dynamic_cast<MainWindow*>(parent)),
       m_update_pending(false)
 {
+  QObject::connect(m_timer, SIGNAL(timeout()), this, SLOT(renderLater()));
+  m_timer->setTimerType(Qt::PreciseTimer);
+  m_timer->start(1000 / 120);
 }
 
 void ViewerWidget::renderLater() {
@@ -127,8 +131,6 @@ void ViewerWidget::renderNow() {
     painter.setPen(penNormal);
     painter.drawLine(0, ypos, m_width, ypos);
   }
-
-  renderLater();
 }
 
 bool ViewerWidget::event(QEvent* event)

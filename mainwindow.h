@@ -1,6 +1,7 @@
 #include "ui_mainwindow.h"
 
 #include <QGLWidget>
+#include <QTimer>
 
 #include "CircularBuffer.h"
 #include <mutex>
@@ -24,6 +25,8 @@ protected:
   void paintEvent(QPaintEvent *) override;
 
 private:
+
+  QTimer *m_timer;
 
   MainWindow *m_parent;
 
