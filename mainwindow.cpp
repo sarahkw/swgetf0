@@ -18,6 +18,7 @@
 */
 
 #include "mainwindow.h"
+#include "about.h"
 
 #include <QPainter>
 
@@ -175,4 +176,10 @@ MainWindow::MainWindow(std::size_t bufferCapacity) : m_cb(bufferCapacity)
   ViewerWidget* vw = new ViewerWidget(this);
 
   setCentralWidget(vw);
+}
+
+void MainWindow::on_action_About_triggered()
+{
+  About* about = new About(this);
+  about->show();
 }

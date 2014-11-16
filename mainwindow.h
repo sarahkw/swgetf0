@@ -50,6 +50,7 @@ private:
   MainWindow *m_parent;
 
   bool m_update_pending;
+
 };
 
 class MainWindow : public QMainWindow {
@@ -68,6 +69,9 @@ public:
 
   std::mutex& mutex() { return m_mutex; }
 
+private slots:
+
+  void on_action_About_triggered();
 
 private:
 
