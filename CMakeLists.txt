@@ -24,7 +24,7 @@ set(CMAKE_PREFIX_PATH "/home/sarah/Qt/5.3/gcc_64/lib/cmake")
 find_package(Qt5Widgets REQUIRED)
 find_package(Qt5OpenGL REQUIRED)
 find_package(Qt5Multimedia REQUIRED)
-QT5_WRAP_UI(QTFILES_UI ui/mainwindow.ui about.ui)
+QT5_WRAP_UI(QTFILES_UI mainwindow.ui about.ui)
 QT5_WRAP_CPP(QTFILES_CPP mainwindow.h about.h)
 add_executable(swgetf0
   swgetf0.cpp
