@@ -10,14 +10,11 @@ if(ENABLE_TESTS)
   add_subdirectory(tests)
 endif(ENABLE_TESTS)
 
-find_package(SDL REQUIRED)
-find_package(SDL_ttf REQUIRED)
-find_package(OpenGL REQUIRED)
 # sw: TODO: Apparently it's not good to use PkgConfig directly
 find_package(PkgConfig)
 pkg_check_modules(PA_SIMPLE REQUIRED libpulse-simple)
 
-include_directories(${SDL_INCLUDE_DIR} ${SDLTTF_INCLUDE_DIR} ${OPENGL_INCLUDE_DIR} ${PA_SIMPLE_INCLUDE_DIRS})
+include_directories(${PA_SIMPLE_INCLUDE_DIRS})
 
 ################################################################################
 # swpitcher.qt
@@ -37,23 +34,6 @@ add_executable(swpitcher.qt
   ${QTFILES_UI} ${QTFILES_CPP})
 qt5_use_modules(swpitcher.qt Widgets OpenGL Multimedia)
 target_link_libraries(swpitcher.qt GetF0 ${PA_SIMPLE_LIBRARIES})
-
-################################################################################
-# swpitcher
-
-add_executable(swpitcher
-  CircularBuffer.cpp
-  GetF0StreamImpl.cpp
-  swpitcher.cpp
-  viewer/video/Driver.cc
-  viewer/video/Text.cc
-  viewer/video/Color.cc
-  viewer/base/ColorPalette.cc
-  viewer/viewer.cc
-)
-target_link_libraries(swpitcher
-  GetF0
-  ${SDL_LIBRARY} ${SDLTTF_LIBRARY} ${OPENGL_gl_LIBRARY} ${PA_SIMPLE_LIBRARIES})
 
 ################################################################################
 # echo
