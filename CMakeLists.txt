@@ -17,7 +17,7 @@ pkg_check_modules(PA_SIMPLE REQUIRED libpulse-simple)
 include_directories(${PA_SIMPLE_INCLUDE_DIRS})
 
 ################################################################################
-# swpitcher.qt
+# swpitcher
 
   # TODO um, don't release this
 set(CMAKE_PREFIX_PATH "/home/sarah/Qt/5.3/gcc_64/lib/cmake")
@@ -26,14 +26,14 @@ find_package(Qt5OpenGL REQUIRED)
 find_package(Qt5Multimedia REQUIRED)
 QT5_WRAP_UI(QTFILES_UI ui/mainwindow.ui)
 QT5_WRAP_CPP(QTFILES_CPP mainwindow.h)
-add_executable(swpitcher.qt
-  swpitcher.qt.cpp
+add_executable(swpitcher
+  swpitcher.cpp
   mainwindow.cpp
   CircularBuffer.cpp
   GetF0StreamImpl.cpp
   ${QTFILES_UI} ${QTFILES_CPP})
-qt5_use_modules(swpitcher.qt Widgets OpenGL Multimedia)
-target_link_libraries(swpitcher.qt GetF0 ${PA_SIMPLE_LIBRARIES})
+qt5_use_modules(swpitcher Widgets OpenGL Multimedia)
+target_link_libraries(swpitcher GetF0 ${PA_SIMPLE_LIBRARIES})
 
 ################################################################################
 # echo
