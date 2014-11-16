@@ -31,7 +31,7 @@ CREATE_ERROR(ProcessingError, RuntimeError);
       ss << s;                               \
       throw exception(ss.str());             \
     }                                        \
-  } while (0);
+  } while (0)
 
 
 
