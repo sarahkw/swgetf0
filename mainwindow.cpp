@@ -19,6 +19,7 @@
 
 #include "mainwindow.h"
 #include "about.h"
+#include "inputdevice.h" // do not commit
 
 #include <QPainter>
 
@@ -51,9 +52,7 @@ void ViewerWidget::renderNow() {
   painter.fillRect(rect(), Qt::black);
 
   const QPen penWhite(QColor(255, 255, 255));
-  const QPen penRMS(QColor(0, 100, 100));
   const QBrush brushWhite(QColor(255, 255, 255));
-  const QBrush brushRMS(QColor(0, 100, 100));
 
 
   int m_width = 1024;
@@ -76,15 +75,6 @@ void ViewerWidget::renderNow() {
 
       painter.setPen(penWhite);
       painter.setBrush(brushWhite);
-
-      painter.drawRect(position, ypos - 1, noteWidth, noteWidth);
-    }
-
-    {
-      double ypos = m_height - (note.rms * (m_height / 3 / 24000.0) + (2.0 * m_height / 3));
-
-      painter.setPen(penRMS);
-      painter.setBrush(brushRMS);
 
       painter.drawRect(position, ypos - 1, noteWidth, noteWidth);
     }
@@ -176,6 +166,9 @@ MainWindow::MainWindow(std::size_t bufferCapacity) : m_cb(bufferCapacity)
   ViewerWidget* vw = new ViewerWidget(this);
 
   setCentralWidget(vw);
+
+  InputDevice* inputDevice = new InputDevice(this);
+  inputDevice->show();
 }
 
 void MainWindow::on_action_About_triggered()
