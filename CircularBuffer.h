@@ -20,9 +20,7 @@
 #ifndef INCLUDED_CIRCULARBUFFER
 #define INCLUDED_CIRCULARBUFFER
 
-#include <cstddef>
 #include <stdexcept>
-#include <cassert>
 
 template <class T>
 class CircularBuffer {
