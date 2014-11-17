@@ -2,7 +2,6 @@
 #include "ui_inputdevice.h"
 
 #include <QAudioInput> // not final
-#include <QAudioDeviceInfo> // not final
 #include <QDebug> // not final
 
 InputDevice::InputDevice(QWidget *parent) :
@@ -13,14 +12,23 @@ InputDevice::InputDevice(QWidget *parent) :
 
   int itemPosition = 0;
 
-  ui->cmbDevice->insertItem(
-      itemPosition++,
-      "Default: " + QAudioDeviceInfo::defaultInputDevice().deviceName());
+  {
+    auto recordDevice = QAudioDeviceInfo::defaultInputDevice();
+
+    m_indexToDevice[itemPosition] = recordDevice;
+
+    ui->cmbDevice->insertItem(
+        itemPosition++,
+        "Default: " + recordDevice.deviceName());
+  }
 
   ui->cmbDevice->insertSeparator(itemPosition++);
 
   for (auto recordDevice :
        QAudioDeviceInfo::availableDevices(QAudio::AudioInput)) {
+
+    m_indexToDevice[itemPosition] = recordDevice;
+
     ui->cmbDevice->insertItem(itemPosition++, recordDevice.deviceName());
   }
 }
@@ -28,4 +36,10 @@ InputDevice::InputDevice(QWidget *parent) :
 InputDevice::~InputDevice()
 {
     delete ui;
+}
+
+void InputDevice::on_cmbDevice_currentIndexChanged(int index)
+{
+  if (index != -1)
+    qDebug() << m_indexToDevice[index].deviceName();
 }
