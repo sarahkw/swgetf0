@@ -22,9 +22,12 @@ public slots:
   void on_cmbDevice_currentIndexChanged(int index);
 
 private:
+
   Ui::InputDevice *ui;
 
   QMap<int, QAudioDeviceInfo> m_indexToDevice;
+  QMap<int, int> m_indexToSampleRate;
+  QMap<int, int> m_indexToSampleSize;
 };
 
 #endif // INPUTDEVICE_H
