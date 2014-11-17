@@ -35,7 +35,7 @@ static void insertWithDefault(QComboBox* comboBox, IndexMapType& map,
 bool validateAudioDevice(QString& errorMessage,
                          QAudioDeviceInfo& audioDeviceInfo)
 {
-#define CONDITION(cond) [](QAudioDeviceInfo & adi) { return cond; }
+#define CONDITION(cond) [](QAudioDeviceInfo& adi) { return cond; }
 
   struct {
     std::function<bool(QAudioDeviceInfo& adi)> test;
