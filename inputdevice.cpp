@@ -120,6 +120,8 @@ void InputDevice::on_cmbDevice_currentIndexChanged(int index)
 
   QString errorMessage;
   if (!validateAudioDevice(errorMessage, device)) {
+    // TODO: Put this on message queue, since it won't make much sense
+    // if this is shown before the config popup.
     QMessageBox::critical(this, tr("Unsupported input device"), errorMessage);
   }
 }
