@@ -37,7 +37,7 @@ bool validateAudioDevice(QString& errorMessage,
 {
 #define CONDITION(cond) [](QAudioDeviceInfo& adi) { return cond; }
 
-  struct {
+  static const struct {
     std::function<bool(QAudioDeviceInfo& adi)> test;
     const char* failureMessage;
   } tests[] = {
