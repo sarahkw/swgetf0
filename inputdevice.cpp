@@ -30,7 +30,7 @@ static void insertWithDefault(QComboBox* comboBox, IndexMapType& map,
     comboBox->insertItem(itemPosition++, stringGenerator(item));
   }
 }
-}  // namespace anonymous
+} // namespace anonymous
 
 InputDevice::InputDevice(QWidget *parent) :
     QDialog(parent),
@@ -62,12 +62,12 @@ void InputDevice::on_cmbDevice_currentIndexChanged(int index)
   insertWithDefault(ui->cmbSampleRate, m_indexToSampleRate,
                     device.supportedSampleRates(),
                     preferredAudioFormat.sampleRate(), [](int sampleRate) {
-		      return QString::number(sampleRate);
-		    });
+                      return QString::number(sampleRate);
+                    });
 
   insertWithDefault(ui->cmbSampleSize, m_indexToSampleSize,
                     device.supportedSampleSizes(),
                     preferredAudioFormat.sampleSize(), [](int sampleSize) {
-		      return QString::number(sampleSize);
-		    });
+                      return QString::number(sampleSize);
+                    });
 }
