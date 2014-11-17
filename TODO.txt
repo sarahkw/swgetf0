@@ -1,0 +1,5 @@
+
+- Ensure QString usage is efficient
+
+  http://qt-project.org/wiki/UsingQStringEffectively
+
