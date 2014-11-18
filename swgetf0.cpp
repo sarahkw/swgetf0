@@ -20,6 +20,7 @@
 #include <QApplication>
 #include <QAudioInput> // not final
 #include <QAudioDeviceInfo> // not final
+#include <QDebug>
 
 #include "mainwindow.h"
 #include "inputdevice.h"
@@ -52,7 +53,12 @@ int main(int argc, char* argv[])
     return 0;
   }
 
+  QAudioDeviceInfo audioDeviceInfo = inputDevice->getAudioDeviceInfo();
+  QAudioFormat audioFormat = inputDevice->getAudioFormat();
   delete inputDevice;
+
+  qDebug() << audioDeviceInfo.deviceName();
+  qDebug() << audioFormat;
 
 
 ////////////////////////////////////////////////////////////////////////////////

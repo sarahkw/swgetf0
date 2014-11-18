@@ -53,7 +53,7 @@ bool validateAudioDevice(QString& errorMessage,
          "Audio device does not support PCM codec."},
 
         {CONDITION(
-             adi.supportedSampleTypes().contains(QAudioFormat::UnSignedInt)),
+             adi.supportedSampleTypes().contains(QAudioFormat::SignedInt)),
          "Audio device does not support unsigned int."},
 
 	/*
@@ -97,6 +97,39 @@ InputDevice::InputDevice(QWidget *parent) :
 InputDevice::~InputDevice()
 {
     delete ui;
+}
+
+QAudioDeviceInfo InputDevice::getAudioDeviceInfo() const
+{
+  auto index = ui->cmbDevice->currentIndex();
+  Q_ASSERT(index != -1);
+  return m_indexToDevice[index];
+}
+
+QAudioFormat InputDevice::getAudioFormat() const
+{
+  int sampleRate;
+  {
+    auto index = ui->cmbSampleRate->currentIndex();
+    Q_ASSERT(index != -1);
+    sampleRate = m_indexToSampleRate[index];
+  }
+
+  int sampleSize;
+  {
+    auto index = ui->cmbSampleSize->currentIndex();
+    Q_ASSERT(index != -1);
+    sampleSize = m_indexToSampleSize[index];
+  }
+
+  QAudioFormat format;
+  format.setSampleRate(sampleRate);
+  format.setSampleSize(sampleSize);
+  format.setChannelCount(1);
+  format.setCodec("audio/pcm");
+  format.setByteOrder(static_cast<QAudioFormat::Endian>(QSysInfo::ByteOrder));
+  format.setSampleType(QAudioFormat::SignedInt);
+  return format;
 }
 
 void InputDevice::on_cmbDevice_currentIndexChanged(int index)
