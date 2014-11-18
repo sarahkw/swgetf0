@@ -102,8 +102,8 @@ int main(int argc, char* argv[])
     {
     }
 
-    Foo(QIODevice* ioDevice)
-        : GetF0StreamImpl<DiskSample>(new QIOStream(ioDevice), 96000)
+    Foo(QIODevice* ioDevice, int sampleRate)
+        : GetF0StreamImpl<DiskSample>(new QIOStream(ioDevice), sampleRate)
     {
     }
 
@@ -130,21 +130,9 @@ int main(int argc, char* argv[])
   if (std::string(argv[1]) == "q") {
     std::cout << "QT Audio" << std::endl;
 
-    QAudioInput* audio;
-    {
-      QAudioFormat format;
-      // Set up the desired format, for example:
-      format.setSampleRate(96000);
-      format.setChannelCount(1);
-      format.setSampleSize(16);
-      format.setCodec("audio/pcm");
-      format.setByteOrder(QAudioFormat::LittleEndian);
-      format.setSampleType(QAudioFormat::SignedInt);
+    QAudioInput* audio = new QAudioInput(audioDeviceInfo, audioFormat);
 
-      audio = new QAudioInput(format);
-    }
-
-    f0 = new Foo(audio->start());
+    f0 = new Foo(audio->start(), audioFormat.sampleRate());
 
   } else if (std::string(argv[1]) == "p") {
     std::cout << "PulseAudio" << std::endl;
