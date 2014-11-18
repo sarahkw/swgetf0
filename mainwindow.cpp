@@ -19,7 +19,6 @@
 
 #include "mainwindow.h"
 #include "about.h"
-#include "inputdevice.h" // do not commit
 
 #include <QPainter>
 
@@ -166,9 +165,6 @@ MainWindow::MainWindow(std::size_t bufferCapacity) : m_cb(bufferCapacity)
   ViewerWidget* vw = new ViewerWidget(this);
 
   setCentralWidget(vw);
-
-  InputDevice* inputDevice = new InputDevice(this);
-  inputDevice->show();
 }
 
 void MainWindow::on_action_About_triggered()

@@ -22,6 +22,7 @@
 #include <QAudioDeviceInfo> // not final
 
 #include "mainwindow.h"
+#include "inputdevice.h"
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -43,6 +44,16 @@ typedef short DiskSample;
 int main(int argc, char* argv[])
 {
   QApplication app(argc, argv);
+
+  InputDevice* inputDevice = new InputDevice();
+  int result = inputDevice->exec();
+  if (result == QDialog::Rejected) {
+    delete inputDevice;
+    return 0;
+  }
+
+  delete inputDevice;
+
 
 ////////////////////////////////////////////////////////////////////////////////
 //
