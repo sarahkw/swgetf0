@@ -16,12 +16,13 @@
 class StreamReadBuffer {
 public:
 
-  typedef std::function<ssize_t(void*, size_t)> Reader;
+  typedef std::function<size_t(void*, size_t)> Reader;
 
   StreamReadBuffer(size_t minimumReadSize, Reader reader)
       : m_minimumReadSize(minimumReadSize), m_reader(reader)
   {
-    reader(NULL, 100);
+    char foo[100];
+    reader(foo, 100);
   }
 
 private:
