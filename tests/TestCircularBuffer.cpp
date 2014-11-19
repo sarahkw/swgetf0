@@ -8,9 +8,9 @@
 
 namespace {
 
-class CircularBufferTest : public ::testing::Test {
+class TestCircularBuffer : public ::testing::Test {
 protected:
-  CircularBufferTest() : m_cb3(3) {}
+  TestCircularBuffer() : m_cb3(3) {}
 
   void SetUp() override {}
 
@@ -25,14 +25,14 @@ TEST(CircularBufferZeroTest, TestThrow)
   EXPECT_THROW(CircularBuffer<int>(0), std::invalid_argument);
 }
 
-TEST_F(CircularBufferTest, ReadEmptyBuffer)
+TEST_F(TestCircularBuffer, ReadEmptyBuffer)
 {
   ASSERT_TRUE(m_cb3.begin() == m_cb3.end());
 
   ASSERT_EQ(m_cb3.size(), 0);
 }
 
-TEST_F(CircularBufferTest, ReadWithoutLoop)
+TEST_F(TestCircularBuffer, ReadWithoutLoop)
 {
   m_cb3.push_back(1);
   m_cb3.push_back(2);
@@ -57,7 +57,7 @@ TEST_F(CircularBufferTest, ReadWithoutLoop)
   ASSERT_EQ(m_cb3.size(), 3);
 }
 
-TEST_F(CircularBufferTest, ReadLoop)
+TEST_F(TestCircularBuffer, ReadLoop)
 {
   m_cb3.push_back(1);
   m_cb3.push_back(2);
@@ -84,7 +84,7 @@ TEST_F(CircularBufferTest, ReadLoop)
   ASSERT_EQ(m_cb3.size(), 3);
 }
 
-TEST_F(CircularBufferTest, ReadLoopTwiceWithIteratorWrite)
+TEST_F(TestCircularBuffer, ReadLoopTwiceWithIteratorWrite)
 {
   const int values[] = {1, 2, 3, 4, 5, 6, 7};
   for (auto value : values) {
