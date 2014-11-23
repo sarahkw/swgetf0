@@ -71,6 +71,8 @@ private:
 
     if (bytes > m_buffer.size()) {
       m_buffer.resize(bytes + m_preferredReadSize);
+
+      // qDebug() << "Resized to" << m_buffer.size();
     }
   }
 
