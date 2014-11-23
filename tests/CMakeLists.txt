@@ -5,6 +5,7 @@ include_directories("${GTEST_PATH}/include")
 include_directories("${GMOCK_PATH}/include")
 
 add_executable(unittest TestCircularBuffer.cpp TestStreamReadBuffer.cpp)
+qt5_use_modules(unittest Widgets)
 target_link_libraries(unittest
   pthread
   "${GTEST_PATH}/make/gtest.a" "${GMOCK_PATH}/make/gmock_main.a")

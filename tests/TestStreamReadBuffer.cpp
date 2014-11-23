@@ -88,5 +88,14 @@ TEST(TestDataProvider, General) {
 }
 
 TEST_F(TestStreamReadBuffer, Run) {
-  ASSERT_THAT(m_tdp.readSizes(), ElementsAre());
+  char buffer[5] = {0};
+
+  ASSERT_EQ(m_srb->read(buffer, 1), 1);
+  ASSERT_EQ(m_srb->read(buffer + 1, 1), 1);
+  ASSERT_EQ(m_srb->read(buffer + 2, 1), 1);
+
+  ASSERT_THAT(buffer, ElementsAre(0, 1, 2, 0, 0));
+
+
+  ASSERT_THAT(m_tdp.readSizes(), ElementsAre(3));
 }

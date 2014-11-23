@@ -9,6 +9,7 @@
 #include <functional>
 #include <vector>
 #include <cstring>
+#include <QDebug>
 
 /*! Read from a source in large chunks, letting another source read
     from the buffer in smaller chunks.
@@ -23,7 +24,7 @@
 class StreamReadBuffer {
 public:
 
-  typedef std::function<size_t(void*, size_t)> Reader;
+  typedef std::function<ssize_t(void*, size_t)> Reader;
 
   StreamReadBuffer(size_t preferredReadSize, Reader reader)
       : m_preferredReadSize(preferredReadSize),
@@ -34,18 +35,21 @@ public:
     m_buffer.resize(preferredReadSize);
   }
 
-  size_t read(char* data, size_t bytes)
+  ssize_t read(char* data, size_t bytes)
   {
     // Don't have enough data in our buffer to service the read?
     if (sizeAvailable() < bytes) {
       prepareToRead(bytes);
       do {
 	readChunk();
+
+	// TODO Some sanity check to prevent infinite looping.
       } while (sizeAvailable() < bytes);
     }
 
     memcpy(data, m_buffer.data() + m_bufferPosition, bytes);
     m_bufferPosition += bytes;
+    return bytes;
   }
 
   virtual ~StreamReadBuffer() { }
@@ -71,10 +75,13 @@ private:
   }
 
   void readChunk() {
-    size_t sizeRead =
+    ssize_t sizeRead =
         m_reader(m_buffer.data() + m_bufferPosition, m_preferredReadSize);
 
-    m_bufferPosition += sizeRead;
+    // TODO Handle errors better than asserting
+    Q_ASSERT(sizeRead >= 0);
+
+    m_bufferSize += sizeRead;
   }
 
   size_t m_preferredReadSize;
