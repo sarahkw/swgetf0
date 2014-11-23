@@ -20,6 +20,7 @@
 #include <pulse/simple.h>
 
 #include "GetF0StreamImpl.h"
+#include "StreamReadBuffer.h"
 
 typedef short DiskSample;
 
@@ -66,11 +67,15 @@ int main(int argc, char* argv[])
     };
 
     struct QIOStream : public IStream {
-      QIOStream(QIODevice* ioDevice) : m_ioDevice(ioDevice) {}
+      QIOStream(QIODevice *ioDevice)
+          : m_ioDevice(ioDevice),
+            m_srb(2048, [this](void *data, size_t size) {
+              return m_ioDevice->read(reinterpret_cast<char *>(data), size);
+            }) {}
 
       size_t read(void* ptr, size_t size, size_t nmemb) override
       {
-        return m_ioDevice->read(static_cast<char*>(ptr), size * nmemb) / size;
+        return m_srb.read(static_cast<char*>(ptr), size * nmemb) / size;
       }
 
       int feof() override { return 0; }
@@ -81,6 +86,8 @@ int main(int argc, char* argv[])
       }
 
       QIODevice* m_ioDevice;
+
+      StreamReadBuffer m_srb;
     };
 
     Foo(pa_simple* s) : GetF0StreamImpl<DiskSample>(new PulseStream(s), 96000)

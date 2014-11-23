@@ -24,6 +24,7 @@ add_executable(swgetf0
   mainwindow.cpp
   CircularBuffer.cpp
   GetF0StreamImpl.cpp
+  StreamReadBuffer.cpp
   about.cpp
   inputdevice.cpp
   ${QTFILES_UI} ${QTFILES_CPP})
