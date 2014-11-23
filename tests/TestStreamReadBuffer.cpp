@@ -16,12 +16,15 @@ namespace {
 class TestDataProvider {
 public:
   TestDataProvider(int maxBytes)
-      : m_maxBytes(maxBytes), m_currentByte(0), m_currentValue(0)
-  {
-  }
+      : m_maxBytes(maxBytes), m_currentByte(0), m_currentValue(0),
+        m_limitSize(0) {}
 
   size_t read(void* buffer, size_t bytes) {
     m_readSizes.push_back(bytes);
+
+    if (m_limitSize > 0 && bytes > m_limitSize) {
+      bytes = m_limitSize;
+    }
 
     size_t actualReadSize = std::min(bytes, m_maxBytes - m_currentByte);
     m_currentByte += actualReadSize;
@@ -32,6 +35,8 @@ public:
     return actualReadSize;
   }
 
+  void limitSize(size_t limitSize) { m_limitSize = limitSize; }
+
   const std::vector<size_t>& readSizes() const { return m_readSizes; }
   void clearReadSizes() { m_readSizes.clear(); }
 
@@ -40,6 +45,7 @@ private:
   size_t m_maxBytes;
   size_t m_currentByte;
   int m_currentValue;
+  size_t m_limitSize;
 
   std::vector<size_t> m_readSizes;
 };
@@ -90,12 +96,37 @@ TEST(TestDataProvider, General) {
 TEST_F(TestStreamReadBuffer, Run) {
   char buffer[5] = {0};
 
-  ASSERT_EQ(m_srb->read(buffer, 1), 1);
+  ASSERT_EQ(m_srb->read(buffer + 0, 1), 1);
   ASSERT_EQ(m_srb->read(buffer + 1, 1), 1);
   ASSERT_EQ(m_srb->read(buffer + 2, 1), 1);
 
   ASSERT_THAT(buffer, ElementsAre(0, 1, 2, 0, 0));
-
-
   ASSERT_THAT(m_tdp.readSizes(), ElementsAre(3));
+
+  ASSERT_EQ(m_srb->read(buffer + 3, 1), 1);
+
+  ASSERT_THAT(buffer, ElementsAre(0, 1, 2, 3, 0));
+  ASSERT_THAT(m_tdp.readSizes(), ElementsAre(3, 3));
+
+}
+
+TEST_F(TestStreamReadBuffer, LimitedSize) {
+  char buffer[5] = {0};
+
+  m_tdp.limitSize(2);
+
+  ASSERT_EQ(m_srb->read(buffer + 0, 1), 1);
+  ASSERT_EQ(m_srb->read(buffer + 1, 1), 1);
+  ASSERT_EQ(m_srb->read(buffer + 2, 1), 1);
+
+  ASSERT_THAT(buffer, ElementsAre(0, 1, 2, 0, 0));
+  ASSERT_THAT(m_tdp.readSizes(), ElementsAre(3, 3));
+  m_tdp.clearReadSizes();
+
+  ASSERT_EQ(m_srb->read(buffer + 3, 1), 1);
+  ASSERT_THAT(m_tdp.readSizes(), ElementsAre());
+
+  ASSERT_EQ(m_srb->read(buffer, 5), 5);
+  ASSERT_THAT(buffer, ElementsAre(4, 5, 6, 7, 8));
+  ASSERT_THAT(m_tdp.readSizes(), ElementsAre(3, 3, 3));
 }

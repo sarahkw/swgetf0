@@ -62,21 +62,21 @@ private:
       bytes. */
   void prepareToRead(size_t bytes) {
 
-    if (m_bufferPosition + bytes > m_buffer.capacity()) {
+    if (m_bufferPosition + bytes > m_buffer.size()) {
       memmove(m_buffer.data(), m_buffer.data() + m_bufferPosition,
               sizeAvailable());
       m_bufferSize = sizeAvailable();
       m_bufferPosition = 0;
     }
 
-    if (bytes > m_buffer.capacity()) {
+    if (bytes > m_buffer.size()) {
       m_buffer.resize(bytes + m_preferredReadSize);
     }
   }
 
   void readChunk() {
     ssize_t sizeRead =
-        m_reader(m_buffer.data() + m_bufferPosition, m_preferredReadSize);
+        m_reader(m_buffer.data() + m_bufferSize, m_preferredReadSize);
 
     // TODO Handle errors better than asserting
     Q_ASSERT(sizeRead >= 0);
