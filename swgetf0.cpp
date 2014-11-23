@@ -67,9 +67,9 @@ int main(int argc, char* argv[])
     };
 
     struct QIOStream : public IStream {
-      QIOStream(QIODevice *ioDevice)
+      QIOStream(QIODevice *ioDevice, int periodSize)
           : m_ioDevice(ioDevice),
-            m_srb(2048, [this](void *data, size_t size) {
+            m_srb(periodSize, [this](void *data, size_t size) {
               return m_ioDevice->read(reinterpret_cast<char *>(data), size);
             }) {}
 
@@ -94,10 +94,9 @@ int main(int argc, char* argv[])
     {
     }
 
-    Foo(QIODevice* ioDevice, int sampleRate)
-        : GetF0StreamImpl<DiskSample>(new QIOStream(ioDevice), sampleRate)
-    {
-    }
+    Foo(QIODevice *ioDevice, int periodSize, int sampleRate)
+        : GetF0StreamImpl<DiskSample>(new QIOStream(ioDevice, periodSize),
+                                      sampleRate) {}
 
     void setViewer(MainWindow* viewer) { m_viewer = viewer; }
 
@@ -124,7 +123,7 @@ int main(int argc, char* argv[])
 
     QAudioInput* audio = new QAudioInput(audioDeviceInfo, audioFormat);
 
-    f0 = new Foo(audio->start(), audioFormat.sampleRate());
+    f0 = new Foo(audio->start(), audio->periodSize(), audioFormat.sampleRate());
 
   } else if (std::string(argv[1]) == "p") {
     std::cout << "PulseAudio" << std::endl;
