@@ -3,3 +3,9 @@
 
   http://qt-project.org/wiki/UsingQStringEffectively
 
+- Qt PulseAudio may not be installed
+  
+  libqt5multimedia5-plugins
+
+  /usr/lib/x86_64-linux-gnu/qt5/plugins/audio/libqtmedia_pulse.so
+
