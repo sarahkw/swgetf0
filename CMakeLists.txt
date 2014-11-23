@@ -19,8 +19,6 @@ include_directories(${PA_SIMPLE_INCLUDE_DIRS})
 ################################################################################
 # swgetf0
 
-  # TODO um, don't release this
-set(CMAKE_PREFIX_PATH "/home/sarah/Qt/5.3/gcc_64/lib/cmake")
 find_package(Qt5Widgets REQUIRED)
 find_package(Qt5OpenGL REQUIRED)
 find_package(Qt5Multimedia REQUIRED)
