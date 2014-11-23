@@ -15,14 +15,15 @@ namespace {
 /*! A test source stream */
 class TestDataProvider {
 public:
-  enum { MAX_BYTES = 10 };
-
-  TestDataProvider() : m_currentByte(0), m_currentValue(0) {}
+  TestDataProvider(int maxBytes)
+      : m_maxBytes(maxBytes), m_currentByte(0), m_currentValue(0)
+  {
+  }
 
   size_t read(void* buffer, size_t bytes) {
     m_readSizes.push_back(bytes);
 
-    size_t actualReadSize = std::min(bytes, MAX_BYTES - m_currentByte);
+    size_t actualReadSize = std::min(bytes, m_maxBytes - m_currentByte);
     m_currentByte += actualReadSize;
 
     for (size_t i = 0; i < actualReadSize; ++i) {
@@ -36,6 +37,7 @@ public:
 
 private:
 
+  size_t m_maxBytes;
   size_t m_currentByte;
   int m_currentValue;
 
@@ -44,7 +46,7 @@ private:
 
 class TestStreamReadBuffer : public ::testing::Test {
 protected:
-  TestStreamReadBuffer() {}
+  TestStreamReadBuffer() : m_tdp(10) {}
 
   void SetUp() override {
     m_srb = new StreamReadBuffer(3, [this](void* buffer, size_t size) {
@@ -66,7 +68,7 @@ protected:
 using namespace testing;
 
 TEST(TestDataProvider, General) {
-  TestDataProvider tdp;
+  TestDataProvider tdp(10);
   ASSERT_TRUE(tdp.readSizes().empty());
 
   char buffer[5] = {0};
@@ -86,5 +88,5 @@ TEST(TestDataProvider, General) {
 }
 
 TEST_F(TestStreamReadBuffer, Run) {
-  ASSERT_THAT(m_tdp.readSizes(), ElementsAre(100));
+  ASSERT_THAT(m_tdp.readSizes(), ElementsAre());
 }
