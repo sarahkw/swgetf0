@@ -149,6 +149,17 @@ int main(int argc, char* argv[])
 
     f0 = new Foo(s);
 
+  } else if (std::string(argv[1]) == "discard") {
+    std::cout << "QT discard" << std::endl;
+
+    QAudioInput* audio = new QAudioInput(audioDeviceInfo, audioFormat);
+    QIODevice* io = audio->start();
+    int periodSize = audio->periodSize();
+    char buffer[periodSize];
+    while (true) {
+      io->read(buffer, periodSize);
+    }
+
   } else {
     return 1;
   }
