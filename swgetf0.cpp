@@ -155,6 +155,9 @@ int main(int argc, char* argv[])
     QAudioInput* audio = new QAudioInput(audioDeviceInfo, audioFormat);
     QIODevice* io = audio->start();
     int periodSize = audio->periodSize();
+
+    std::cout << "Period size: " << periodSize << std::endl;
+
     char buffer[periodSize];
     while (true) {
       io->read(buffer, periodSize);
