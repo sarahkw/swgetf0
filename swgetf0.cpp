@@ -130,6 +130,11 @@ int main(int argc, char* argv[])
 
   Foo* f0;
 
+  if (argc != 2) {
+    std::cerr << "Give me an argument. Read the source." << std::endl;
+    return 1;
+  }
+
   if (std::string(argv[1]) == "q") {
     std::cout << "QT Audio" << std::endl;
 
