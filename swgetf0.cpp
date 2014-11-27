@@ -15,8 +15,6 @@
 */
 
 #include <QApplication>
-#include <QAudioInput> // not final
-#include <QAudioDeviceInfo> // not final
 #include <QDebug>
 
 #include "mainwindow.h"
@@ -51,12 +49,7 @@ int main(int argc, char* argv[])
     return 0;
   }
 
-  QAudioDeviceInfo audioDeviceInfo = inputDevice->getAudioDeviceInfo();
-  QAudioFormat audioFormat = inputDevice->getAudioFormat();
   delete inputDevice;
-
-  qDebug() << audioDeviceInfo.deviceName();
-  qDebug() << audioFormat;
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -78,37 +71,9 @@ int main(int argc, char* argv[])
       pa_simple* s;
     };
 
-    struct QIOStream : public IStream {
-      QIOStream(QIODevice *ioDevice, int periodSize)
-          : m_ioDevice(ioDevice),
-            m_srb(periodSize, [this](void *data, size_t size) {
-              return m_ioDevice->read(reinterpret_cast<char *>(data), size);
-            }) {}
-
-      size_t read(void* ptr, size_t size, size_t nmemb) override
-      {
-        return m_srb.read(static_cast<char*>(ptr), size * nmemb) / size;
-      }
-
-      int feof() override { return 0; }
-
-      int ferror() override
-      {
-        return 0;  // TODO
-      }
-
-      QIODevice* m_ioDevice;
-
-      StreamReadBuffer m_srb;
-    };
-
     Foo(pa_simple* s) : GetF0StreamImpl<DiskSample>(new PulseStream(s), 96000)
     {
     }
-
-    Foo(QIODevice *ioDevice, int periodSize, int sampleRate)
-        : GetF0StreamImpl<DiskSample>(new QIOStream(ioDevice, periodSize),
-                                      sampleRate) {}
 
     void setViewer(MainWindow* viewer) { m_viewer = viewer; }
 
@@ -135,14 +100,7 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-  if (std::string(argv[1]) == "q") {
-    std::cout << "QT Audio" << std::endl;
-
-    QAudioInput* audio = new QAudioInput(audioDeviceInfo, audioFormat);
-
-    f0 = new Foo(audio->start(), audio->periodSize(), audioFormat.sampleRate());
-
-  } else if (std::string(argv[1]) == "p") {
+  if (std::string(argv[1]) == "p") {
     std::cout << "PulseAudio" << std::endl;
 
     pa_simple* s;
@@ -165,20 +123,6 @@ int main(int argc, char* argv[])
     }
 
     f0 = new Foo(s);
-
-  } else if (std::string(argv[1]) == "discard") {
-    std::cout << "QT discard" << std::endl;
-
-    QAudioInput* audio = new QAudioInput(audioDeviceInfo, audioFormat);
-    QIODevice* io = audio->start();
-    int periodSize = audio->periodSize();
-
-    std::cout << "Period size: " << periodSize << std::endl;
-
-    char buffer[periodSize];
-    while (true) {
-      io->read(buffer, periodSize);
-    }
 
   } else {
     return 1;
