@@ -20,6 +20,7 @@
 #include <QDialog>
 #include <QMap>
 
+#include <portaudiocpp/Device.hxx>
 #include <portaudiocpp/HostApi.hxx>
 
 namespace Ui {
@@ -43,7 +44,7 @@ private:
   Ui::InputDevice *ui;
 
   QMap<int, PaHostApiTypeId> m_indexToHostApiTypeId;
-  QMap<int, int> m_indexToSampleRate;
+  QMap<int, PaDeviceIndex> m_indexToDeviceIndex;
 };
 
 #endif // INPUTDEVICE_H

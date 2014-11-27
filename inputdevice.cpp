@@ -22,6 +22,7 @@
 
 #include <portaudiocpp/System.hxx>
 #include <portaudiocpp/SystemHostApiIterator.hxx>
+#include <portaudiocpp/SystemDeviceIterator.hxx>
 
 namespace {
 
@@ -83,4 +84,16 @@ InputDevice::~InputDevice()
 
 void InputDevice::on_cmbAudioHost_currentIndexChanged(int index)
 {
+  if (index == -1)
+    return;
+
+  portaudio::HostApi &hostApi = portaudio::System::instance().hostApiByTypeId(
+      m_indexToHostApiTypeId[index]);
+
+  insertWithDefault(
+      ui->cmbInputDevice, m_indexToDeviceIndex,
+      hostApi.devicesBegin(), hostApi.devicesEnd(), hostApi.defaultInputDevice(),
+      [](portaudio::Device &device) { return device.name(); },
+      [](portaudio::Device &device) { return device.index(); });
+
 }
