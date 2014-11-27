@@ -39,12 +39,16 @@
      <item row="2" column="0">
       <widget class="QLabel" name="label_3">
        <property name="text">
-        <string>Sample Size</string>
+        <string>Sample Rate</string>
        </property>
       </widget>
      </item>
      <item row="2" column="1">
-      <widget class="QComboBox" name="cmbSampleSize"/>
+      <widget class="QLineEdit" name="txtSampleRate">
+       <property name="text">
+        <string>44100</string>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>

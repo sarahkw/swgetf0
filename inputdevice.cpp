@@ -67,6 +67,8 @@ InputDevice::InputDevice(QWidget *parent) :
 {
   ui->setupUi(this);
 
+  ui->txtSampleRate->setValidator(new QIntValidator(this));
+
   portaudio::System& sys = portaudio::System::instance();
 
   insertWithDefault(
