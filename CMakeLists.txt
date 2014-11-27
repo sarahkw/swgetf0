@@ -8,8 +8,11 @@ add_subdirectory(GetF0)
 # sw: TODO: Apparently it's not good to use PkgConfig directly
 find_package(PkgConfig)
 pkg_check_modules(PA_SIMPLE REQUIRED libpulse-simple)
+pkg_check_modules(PORTAUDIOCPP REQUIRED portaudiocpp)
 
-include_directories(${PA_SIMPLE_INCLUDE_DIRS})
+include_directories(
+  ${PA_SIMPLE_INCLUDE_DIRS}
+  ${PORTAUDIOCPP_INCLUDE_DIRS})
 
 ################################################################################
 # swgetf0
@@ -28,7 +31,9 @@ add_executable(swgetf0
   inputdevice.cpp
   ${QTFILES_UI} ${QTFILES_CPP})
 qt5_use_modules(swgetf0 Widgets OpenGL)
-target_link_libraries(swgetf0 GetF0 ${PA_SIMPLE_LIBRARIES})
+target_link_libraries(swgetf0 GetF0
+  ${PA_SIMPLE_LIBRARIES}
+  ${PORTAUDIOCPP_LIBRARIES})
 
 ################################################################################
 # unit tests
