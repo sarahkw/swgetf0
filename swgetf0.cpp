@@ -17,6 +17,8 @@
 #include <QApplication>
 #include <QDebug>
 
+#include <portaudiocpp/AutoSystem.hxx>
+
 #include "mainwindow.h"
 #include "inputdevice.h"
 
@@ -40,6 +42,8 @@ typedef short DiskSample;
 
 int main(int argc, char* argv[])
 {
+  portaudio::AutoSystem autoSys;
+
   QApplication app(argc, argv);
 
   InputDevice* inputDevice = new InputDevice();

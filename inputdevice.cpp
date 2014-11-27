@@ -20,31 +20,42 @@
 #include <QDebug> // not final
 #include <QMessageBox>
 
+#include <portaudiocpp/System.hxx>
+#include <portaudiocpp/SystemHostApiIterator.hxx>
+
 namespace {
-template <class IndexMapType, class ItemType, class Callable>
-static void insertWithDefault(QComboBox* comboBox, IndexMapType& map,
-                              QList<ItemType> items, ItemType defaultItem,
-                              Callable stringGenerator)
-{
+
+template <class IndexMapType, class ItemIter, class ItemType, class Callable1,
+          class Callable2>
+static void insertWithDefault(QComboBox *comboBox, IndexMapType &map,
+                              ItemIter begin, ItemIter end,
+                              ItemType& defaultItem,
+			      Callable1 stringGenerator,
+                              Callable2 mapItemGenerator) {
   int itemPosition = 0;
 
   comboBox->clear();
   map.clear();
 
   {
-    map[itemPosition] = defaultItem;
+    map[itemPosition] = mapItemGenerator(defaultItem);
 
     comboBox->insertItem(itemPosition++,
-                         "Default: " + stringGenerator(defaultItem));
+                         QLatin1String("Default: ") + stringGenerator(defaultItem));
   }
 
   comboBox->insertSeparator(itemPosition++);
 
-  for (auto item : items) {
-    map[itemPosition] = item;
+  while (begin != end) {
+    ItemType& item = *begin;
+
+    map[itemPosition] = mapItemGenerator(item);
 
     comboBox->insertItem(itemPosition++, stringGenerator(item));
+
+    ++begin;
   }
+
 }
 
 } // namespace anonymous
@@ -54,6 +65,14 @@ InputDevice::InputDevice(QWidget *parent) :
     ui(new Ui::InputDevice)
 {
   ui->setupUi(this);
+
+  portaudio::System& sys = portaudio::System::instance();
+
+  insertWithDefault(
+      ui->cmbAudioHost, m_indexToHostApiTypeId, sys.hostApisBegin(),
+      sys.hostApisEnd(), sys.defaultHostApi(),
+      [](portaudio::HostApi &hostApi) { return hostApi.name(); },
+      [](portaudio::HostApi &hostApi) { return hostApi.typeId(); });
 }
 
 InputDevice::~InputDevice()
@@ -62,6 +81,6 @@ InputDevice::~InputDevice()
 }
 
 
-void InputDevice::on_cmbDevice_currentIndexChanged(int index)
+void InputDevice::on_cmbAudioHost_currentIndexChanged(int index)
 {
 }

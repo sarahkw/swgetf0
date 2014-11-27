@@ -20,6 +20,8 @@
 #include <QDialog>
 #include <QMap>
 
+#include <portaudiocpp/HostApi.hxx>
+
 namespace Ui {
 class InputDevice;
 }
@@ -34,12 +36,13 @@ public:
 
 public slots:
 
-  void on_cmbDevice_currentIndexChanged(int index);
+  void on_cmbAudioHost_currentIndexChanged(int index);
 
 private:
 
   Ui::InputDevice *ui;
 
+  QMap<int, PaHostApiTypeId> m_indexToHostApiTypeId;
   QMap<int, int> m_indexToSampleRate;
 };
 
