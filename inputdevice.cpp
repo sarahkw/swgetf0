@@ -83,6 +83,12 @@ InputDevice::~InputDevice()
     delete ui;
 }
 
+PaDeviceIndex InputDevice::getDeviceIndex() const
+{
+  auto index = ui->cmbInputDevice->currentIndex();
+  Q_ASSERT(index != -1);
+  return m_indexToDeviceIndex[index];
+}
 
 void InputDevice::on_cmbAudioHost_currentIndexChanged(int index)
 {

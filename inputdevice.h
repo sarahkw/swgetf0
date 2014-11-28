@@ -35,6 +35,8 @@ public:
   explicit InputDevice(QWidget *parent = 0);
   ~InputDevice();
 
+  PaDeviceIndex getDeviceIndex() const;
+
 public slots:
 
   void on_cmbAudioHost_currentIndexChanged(int index);

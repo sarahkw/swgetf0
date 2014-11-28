@@ -18,6 +18,8 @@
 #include <QDebug>
 
 #include <portaudiocpp/AutoSystem.hxx>
+#include <portaudiocpp/StreamParameters.hxx>
+#include <portaudiocpp/BlockingStream.hxx>
 
 #include "mainwindow.h"
 #include "inputdevice.h"
@@ -53,6 +55,7 @@ int main(int argc, char* argv[])
     return 0;
   }
 
+  PaDeviceIndex paDeviceIndex = inputDevice->getDeviceIndex();
   delete inputDevice;
 
 
@@ -75,9 +78,27 @@ int main(int argc, char* argv[])
       pa_simple* s;
     };
 
+    struct PortStream : public IStream {
+      PortStream(portaudio::BlockingStream* s) : s(s) {
+	s->start();
+      }
+
+      size_t read(void* ptr, size_t size, size_t nmemb) override {
+	s->read(ptr, nmemb);
+        return nmemb;
+      }
+      int feof() override { return 0; }
+      int ferror() override { return 0; }
+
+      portaudio::BlockingStream* s;
+    };
+
     Foo(pa_simple* s) : GetF0StreamImpl<DiskSample>(new PulseStream(s), 96000)
     {
     }
+
+    Foo(portaudio::BlockingStream *s)
+        : GetF0StreamImpl<DiskSample>(new PortStream(s), 44100) {}
 
     void setViewer(MainWindow* viewer) { m_viewer = viewer; }
 
@@ -104,7 +125,7 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-  if (std::string(argv[1]) == "p") {
+  if (std::string(argv[1]) == "pulse") {
     std::cout << "PulseAudio" << std::endl;
 
     pa_simple* s;
@@ -127,6 +148,21 @@ int main(int argc, char* argv[])
     }
 
     f0 = new Foo(s);
+
+  } else if (std::string(argv[1]) == "port") {
+    portaudio::System& sys = portaudio::System::instance();
+
+    portaudio::Device &device = sys.deviceByIndex(paDeviceIndex);
+    portaudio::DirectionSpecificStreamParameters isp(
+        device, 1, portaudio::INT16, true, device.defaultLowInputLatency(),
+        NULL);
+    portaudio::StreamParameters sp(
+        isp, portaudio::DirectionSpecificStreamParameters::null(), 44100, 2048,
+        paNoFlag);
+
+    Q_ASSERT(sp.isSupported());
+
+    f0 = new Foo(new portaudio::BlockingStream(sp));
 
   } else {
     return 1;
