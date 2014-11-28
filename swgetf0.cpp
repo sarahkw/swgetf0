@@ -15,9 +15,11 @@
 */
 
 #include <QApplication>
-#include <QAudioInput> // not final
-#include <QAudioDeviceInfo> // not final
 #include <QDebug>
+
+#include <portaudiocpp/AutoSystem.hxx>
+#include <portaudiocpp/StreamParameters.hxx>
+#include <portaudiocpp/BlockingStream.hxx>
 
 #include "mainwindow.h"
 #include "inputdevice.h"
@@ -42,6 +44,8 @@ typedef short DiskSample;
 
 int main(int argc, char* argv[])
 {
+  portaudio::AutoSystem autoSys;
+
   QApplication app(argc, argv);
 
   InputDevice* inputDevice = new InputDevice();
@@ -51,12 +55,8 @@ int main(int argc, char* argv[])
     return 0;
   }
 
-  QAudioDeviceInfo audioDeviceInfo = inputDevice->getAudioDeviceInfo();
-  QAudioFormat audioFormat = inputDevice->getAudioFormat();
+  PaDeviceIndex paDeviceIndex = inputDevice->getDeviceIndex();
   delete inputDevice;
-
-  qDebug() << audioDeviceInfo.deviceName();
-  qDebug() << audioFormat;
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -78,37 +78,27 @@ int main(int argc, char* argv[])
       pa_simple* s;
     };
 
-    struct QIOStream : public IStream {
-      QIOStream(QIODevice *ioDevice, int periodSize)
-          : m_ioDevice(ioDevice),
-            m_srb(periodSize, [this](void *data, size_t size) {
-              return m_ioDevice->read(reinterpret_cast<char *>(data), size);
-            }) {}
-
-      size_t read(void* ptr, size_t size, size_t nmemb) override
-      {
-        return m_srb.read(static_cast<char*>(ptr), size * nmemb) / size;
+    struct PortStream : public IStream {
+      PortStream(portaudio::BlockingStream* s) : s(s) {
+	s->start();
       }
 
+      size_t read(void* ptr, size_t size, size_t nmemb) override {
+	s->read(ptr, nmemb);
+        return nmemb;
+      }
       int feof() override { return 0; }
+      int ferror() override { return 0; }
 
-      int ferror() override
-      {
-        return 0;  // TODO
-      }
-
-      QIODevice* m_ioDevice;
-
-      StreamReadBuffer m_srb;
+      portaudio::BlockingStream* s;
     };
 
     Foo(pa_simple* s) : GetF0StreamImpl<DiskSample>(new PulseStream(s), 96000)
     {
     }
 
-    Foo(QIODevice *ioDevice, int periodSize, int sampleRate)
-        : GetF0StreamImpl<DiskSample>(new QIOStream(ioDevice, periodSize),
-                                      sampleRate) {}
+    Foo(portaudio::BlockingStream *s)
+        : GetF0StreamImpl<DiskSample>(new PortStream(s), 44100) {}
 
     void setViewer(MainWindow* viewer) { m_viewer = viewer; }
 
@@ -135,14 +125,7 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-  if (std::string(argv[1]) == "q") {
-    std::cout << "QT Audio" << std::endl;
-
-    QAudioInput* audio = new QAudioInput(audioDeviceInfo, audioFormat);
-
-    f0 = new Foo(audio->start(), audio->periodSize(), audioFormat.sampleRate());
-
-  } else if (std::string(argv[1]) == "p") {
+  if (std::string(argv[1]) == "pulse") {
     std::cout << "PulseAudio" << std::endl;
 
     pa_simple* s;
@@ -166,19 +149,20 @@ int main(int argc, char* argv[])
 
     f0 = new Foo(s);
 
-  } else if (std::string(argv[1]) == "discard") {
-    std::cout << "QT discard" << std::endl;
+  } else if (std::string(argv[1]) == "port") {
+    portaudio::System& sys = portaudio::System::instance();
 
-    QAudioInput* audio = new QAudioInput(audioDeviceInfo, audioFormat);
-    QIODevice* io = audio->start();
-    int periodSize = audio->periodSize();
+    portaudio::Device &device = sys.deviceByIndex(paDeviceIndex);
+    portaudio::DirectionSpecificStreamParameters isp(
+        device, 1, portaudio::INT16, true, device.defaultLowInputLatency(),
+        NULL);
+    portaudio::StreamParameters sp(
+        isp, portaudio::DirectionSpecificStreamParameters::null(), 44100, 2048,
+        paNoFlag);
 
-    std::cout << "Period size: " << periodSize << std::endl;
+    Q_ASSERT(sp.isSupported());
 
-    char buffer[periodSize];
-    while (true) {
-      io->read(buffer, periodSize);
-    }
+    f0 = new Foo(new portaudio::BlockingStream(sp));
 
   } else {
     return 1;

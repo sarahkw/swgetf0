@@ -17,80 +17,46 @@
 #include "inputdevice.h"
 #include "ui_inputdevice.h"
 
-#include <QAudioInput> // not final
 #include <QDebug> // not final
 #include <QMessageBox>
 
+#include <portaudiocpp/System.hxx>
+#include <portaudiocpp/SystemHostApiIterator.hxx>
+#include <portaudiocpp/SystemDeviceIterator.hxx>
+
 namespace {
-template <class IndexMapType, class ItemType, class Callable>
-static void insertWithDefault(QComboBox* comboBox, IndexMapType& map,
-                              QList<ItemType> items, ItemType defaultItem,
-                              Callable stringGenerator)
-{
+
+template <class IndexMapType, class ItemIter, class ItemType, class Callable1,
+          class Callable2>
+static void insertWithDefault(QComboBox *comboBox, IndexMapType &map,
+                              ItemIter begin, ItemIter end,
+                              ItemType& defaultItem,
+			      Callable1 stringGenerator,
+                              Callable2 mapItemGenerator) {
   int itemPosition = 0;
 
   comboBox->clear();
   map.clear();
 
   {
-    map[itemPosition] = defaultItem;
+    map[itemPosition] = mapItemGenerator(defaultItem);
 
     comboBox->insertItem(itemPosition++,
-                         "Default: " + stringGenerator(defaultItem));
+                         QLatin1String("Default: ") + stringGenerator(defaultItem));
   }
 
   comboBox->insertSeparator(itemPosition++);
 
-  for (auto item : items) {
-    map[itemPosition] = item;
+  while (begin != end) {
+    ItemType& item = *begin;
+
+    map[itemPosition] = mapItemGenerator(item);
 
     comboBox->insertItem(itemPosition++, stringGenerator(item));
-  }
-}
 
-bool validateAudioDevice(QString& errorMessage,
-                         QAudioDeviceInfo& audioDeviceInfo)
-{
-#define CONDITION(cond) [](QAudioDeviceInfo& adi) { return cond; }
-
-  static const struct {
-    std::function<bool(QAudioDeviceInfo& adi)> test;
-    const char* failureMessage;
-  } tests[] = {
-
-        {CONDITION(adi.supportedByteOrders().contains(
-             static_cast<QAudioFormat::Endian>(QSysInfo::ByteOrder))),
-         "Audio device does not support system byte order."},
-
-        {CONDITION(adi.supportedChannelCounts().contains(1)),
-         "Audio device does not support mono input."},
-
-        {CONDITION(adi.supportedCodecs().contains("audio/pcm")),
-         "Audio device does not support PCM codec."},
-
-        {CONDITION(
-             adi.supportedSampleTypes().contains(QAudioFormat::SignedInt)),
-         "Audio device does not support unsigned int."},
-
-	/*
-        {CONDITION(false), "Failure test."},
-        {CONDITION(false), "Failure test 2."},
-	*/
-
-    };
-
-#undef CONDITION
-
-  bool good = true;
-  for (auto t : tests) {
-    if (!t.test(audioDeviceInfo)) {
-      if (!good) { errorMessage.append("\n"); }
-      errorMessage.append(t.failureMessage);
-      good = false;
-    }
+    ++begin;
   }
 
-  return good;
 }
 
 } // namespace anonymous
@@ -101,13 +67,15 @@ InputDevice::InputDevice(QWidget *parent) :
 {
   ui->setupUi(this);
 
-  insertWithDefault(ui->cmbDevice, m_indexToDevice,
-                    QAudioDeviceInfo::availableDevices(QAudio::AudioInput),
-                    QAudioDeviceInfo::defaultInputDevice(),
-                    [](QAudioDeviceInfo& audioDeviceInfo) {
-    return audioDeviceInfo.deviceName();
-  });
+  ui->txtSampleRate->setValidator(new QIntValidator(this));
 
+  portaudio::System& sys = portaudio::System::instance();
+
+  insertWithDefault(
+      ui->cmbAudioHost, m_indexToHostApiTypeId, sys.hostApisBegin(),
+      sys.hostApisEnd(), sys.defaultHostApi(),
+      [](portaudio::HostApi &hostApi) { return hostApi.name(); },
+      [](portaudio::HostApi &hostApi) { return hostApi.typeId(); });
 }
 
 InputDevice::~InputDevice()
@@ -115,62 +83,25 @@ InputDevice::~InputDevice()
     delete ui;
 }
 
-QAudioDeviceInfo InputDevice::getAudioDeviceInfo() const
+PaDeviceIndex InputDevice::getDeviceIndex() const
 {
-  auto index = ui->cmbDevice->currentIndex();
+  auto index = ui->cmbInputDevice->currentIndex();
   Q_ASSERT(index != -1);
-  return m_indexToDevice[index];
+  return m_indexToDeviceIndex[index];
 }
 
-QAudioFormat InputDevice::getAudioFormat() const
+void InputDevice::on_cmbAudioHost_currentIndexChanged(int index)
 {
-  int sampleRate;
-  {
-    auto index = ui->cmbSampleRate->currentIndex();
-    Q_ASSERT(index != -1);
-    sampleRate = m_indexToSampleRate[index];
-  }
+  if (index == -1)
+    return;
 
-  int sampleSize;
-  {
-    auto index = ui->cmbSampleSize->currentIndex();
-    Q_ASSERT(index != -1);
-    sampleSize = m_indexToSampleSize[index];
-  }
+  portaudio::HostApi &hostApi = portaudio::System::instance().hostApiByTypeId(
+      m_indexToHostApiTypeId[index]);
 
-  QAudioFormat format;
-  format.setSampleRate(sampleRate);
-  format.setSampleSize(sampleSize);
-  format.setChannelCount(1);
-  format.setCodec("audio/pcm");
-  format.setByteOrder(static_cast<QAudioFormat::Endian>(QSysInfo::ByteOrder));
-  format.setSampleType(QAudioFormat::SignedInt);
-  return format;
-}
+  insertWithDefault(
+      ui->cmbInputDevice, m_indexToDeviceIndex,
+      hostApi.devicesBegin(), hostApi.devicesEnd(), hostApi.defaultInputDevice(),
+      [](portaudio::Device &device) { return device.name(); },
+      [](portaudio::Device &device) { return device.index(); });
 
-void InputDevice::on_cmbDevice_currentIndexChanged(int index)
-{
-  if (index == -1) return; // If combo box gets cleared
-
-  auto device = m_indexToDevice[index];
-  auto preferredAudioFormat = device.preferredFormat();
-
-  insertWithDefault(ui->cmbSampleRate, m_indexToSampleRate,
-                    device.supportedSampleRates(),
-                    preferredAudioFormat.sampleRate(), [](int sampleRate) {
-                      return QString::number(sampleRate);
-                    });
-
-  insertWithDefault(ui->cmbSampleSize, m_indexToSampleSize,
-                    device.supportedSampleSizes(),
-                    preferredAudioFormat.sampleSize(), [](int sampleSize) {
-                      return QString::number(sampleSize);
-                    });
-
-  QString errorMessage;
-  if (!validateAudioDevice(errorMessage, device)) {
-    // TODO: Put this on message queue, since it won't make much sense
-    // if this is shown before the config popup.
-    QMessageBox::critical(this, tr("Unsupported input device"), errorMessage);
-  }
 }

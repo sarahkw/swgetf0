@@ -19,7 +19,9 @@
 
 #include <QDialog>
 #include <QMap>
-#include <QAudioDeviceInfo>
+
+#include <portaudiocpp/Device.hxx>
+#include <portaudiocpp/HostApi.hxx>
 
 namespace Ui {
 class InputDevice;
@@ -33,24 +35,18 @@ public:
   explicit InputDevice(QWidget *parent = 0);
   ~InputDevice();
 
-  /*! Get the QAudioDeviceInfo selected by the user */
-  QAudioDeviceInfo getAudioDeviceInfo() const;
-
-  /*! Get the QAudioFormat with what's required for the getf0
-      algorithm, mixed with some options configurable by the user. */
-  QAudioFormat getAudioFormat() const;
+  PaDeviceIndex getDeviceIndex() const;
 
 public slots:
 
-  void on_cmbDevice_currentIndexChanged(int index);
+  void on_cmbAudioHost_currentIndexChanged(int index);
 
 private:
 
   Ui::InputDevice *ui;
 
-  QMap<int, QAudioDeviceInfo> m_indexToDevice;
-  QMap<int, int> m_indexToSampleRate;
-  QMap<int, int> m_indexToSampleSize;
+  QMap<int, PaHostApiTypeId> m_indexToHostApiTypeId;
+  QMap<int, PaDeviceIndex> m_indexToDeviceIndex;
 };
 
 #endif // INPUTDEVICE_H
