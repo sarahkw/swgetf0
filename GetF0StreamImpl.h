@@ -47,30 +47,6 @@ protected:
     virtual ~IStream() { }
   };
 
-  struct FileStream : public IStream {
-    FileStream(FILE* file) : m_file(file) {}
-
-    size_t read(void* ptr, size_t size, size_t nmemb) override
-    {
-      return std::fread(ptr, size, nmemb, m_file);
-    }
-
-    int feof() override { return std::feof(m_file); }
-
-    int ferror() override { return std::ferror(m_file); }
-
-  private:
-    FILE* m_file;
-  };
-
-public:
-
-  GetF0StreamImpl(FILE* file, SampleFrequency sampleFrequency,
-                  DebugLevel debugLevel = 0)
-      : GetF0Stream(sampleFrequency, debugLevel), m_stream(new FileStream(file))
-  {
-  }
-
 protected:
 
   GetF0StreamImpl(IStream* stream, SampleFrequency sampleFrequency,
