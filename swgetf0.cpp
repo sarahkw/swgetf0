@@ -69,13 +69,9 @@ int main(int argc, char* argv[])
 	s->start();
       }
 
-      size_t read(void* ptr, size_t size, size_t nmemb) override {
-	s->read(ptr, nmemb);
-        return nmemb;
+      void read(void* buffer, size_t frames) override {
+	s->read(buffer, frames);
       }
-      int feof() override { return 0; }
-      int ferror() override { return 0; }
-
       portaudio::BlockingStream* s;
     };
 

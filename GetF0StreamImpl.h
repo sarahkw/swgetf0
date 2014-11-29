@@ -18,9 +18,6 @@
 #define INCLUDED_GETF0STREAMIMPL
 
 #include <algorithm>
-#include <cstdio>
-#include <cstring>
-#include <cerrno>
 
 #include "GetF0/get_f0_stream.h"
 
@@ -41,9 +38,7 @@ class GetF0StreamImpl : public GetF0Stream {
 protected:
 
   struct IStream {
-    virtual size_t read(void* ptr, size_t size, size_t nmemb) = 0;
-    virtual int feof() = 0;
-    virtual int ferror() = 0;
+    virtual void read(void* buffer, size_t frames) = 0;
     virtual ~IStream() { }
   };
 
@@ -62,33 +57,12 @@ public:
   long read_stream_samples(Sample* buffer, long num_records) override
   {
     SourceFormat tmpBuffer[num_records];
+    m_stream->read(tmpBuffer, num_records);
 
-    long totalReadSize = 0;
-
-    while (totalReadSize < num_records) {
-      auto requestSize = num_records - totalReadSize;
-
-      auto readSize = m_stream->read(tmpBuffer + totalReadSize,
-                                     sizeof(SourceFormat), requestSize);
-      totalReadSize += readSize;
-
-      if (readSize != requestSize) {
-        if (errno == EINTR) {
-          continue;
-        }
-        else if (m_stream->feof()) {
-          break;
-        }
-
-        THROW_ERROR(m_stream->ferror(), RuntimeError,
-                    "fread returned errno " << std::strerror(errno));
-      }
-    }
-
-    std::transform(tmpBuffer, tmpBuffer + totalReadSize, buffer,
+    std::transform(tmpBuffer, tmpBuffer + num_records, buffer,
                    StaticCaster<SourceFormat, Sample>());
 
-    return totalReadSize;
+    return num_records;
   }
 
 private:
