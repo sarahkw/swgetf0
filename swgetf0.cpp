@@ -31,8 +31,6 @@
 #include <iostream>
 #include <thread>
 
-#include <pulse/simple.h>
-
 #include "GetF0StreamImpl.h"
 #include "StreamReadBuffer.h"
 
@@ -65,18 +63,6 @@ int main(int argc, char* argv[])
 
   class Foo : public GetF0StreamImpl<DiskSample> {
   public:
-    struct PulseStream : public IStream {
-      PulseStream(pa_simple* s) : s(s) { }
-
-      size_t read(void* ptr, size_t size, size_t nmemb) override {
-        pa_simple_read(s, ptr, size * nmemb, NULL);  // TODO this is mess. fix.
-        return nmemb;
-      }
-      int feof() override { return 0; }
-      int ferror() override { return 0; }
-
-      pa_simple* s;
-    };
 
     struct PortStream : public IStream {
       PortStream(portaudio::BlockingStream* s) : s(s) {
@@ -92,10 +78,6 @@ int main(int argc, char* argv[])
 
       portaudio::BlockingStream* s;
     };
-
-    Foo(pa_simple* s) : GetF0StreamImpl<DiskSample>(new PulseStream(s), 96000)
-    {
-    }
 
     Foo(portaudio::BlockingStream *s)
         : GetF0StreamImpl<DiskSample>(new PortStream(s), 44100) {}
@@ -120,36 +102,7 @@ int main(int argc, char* argv[])
 
   Foo* f0;
 
-  if (argc != 2) {
-    std::cerr << "Give me an argument. Read the source." << std::endl;
-    return 1;
-  }
-
-  if (std::string(argv[1]) == "pulse") {
-    std::cout << "PulseAudio" << std::endl;
-
-    pa_simple* s;
-    pa_sample_spec ss;
-    ss.format = PA_SAMPLE_S16LE;
-    ss.channels = 1;
-    ss.rate = 96000;
-    s = pa_simple_new(NULL,         // Use the default server.
-                      "swpitcher",  // Our application's name.
-                      PA_STREAM_RECORD,
-                      NULL,      // Use the default device.
-                      "Record",  // Description of our stream.
-                      &ss,       // Our sample format.
-                      NULL,      // Use default channel map
-                      NULL,      // Use default buffering attributes.
-                      NULL       // Ignore error code.
-                      );
-    if (s == nullptr) {
-      std::cerr << "Pulse failed." << std::endl;
-    }
-
-    f0 = new Foo(s);
-
-  } else if (std::string(argv[1]) == "port") {
+  {
     portaudio::System& sys = portaudio::System::instance();
 
     portaudio::Device &device = sys.deviceByIndex(paDeviceIndex);
@@ -164,10 +117,7 @@ int main(int argc, char* argv[])
 
     f0 = new Foo(new portaudio::BlockingStream(sp));
 
-  } else {
-    return 1;
   }
-
 
   f0->init();
 
