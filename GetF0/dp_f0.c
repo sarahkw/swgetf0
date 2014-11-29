@@ -127,8 +127,10 @@ static int first_time = 1, pad;
 static Stat *get_stationarity(float *fdata, double freq, int buff_size,
                               int nframes, int frame_step, int first_time);
 
+static Frame *alloc_frame(int nlags, int ncands);
+
 /*--------------------------------------------------------------------*/
-int
+static int
 get_Nframes(buffsize, pad, step)
     long    buffsize;
     int     pad, step;
@@ -639,7 +641,7 @@ dp_f0(fdata, buff_size, sdstep, freq,
 
 
 /*--------------------------------------------------------------------*/
-Frame *
+static Frame *
 alloc_frame(nlags, ncands)
     int     nlags, ncands;
 {
