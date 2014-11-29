@@ -110,8 +110,8 @@ int main(int argc, char* argv[])
         device, 1, portaudio::INT16, true, device.defaultLowInputLatency(),
         NULL);
     portaudio::StreamParameters sp(
-        isp, portaudio::DirectionSpecificStreamParameters::null(), 44100, 2048,
-        paNoFlag);
+        isp, portaudio::DirectionSpecificStreamParameters::null(), 44100,
+        paFramesPerBufferUnspecified, paNoFlag);
 
     Q_ASSERT(sp.isSupported());
 
