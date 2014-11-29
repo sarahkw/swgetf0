@@ -42,25 +42,6 @@ int   n_cands,		/* max. # of F0 cands. to consider at each frame */
       conditioning;     /* Specify optional signal pre-conditioning. */
 } F0_params;
 
-/* Possible values returned by the function f0(). */
-#define F0_OK		0
-#define F0_NO_RETURNS	1
-#define F0_TOO_FEW_SAMPLES	2
-#define F0_NO_INPUT	3
-#define F0_NO_PAR	4
-#define F0_BAD_PAR	5
-#define F0_BAD_INPUT	6
-#define F0_INTERNAL_ERR	7
-
-/* Bits to specify optional pre-conditioning of speech signals by f0() */
-/* These may be OR'ed together to specify all preprocessing. */
-#define F0_PC_NONE	0x00		/* no pre-processing */
-#define F0_PC_DC	0x01		/* remove DC */
-#define F0_PC_LP2000	0x02		/* 2000 Hz lowpass */
-#define F0_PC_HP100	0x04		/* 100 Hz highpass */
-#define F0_PC_AR	0x08		/* inf_order-order LPC inverse filter */
-#define F0_PC_DIFF	0x010		/* 1st-order difference */
-
 extern F0_params *new_f0_params();
 extern int atoi(), /*round(), -sw*/ lpc(), window(), get_window();
 extern void get_fast_cands(), a_to_aca(), cross(), crossf(), crossfi(),
