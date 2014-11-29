@@ -42,8 +42,7 @@ int   n_cands,		/* max. # of F0 cands. to consider at each frame */
       conditioning;     /* Specify optional signal pre-conditioning. */
 } F0_params;
 
-extern F0_params *new_f0_params();
-extern int atoi(), /*round(), -sw*/ lpc(), window(), get_window();
+extern int lpc(), window(), get_window();
 extern void get_fast_cands(), a_to_aca(), cross(), crossf(), crossfi(),
            autoc(), durbin();
 
