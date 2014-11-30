@@ -15,6 +15,10 @@ public:
     explicit Configuration(QWidget *parent = 0);
     ~Configuration();
 
+public slots:
+
+  void on_buttonBox_accepted();
+
 private:
     Ui::Configuration *ui;
 };

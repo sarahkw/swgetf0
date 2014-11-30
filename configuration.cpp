@@ -8,6 +8,11 @@ Configuration::Configuration(QWidget *parent) :
     ui->setupUi(this);
 }
 
+void Configuration::on_buttonBox_accepted()
+{
+  emit accept();
+}
+
 Configuration::~Configuration()
 {
     delete ui;
