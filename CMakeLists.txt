@@ -4,6 +4,14 @@ project(swgetf0)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 add_subdirectory(GetF0)
+
+# sw: TODO: Maybe try to contain tinyscheme to not spill this
+add_definitions(
+  -DUSE_DL=0
+  -DUSE_MATH=1
+  -DUSE_ASCII_NAMES=0
+  -DSTANDALONE=0
+  -DUSE_INTERFACE=1)
 add_subdirectory(tinyscheme)
 
 # sw: TODO: Apparently it's not good to use PkgConfig directly
