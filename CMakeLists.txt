@@ -4,6 +4,7 @@ project(swgetf0)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 add_subdirectory(GetF0)
+add_subdirectory(tinyscheme)
 
 # sw: TODO: Apparently it's not good to use PkgConfig directly
 find_package(PkgConfig)
@@ -26,7 +27,7 @@ add_executable(swgetf0
   inputdevice.cpp
   ${QTFILES_UI} ${QTFILES_CPP})
 qt5_use_modules(swgetf0 Widgets OpenGL)
-target_link_libraries(swgetf0 GetF0
+target_link_libraries(swgetf0 GetF0 tinyscheme
   ${PORTAUDIOCPP_LIBRARIES})
 
 ################################################################################
