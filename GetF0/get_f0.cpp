@@ -73,9 +73,6 @@ void GetF0::resetParameters()
   m_par->frame_step = 0.01;
   m_par->wind_dur = 0.0075;
   m_par->n_cands = 20;
-  m_par->mean_f0 = 200;        /* unused */
-  m_par->mean_f0_weight = 0.0; /* unused */
-  m_par->conditioning = 0;     /*unused */
 }
 
 void GetF0::init()
@@ -206,14 +203,11 @@ float& GetF0::paramTransAmp()     { return m_par->trans_amp;      }
 float& GetF0::paramTransSpec()    { return m_par->trans_spec;     }
 float& GetF0::paramVoiceBias()    { return m_par->voice_bias;     }
 float& GetF0::paramDoubleCost()   { return m_par->double_cost;    }
-float& GetF0::paramMeanF0()       { return m_par->mean_f0;        }
-float& GetF0::paramMeanF0Weight() { return m_par->mean_f0_weight; }
 float& GetF0::paramMinF0()        { return m_par->min_f0;         }
 float& GetF0::paramMaxF0()        { return m_par->max_f0;         }
 float& GetF0::paramFrameStep()    { return m_par->frame_step;     }
 float& GetF0::paramWindDur()      { return m_par->wind_dur;       }
 int  & GetF0::paramNCands()       { return m_par->n_cands;        }
-int  & GetF0::paramConditioning() { return m_par->conditioning;   }
 
 
 } // namespace GetF0

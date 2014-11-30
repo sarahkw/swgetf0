@@ -32,14 +32,11 @@ float cand_thresh,	/* only correlation peaks above this are considered */
       trans_spec,	/* spectral-change-modulated VUV trans. cost */
       voice_bias,	/* fixed bias towards the voiced hypothesis */
       double_cost,	/* cost for octave F0 jumps */
-      mean_f0,		/* talker-specific mean F0 (Hz) */
-      mean_f0_weight,	/* weight to be given to deviations from mean F0 */
       min_f0,		/* min. F0 to search for (Hz) */
       max_f0,		/* max. F0 to search for (Hz) */
       frame_step,	/* inter-frame-interval (sec) */
       wind_dur;		/* duration of correlation window (sec) */
-int   n_cands,		/* max. # of F0 cands. to consider at each frame */
-      conditioning;     /* Specify optional signal pre-conditioning. */
+int   n_cands;		/* max. # of F0 cands. to consider at each frame */
 } F0_params;
 
 extern int lpc(), window(), get_window();

@@ -73,14 +73,11 @@ public:
   float& paramTransSpec();    // spectral-change-modulated VUV trans. cost
   float& paramVoiceBias();    // fixed bias towards the voiced hypothesis
   float& paramDoubleCost();   // cost for octave F0 jumps
-  float& paramMeanF0();       // talker-specific mean F0 (Hz)
-  float& paramMeanF0Weight(); // weight to be given to deviations from mean F0
   float& paramMinF0();        // min. F0 to search for (Hz)
   float& paramMaxF0();        // max. F0 to search for (Hz)
   float& paramFrameStep();    // inter-frame-interval (sec)
   float& paramWindDur();      // duration of correlation window (sec)
   int  & paramNCands();       // max. # of F0 cands. to consider at each frame
-  int  & paramConditioning(); // Specify optional signal pre-conditioning.
 
   SampleFrequency &sampleFrequency() { return m_sampleFrequency; };
   DebugLevel &debugLevel() { return m_debugLevel; };
