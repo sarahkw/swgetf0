@@ -23,6 +23,7 @@
 
 #include "mainwindow.h"
 #include "inputdevice.h"
+#include "GetF0/get_f0_stream.h"
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -30,11 +31,6 @@
 
 #include <iostream>
 #include <thread>
-
-#include "GetF0StreamImpl.h"
-#include "StreamReadBuffer.h"
-
-typedef short DiskSample;
 
 //
 ////////////////////////////////////////////////////////////////////////////////
@@ -56,27 +52,10 @@ int main(int argc, char* argv[])
   PaDeviceIndex paDeviceIndex = inputDevice->getDeviceIndex();
   delete inputDevice;
 
-
-////////////////////////////////////////////////////////////////////////////////
-//
-  using GetF0::GetF0StreamImpl;
-
-  class Foo : public GetF0StreamImpl<DiskSample> {
+  class Foo : public GetF0::GetF0Stream {
   public:
 
-    struct PortStream : public IStream {
-      PortStream(portaudio::BlockingStream* s) : s(s) {
-	s->start();
-      }
-
-      void read(void* buffer, size_t frames) override {
-	s->read(buffer, frames);
-      }
-      portaudio::BlockingStream* s;
-    };
-
-    Foo(portaudio::BlockingStream *s)
-        : GetF0StreamImpl<DiskSample>(new PortStream(s), 44100) {}
+    Foo(portaudio::BlockingStream *s) : GetF0Stream(44100), s(s) { s->start(); }
 
     void setViewer(MainWindow* viewer) { m_viewer = viewer; }
 
@@ -92,7 +71,14 @@ int main(int argc, char* argv[])
       }
     }
 
+    long read_stream_samples(short* buffer, long num_records) override {
+      s->read(buffer, num_records);
+      return num_records;
+    }
+
     MainWindow *m_viewer;
+
+    portaudio::BlockingStream *s;
 
   };
 
@@ -116,9 +102,6 @@ int main(int argc, char* argv[])
   }
 
   f0->init();
-
-//
-////////////////////////////////////////////////////////////////////////////////
 
   enum { SECONDS = 5 };
 

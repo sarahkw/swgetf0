@@ -22,7 +22,6 @@ add_executable(swgetf0
   swgetf0.cpp
   mainwindow.cpp
   CircularBuffer.cpp
-  GetF0StreamImpl.cpp
   StreamReadBuffer.cpp
   about.cpp
   inputdevice.cpp
