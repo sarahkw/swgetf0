@@ -23,6 +23,7 @@
 
 #include "mainwindow.h"
 #include "inputdevice.h"
+#include "configuration.h"
 #include "GetF0/get_f0_stream.h"
 
 
@@ -41,6 +42,11 @@ int main(int argc, char* argv[])
   portaudio::AutoSystem autoSys;
 
   QApplication app(argc, argv);
+
+  {
+    Configuration configuration;
+    configuration.exec();
+  }
 
   InputDevice* inputDevice = new InputDevice();
   int result = inputDevice->exec();
