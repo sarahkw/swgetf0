@@ -23,9 +23,11 @@ protected:
   long read_samples_overlap(Sample** buffer, long num_records,
                             long step) override;
 
-  virtual long read_stream_samples(Sample* buffer, long num_records) = 0;
+  virtual long read_stream_samples(short* buffer, long num_records) = 0;
 
 private:
+
+  long read_stream_samples(Sample* buffer, long num_records);
 
   Sample* m_buffer;
 

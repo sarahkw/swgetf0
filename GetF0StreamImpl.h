@@ -54,14 +54,9 @@ public:
 
   virtual ~GetF0StreamImpl() { delete m_stream; }
 
-  long read_stream_samples(Sample* buffer, long num_records) override
+  long read_stream_samples(short* buffer, long num_records) override
   {
-    SourceFormat tmpBuffer[num_records];
-    m_stream->read(tmpBuffer, num_records);
-
-    std::transform(tmpBuffer, tmpBuffer + num_records, buffer,
-                   StaticCaster<SourceFormat, Sample>());
-
+    m_stream->read(buffer, num_records);
     return num_records;
   }
 

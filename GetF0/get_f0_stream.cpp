@@ -72,4 +72,14 @@ long GetF0Stream::read_samples_overlap(Sample** buffer, long num_records,
   return oldSamples + actualNewSamples;
 }
 
+long GetF0Stream::read_stream_samples(Sample* buffer, long num_records)
+{
+  short tmpBuf[num_records];
+  auto length = read_stream_samples(tmpBuf, num_records);
+  for (int i = 0; i < length; ++i) {
+    buffer[i] = static_cast<Sample>(tmpBuf[i]);
+  }
+  return length;
+}
+
 } // namespace GetF0
