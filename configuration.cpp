@@ -22,7 +22,9 @@ void Configuration::on_buttonBox_accepted()
   scheme_set_output_port_file(sc, stdout);
 
 
-  scheme_load_string(sc, "(define config '((sample-rate 44100) (happy #t)))");
+  QString configText = ui->txtConfig->toPlainText();
+  QByteArray configTextBa = configText.toLatin1();
+  scheme_load_string(sc, configTextBa.data());
 
   scheme_load_string(sc,
 		     "(define (caar x) (car (car x)))\n"
