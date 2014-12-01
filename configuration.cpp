@@ -15,6 +15,12 @@ Configuration::Configuration(QWidget *parent) :
 
 void Configuration::on_buttonBox_accepted()
 {
+  QFile initFile(":/tinyscheme/init.scm");
+  Q_ASSERT(initFile.open(QFile::ReadOnly));
+  QTextStream initFileTextStream(&initFile);
+  QString initFileText(initFileTextStream.readAll());
+  QByteArray initFileTextBa = initFileText.toLatin1();
+
   scheme* sc = scheme_init_new();
   Q_ASSERT(sc != nullptr);
 
@@ -26,21 +32,8 @@ void Configuration::on_buttonBox_accepted()
   QByteArray configTextBa = configText.toLatin1();
   scheme_load_string(sc, configTextBa.data());
 
-  scheme_load_string(sc,
-		     "(define (caar x) (car (car x)))\n"
-		     ";;;; generic-assoc\n"
-		     "(define (generic-assoc cmp obj alst)\n"
-		     "     (cond\n"
-		     "          ((null? alst) #f)\n"
-		     "          ((cmp obj (caar alst)) (car alst))\n"
-		     "          (else (generic-assoc cmp obj (cdr alst)))))\n"
-		     "\n"
-		     "(define (assq obj alst)\n"
-		     "     (generic-assoc eq? obj alst))\n"
-		     "(define (assv obj alst)\n"
-		     "     (generic-assoc eqv? obj alst))\n"
-		     "(define (assoc obj alst)\n"
-		     "     (generic-assoc equal? obj alst))\n");
+  // init.scm
+  scheme_load_string(sc, initFileTextBa.data());
 
   scheme_load_string(sc, "(define (get-sample-rate) (car (cdr (assv 'sample-rate config))))");
 
