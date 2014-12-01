@@ -17,9 +17,7 @@ void Configuration::on_buttonBox_accepted()
 {
   QFile initFile(":/tinyscheme/init.scm");
   Q_ASSERT(initFile.open(QFile::ReadOnly));
-  QTextStream initFileTextStream(&initFile);
-  QString initFileText(initFileTextStream.readAll());
-  QByteArray initFileTextBa = initFileText.toLatin1();
+  QByteArray initFileTextBa(initFile.readAll());
 
   scheme* sc = scheme_init_new();
   Q_ASSERT(sc != nullptr);
