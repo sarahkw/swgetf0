@@ -35,7 +35,7 @@ void Configuration::on_buttonBox_accepted()
   // init.scm
   scheme_load_string(sc, initFileTextBa.data());
 
-  scheme_load_string(sc, "(define (get-sample-rate) (car (cdr (assv 'sample-rate config))))");
+  scheme_load_string(sc, "(define (get-sample-rate) (cadr (assv 'sample-rate config)))");
 
   pointer func = scheme_eval(sc, mk_symbol(sc, "get-sample-rate"));
   pointer ret = scheme_call(sc, func, sc->NIL);
