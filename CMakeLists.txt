@@ -26,14 +26,13 @@ include_directories(${PORTAUDIOCPP_INCLUDE_DIRS})
 find_package(Qt5Widgets REQUIRED)
 find_package(Qt5OpenGL REQUIRED)
 QT5_ADD_RESOURCES(QTFILES_RCC resources.rcc)
-QT5_WRAP_UI(QTFILES_UI mainwindow.ui about.ui inputdevice.ui configuration.ui)
-QT5_WRAP_CPP(QTFILES_CPP mainwindow.h about.h inputdevice.h configuration.h)
+QT5_WRAP_UI(QTFILES_UI mainwindow.ui about.ui configuration.ui)
+QT5_WRAP_CPP(QTFILES_CPP mainwindow.h about.h configuration.h)
 add_executable(swgetf0
   swgetf0.cpp
   mainwindow.cpp
   CircularBuffer.cpp
   about.cpp
-  inputdevice.cpp
   configuration.cpp
   ${QTFILES_UI} ${QTFILES_CPP}
   ${QTFILES_RCC})

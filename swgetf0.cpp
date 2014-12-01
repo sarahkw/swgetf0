@@ -43,12 +43,7 @@ int main(int argc, char* argv[])
 
   QApplication app(argc, argv);
 
-  {
-    Configuration configuration;
-    configuration.exec();
-  }
-
-  InputDevice* inputDevice = new InputDevice();
+  Configuration* inputDevice = new Configuration();
   int result = inputDevice->exec();
   if (result == QDialog::Rejected) {
     delete inputDevice;
