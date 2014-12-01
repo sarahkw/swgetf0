@@ -22,7 +22,6 @@
 #include <portaudiocpp/BlockingStream.hxx>
 
 #include "mainwindow.h"
-#include "inputdevice.h"
 #include "configuration.h"
 #include "GetF0/get_f0_stream.h"
 
