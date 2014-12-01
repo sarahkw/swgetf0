@@ -131,6 +131,12 @@ void Configuration::on_buttonBox_accepted()
   qDebug() << ret->_flag;
   qDebug() << sc->vptr->ivalue(ret);
 
+  {
+    pointer func_write = scheme_eval(sc, mk_symbol(sc, "write"));
+    scheme_call(sc, func_write, _cons(sc, ret, sc->NIL, 0));
+    scheme_load_string(sc, "(newline)");
+  }
+
   emit accept();
 }
 
