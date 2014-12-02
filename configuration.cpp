@@ -18,6 +18,7 @@
 #include "ui_configuration.h"
 
 #include <QDebug>
+#include <QResource>
 
 #include <portaudiocpp/System.hxx>
 #include <portaudiocpp/SystemHostApiIterator.hxx>
@@ -105,9 +106,9 @@ void Configuration::on_cmbAudioHost_currentIndexChanged(int index)
 
 void Configuration::on_buttonBox_accepted()
 {
-  QFile initFile(":/tinyscheme/init.scm");
-  Q_ASSERT(initFile.open(QFile::ReadOnly));
-  QByteArray initFileTextBa(initFile.readAll());
+  QResource initScm(":/tinyscheme/init.scm");
+  Q_ASSERT(initScm.isValid());
+  QByteArray initFileTextBa(qUncompress(initScm.data(), initScm.size()));
 
   scheme* sc = scheme_init_new();
   Q_ASSERT(sc != nullptr);
