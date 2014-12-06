@@ -62,6 +62,18 @@ static void insertWithDefault(QComboBox *comboBox, IndexMapType &map,
 
 }
 
+struct GetDataFromResource {
+  GetDataFromResource(const char *file) {
+    QResource resource(file);
+    Q_ASSERT(resource.isValid());
+    m_byteArray = qUncompress(resource.data(), resource.size());
+  }
+
+  const char *data() const { return m_byteArray.data(); }
+
+  QByteArray m_byteArray;
+};
+
 } // namespace anonymous
 
 Configuration::Configuration(QWidget *parent) :
@@ -104,9 +116,7 @@ void Configuration::on_cmbAudioHost_currentIndexChanged(int index)
 
 void Configuration::on_buttonBox_accepted()
 {
-  QResource initScm(":/tinyscheme/init.scm");
-  Q_ASSERT(initScm.isValid());
-  QByteArray initFileTextBa(qUncompress(initScm.data(), initScm.size()));
+  GetDataFromResource initScm(":/tinyscheme/init.scm");
 
   scheme* sc = scheme_init_new();
   Q_ASSERT(sc != nullptr);
@@ -121,7 +131,7 @@ void Configuration::on_buttonBox_accepted()
   if (sc->retcode != 0) qDebug() << "Scheme failed" << __LINE__;
 
   // init.scm
-  scheme_load_string(sc, initFileTextBa.data());
+  scheme_load_string(sc, initScm.data());
 
   scheme_load_string(sc, "(define (get-sample-rate) (cadr (assv 'sample-rate config)))");
 
