@@ -63,13 +63,18 @@ static void insertWithDefault(QComboBox *comboBox, IndexMapType &map,
 }
 
 struct GetDataFromResource {
-  GetDataFromResource(const char *file) {
+
+  GetDataFromResource(const char *file)
+  {
     QResource resource(file);
     Q_ASSERT(resource.isValid());
-    m_byteArray = qUncompress(resource.data(), resource.size());
+    if (resource.isCompressed())
+      m_byteArray = qUncompress(resource.data(), resource.size());
+    else
+      m_byteArray = QByteArray(reinterpret_cast<const char*>(resource.data()), resource.size());
   }
 
-  const char *data() const { return m_byteArray.data(); }
+  const QByteArray& byteArray() const { return m_byteArray; }
 
   QByteArray m_byteArray;
 };
@@ -81,6 +86,11 @@ Configuration::Configuration(QWidget *parent) :
     ui(new Ui::Configuration)
 {
   ui->setupUi(this);
+
+  GetDataFromResource defaultConfigScm(":/tinyscheme/default-config.scm");
+  ui->txtConfig->setPlainText(
+      QString::fromUtf8(defaultConfigScm.byteArray().data(),
+                        defaultConfigScm.byteArray().size()));
 
   portaudio::System& sys = portaudio::System::instance();
 
@@ -131,7 +141,7 @@ void Configuration::on_buttonBox_accepted()
   if (sc->retcode != 0) qDebug() << "Scheme failed" << __LINE__;
 
   // init.scm
-  scheme_load_string(sc, initScm.data());
+  scheme_load_string(sc, initScm.byteArray().data());
 
   scheme_load_string(sc, "(define (get-sample-rate) (cadr (assv 'sample-rate config)))");
 
