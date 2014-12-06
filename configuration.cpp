@@ -116,7 +116,7 @@ void Configuration::on_buttonBox_accepted()
 
 
   QString configText = ui->txtConfig->toPlainText();
-  QByteArray configTextBa = configText.toLatin1();
+  QByteArray configTextBa = configText.toUtf8();
   scheme_load_string(sc, configTextBa.data());
   if (sc->retcode != 0) qDebug() << "Scheme failed" << __LINE__;
 
