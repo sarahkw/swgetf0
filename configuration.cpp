@@ -141,13 +141,7 @@ struct Config {
     scheme_load_string(sc_, configScript);
     if (sc_->retcode != 0) qDebug() << "Scheme failed" << __LINE__;
 
-    pointer cfg = scheme_eval(sc_, mk_symbol(sc_, "config"));
-
-    scheme_load_string(sc_,
-                       "(define (get-sample-rate) (cdr (assv ':sample-rate (cdr (assv 'audio-config config)))))");
-
-    pointer ret = scheme_apply0(sc_, "get-sample-rate");
-
+    pointer ret = read_eval("(cdr (assv ':sample-rate (cdr (assv 'audio-config config))))");
     qDebug() << sc_->vptr->ivalue(ret);
   }
 
