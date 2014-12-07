@@ -162,6 +162,10 @@ struct Ptr {
 
 #undef P
 
+  operator long() { return ivalue(); }
+  operator double() { return rvalue(); }
+  operator const char*() { return string_value(); }
+
 };
 
 struct PtrIter {
@@ -184,6 +188,30 @@ struct PtrIter {
 
 };
 
+struct TestConfig {
+  long a;
+  long b;
+  long c;
+  long d;
+};
+
+QDebug operator<<(QDebug dbg, const TestConfig &tc)
+{
+  dbg.nospace() << "(TestConfig " << tc.a << " " << tc.b << " " << tc.c << " "
+                << tc.d << ")";
+
+  return dbg.space();
+}
+
+void loadValues(PtrIter iter) {}
+
+template <typename Arg1, typename... Args>
+void loadValues(PtrIter iter, Arg1 &arg1, Args &... args)
+{
+  arg1 = static_cast<Arg1>(*iter);
+  loadValues(++iter, args...);
+}
+
 struct Config {
   Config(const char *configScript) : sc_(scheme_init_new())
   {
@@ -195,9 +223,9 @@ struct Config {
     loadResource(":/tinyscheme/config-helper.scm");
 
     Ptr lst = read_eval("(list 1 5 10 20)");
-    for (auto ptr : PtrIter(lst)) {
-      qDebug() << "Item" << ptr.ivalue();
-    }
+    TestConfig testcfg;
+    loadValues(PtrIter(lst), testcfg.a, testcfg.b, testcfg.c, testcfg.d);
+    qDebug() << testcfg;
 
     scheme_load_string(sc_, configScript);
     if (sc_->retcode != 0) qDebug() << "Scheme failed" << __LINE__;
