@@ -168,7 +168,8 @@ struct Ptr {
 
 };
 
-struct PtrIter {
+struct PtrIter : public std::iterator<Ptr, std::forward_iterator_tag> {
+
   PtrIter(Ptr ptr) : ptr_(ptr) {}
 
   PtrIter begin() { return *this; }
@@ -206,14 +207,26 @@ struct TestSubConfig {
   TestSubConfig(PtrIter sexp) { loadValues(sexp, x, y); }
 };
 
+struct TestList {
+
+  QList<long> lst;
+
+  TestList() { }
+
+  TestList(PtrIter sexp) {
+    std::copy(sexp, sexp.end(), std::back_inserter(lst));
+  }
+};
+
 struct TestConfig {
   long a;
   long b;
   long c;
   long d;
   TestSubConfig tsc;
+  TestList tl;
 
-  TestConfig(PtrIter sexp) { loadValues(sexp, a, b, c, d, tsc); }
+  TestConfig(PtrIter sexp) { loadValues(sexp, a, b, c, d, tsc, tl); }
 };
 
 QDebug operator<<(QDebug dbg, const TestSubConfig &tsc)
@@ -223,10 +236,17 @@ QDebug operator<<(QDebug dbg, const TestSubConfig &tsc)
   return dbg.space();
 }
 
+QDebug operator<<(QDebug dbg, const TestList &tl)
+{
+  dbg.nospace() << "(TestList " << tl.lst << ")";
+
+  return dbg.space();
+}
+
 QDebug operator<<(QDebug dbg, const TestConfig &tc)
 {
   dbg.nospace() << "(TestConfig " << tc.a << " " << tc.b << " " << tc.c << " "
-                << tc.d << " " << tc.tsc << ")";
+                << tc.d << " " << tc.tsc << " " << tc.tl << ")";
 
   return dbg.space();
 }
@@ -241,7 +261,8 @@ struct Config {
     loadResource(":/tinyscheme/init.scm");
     loadResource(":/tinyscheme/config-helper.scm");
 
-    qDebug() << TestConfig(PtrIter(read_eval("'(1 5 10 20 (7 \"wow\"))")));
+    qDebug() << TestConfig(
+        PtrIter(read_eval("'(1 5 10 20 (7 \"wow\") (100 200 300))")));
 
     scheme_load_string(sc_, configScript);
     if (sc_->retcode != 0) qDebug() << "Scheme failed" << __LINE__;
