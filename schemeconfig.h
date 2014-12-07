@@ -72,6 +72,27 @@ struct Ptr {
   operator const char *();
 };
 
+struct PtrIter : public std::iterator<Ptr, std::forward_iterator_tag> {
+
+  PtrIter(Ptr ptr) : ptr_(ptr) {}
+
+  PtrIter begin() { return *this; }
+
+  PtrIter end() { return PtrIter(ptr_.nil()); }
+
+  PtrIter& operator++() { ptr_ = ptr_.cdr(); return *this; }
+
+  Ptr operator*() { return ptr_.car(); }
+
+  bool operator!=(const PtrIter &other) const
+  {
+    return ptr_.p_ != other.ptr_.p_;
+  }
+
+  Ptr ptr_;
+
+};
+
 
 } // namespace schemeconfig
 
