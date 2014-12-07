@@ -134,30 +134,31 @@ struct Ptr {
 
 #define P(v) Ptr(sc_, v)
 
-  bool is_nil         (pointer p)              { return p == sc_->NIL; }
-  Ptr nil             ()                       { return P(sc_->NIL); }
+  Ptr nil             ()              { return P(sc_->NIL); }
 
-  bool is_string      (pointer p)              { return sc_->vptr->is_string(p); }
-  char *string_value  (pointer p)              { return sc_->vptr->string_value(p); }
-  bool is_number      (pointer p)              { return sc_->vptr->is_number(p); }
-  num nvalue          (pointer p)              { return sc_->vptr->nvalue(p); }
-  long ivalue         (pointer p)              { return sc_->vptr->ivalue(p); }
-  double rvalue       (pointer p)              { return sc_->vptr->rvalue(p); }
-  bool is_integer     (pointer p)              { return sc_->vptr->is_integer(p); }
-  bool is_real        (pointer p)              { return sc_->vptr->is_real(p); }
-  bool is_character   (pointer p)              { return sc_->vptr->is_character(p); }
-  long charvalue      (pointer p)              { return sc_->vptr->charvalue(p); }
-  bool is_list        (pointer p)              { return sc_->vptr->is_list(sc_, p); }
-  bool is_vector      (pointer p)              { return sc_->vptr->is_vector(p); }
-  int list_length     (pointer vec)            { return sc_->vptr->list_length(sc_, vec); }
-  long vector_length  (pointer vec)            { return sc_->vptr->vector_length(vec); }
-  Ptr vector_elem     (pointer vec, int ielem) { return P(sc_->vptr->vector_elem(vec, ielem)); }
-  bool is_pair        (pointer p)              { return sc_->vptr->is_pair(p); }
-  Ptr car             (pointer p)              { return P(sc_->vptr->pair_car(p)); }
-  Ptr cdr             (pointer p)              { return P(sc_->vptr->pair_cdr(p)); }
+  bool is_nil         ()              { return p_ == sc_->NIL; }
 
-  bool is_symbol      (pointer p)              { return sc_->vptr->is_symbol(p); }
-  char *symname       (pointer p)              { return sc_->vptr->symname(p); }
+  bool is_string      ()              { return sc_->vptr->is_string(p_); }
+  char *string_value  ()              { return sc_->vptr->string_value(p_); }
+  bool is_number      ()              { return sc_->vptr->is_number(p_); }
+  num nvalue          ()              { return sc_->vptr->nvalue(p_); }
+  long ivalue         ()              { return sc_->vptr->ivalue(p_); }
+  double rvalue       ()              { return sc_->vptr->rvalue(p_); }
+  bool is_integer     ()              { return sc_->vptr->is_integer(p_); }
+  bool is_real        ()              { return sc_->vptr->is_real(p_); }
+  bool is_character   ()              { return sc_->vptr->is_character(p_); }
+  long charvalue      ()              { return sc_->vptr->charvalue(p_); }
+  bool is_list        ()              { return sc_->vptr->is_list(sc_, p_); }
+  bool is_vector      ()              { return sc_->vptr->is_vector(p_); }
+  int list_length     ()              { return sc_->vptr->list_length(sc_, p_); }
+  long vector_length  ()              { return sc_->vptr->vector_length(p_); }
+  Ptr vector_elem     (int ielem)     { return P(sc_->vptr->vector_elem(p_, ielem)); }
+  bool is_pair        ()              { return sc_->vptr->is_pair(p_); }
+  Ptr car             ()              { return P(sc_->vptr->pair_car(p_)); }
+  Ptr cdr             ()              { return P(sc_->vptr->pair_cdr(p_)); }
+
+  bool is_symbol      ()              { return sc_->vptr->is_symbol(p_); }
+  char *symname       ()              { return sc_->vptr->symname(p_); }
 
 #undef P
 
