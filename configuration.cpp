@@ -197,19 +197,36 @@ void loadValues(PtrIter iter, Arg1 &arg1, Args &... args)
   loadValues(++iter, args...);
 }
 
+struct TestSubConfig {
+  long x;
+  QString y;
+
+  TestSubConfig() {}
+
+  TestSubConfig(PtrIter sexp) { loadValues(sexp, x, y); }
+};
+
 struct TestConfig {
   long a;
   long b;
   long c;
   long d;
+  TestSubConfig tsc;
 
-  TestConfig(PtrIter sexp) { loadValues(sexp, a, b, c, d); }
+  TestConfig(PtrIter sexp) { loadValues(sexp, a, b, c, d, tsc); }
 };
+
+QDebug operator<<(QDebug dbg, const TestSubConfig &tsc)
+{
+  dbg.nospace() << "(TestSubConfig " << tsc.x << " " << tsc.y << ")";
+
+  return dbg.space();
+}
 
 QDebug operator<<(QDebug dbg, const TestConfig &tc)
 {
   dbg.nospace() << "(TestConfig " << tc.a << " " << tc.b << " " << tc.c << " "
-                << tc.d << ")";
+                << tc.d << " " << tc.tsc << ")";
 
   return dbg.space();
 }
@@ -224,7 +241,7 @@ struct Config {
     loadResource(":/tinyscheme/init.scm");
     loadResource(":/tinyscheme/config-helper.scm");
 
-    qDebug() << TestConfig(PtrIter(read_eval("(list 1 5 10 20)")));
+    qDebug() << TestConfig(PtrIter(read_eval("'(1 5 10 20 (7 \"wow\"))")));
 
     scheme_load_string(sc_, configScript);
     if (sc_->retcode != 0) qDebug() << "Scheme failed" << __LINE__;
