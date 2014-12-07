@@ -164,6 +164,26 @@ struct Ptr {
 
 };
 
+struct PtrIter {
+  PtrIter(Ptr ptr) : ptr_(ptr) {}
+
+  PtrIter begin() { return *this; }
+
+  PtrIter end() { return PtrIter(ptr_.nil()); }
+
+  PtrIter& operator++() { ptr_ = ptr_.cdr(); return *this; }
+
+  Ptr operator*() { return ptr_.car(); }
+
+  bool operator!=(const PtrIter &other) const
+  {
+    return ptr_.p_ != other.ptr_.p_;
+  }
+
+  Ptr ptr_;
+
+};
+
 struct Config {
   Config(const char *configScript) : sc_(scheme_init_new())
   {
@@ -174,7 +194,10 @@ struct Config {
     loadResource(":/tinyscheme/init.scm");
     loadResource(":/tinyscheme/config-helper.scm");
 
-    read_eval("(begin (display 1337) (newline))");
+    Ptr lst = read_eval("(list 1 5 10 20)");
+    for (auto ptr : PtrIter(lst)) {
+      qDebug() << "Item" << ptr.ivalue();
+    }
 
     scheme_load_string(sc_, configScript);
     if (sc_->retcode != 0) qDebug() << "Scheme failed" << __LINE__;
