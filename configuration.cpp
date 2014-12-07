@@ -126,6 +126,37 @@ void Configuration::on_cmbAudioHost_currentIndexChanged(int index)
 
 namespace {
 
+struct Ptr {
+  scheme *sc_;
+  pointer p_;
+
+  Ptr(scheme *sc, pointer p) : sc_(sc), p_(p) {}
+
+  int is_nil             (scheme *sc, pointer p) { return p == sc_->NIL; } //\n
+
+  int is_string       (pointer p) { return sc_->vptr->is_string(p); }
+  char *string_value  (pointer p) { return sc_->vptr->string_value(p); }
+  int is_number       (pointer p) { return sc_->vptr->is_number(p); }
+  num nvalue          (pointer p) { return sc_->vptr->nvalue(p); }
+  long ivalue         (pointer p) { return sc_->vptr->ivalue(p); }
+  double rvalue       (pointer p) { return sc_->vptr->rvalue(p); }
+  int is_integer      (pointer p) { return sc_->vptr->is_integer(p); }
+  int is_real         (pointer p) { return sc_->vptr->is_real(p); }
+  int is_character    (pointer p) { return sc_->vptr->is_character(p); }
+  long charvalue      (pointer p) { return sc_->vptr->charvalue(p); }
+  int is_list         (scheme *sc, pointer p) { return sc_->vptr->is_list(sc, p); }
+  int is_vector       (pointer p) { return sc_->vptr->is_vector(p); }
+  int list_length     (scheme *sc, pointer vec) { return sc_->vptr->list_length(sc, vec); }
+  long vector_length  (pointer vec) { return sc_->vptr->vector_length(vec); }
+  pointer vector_elem (pointer vec, int ielem) { return sc_->vptr->vector_elem(vec, ielem); }
+  int is_pair         (pointer p) { return sc_->vptr->is_pair(p); }
+  pointer pair_car    (pointer p) { return sc_->vptr->pair_car(p); }
+  pointer pair_cdr    (pointer p) { return sc_->vptr->pair_cdr(p); } //\n
+  int is_symbol       (pointer p) { return sc_->vptr->is_symbol(p); }
+  char *symname       (pointer p) { return sc_->vptr->symname(p); }
+
+};
+
 struct Config {
   Config(const char *configScript) : sc_(scheme_init_new())
   {
