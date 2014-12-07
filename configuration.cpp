@@ -127,6 +127,7 @@ void Configuration::on_cmbAudioHost_currentIndexChanged(int index)
 void Configuration::on_buttonBox_accepted()
 {
   GetDataFromResource initScm(":/tinyscheme/init.scm");
+  GetDataFromResource configHelperScm(":/tinyscheme/config-helper.scm");
 
   scheme* sc = scheme_init_new();
   Q_ASSERT(sc != nullptr);
@@ -134,16 +135,18 @@ void Configuration::on_buttonBox_accepted()
   scheme_set_input_port_file(sc, stdin);
   scheme_set_output_port_file(sc, stdout);
 
+  // init.scm
+  scheme_load_string(sc, initScm.byteArray().data());
+
+  // config-helper.scm
+  scheme_load_string(sc, configHelperScm.byteArray().data());
 
   QString configText = ui->txtConfig->toPlainText();
   QByteArray configTextBa = configText.toUtf8();
   scheme_load_string(sc, configTextBa.data());
   if (sc->retcode != 0) qDebug() << "Scheme failed" << __LINE__;
 
-  // init.scm
-  scheme_load_string(sc, initScm.byteArray().data());
-
-  scheme_load_string(sc, "(define (get-sample-rate) (cadr (assv 'sample-rate config)))");
+  scheme_load_string(sc, "(define (get-sample-rate) (cdr (assv ':sample-rate (cdr (assv 'audio-config config)))))");
 
   pointer ret = scheme_apply0(sc, "get-sample-rate");
 

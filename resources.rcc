@@ -2,5 +2,6 @@
 <qresource>
     <file>tinyscheme/init.scm</file>
     <file>tinyscheme/default-config.scm</file>
+    <file>tinyscheme/config-helper.scm</file>
 </qresource>
 </RCC>
