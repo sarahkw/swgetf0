@@ -131,16 +131,10 @@ struct Config {
   {
     Q_ASSERT(sc_ != nullptr);
 
-    GetDataFromResource initScm(":/tinyscheme/init.scm");
-    GetDataFromResource configHelperScm(":/tinyscheme/config-helper.scm");
-
     scheme_set_output_port_file(sc_, stdout);
 
-    // init.scm
-    scheme_load_string(sc_, initScm.byteArray().data());
-
-    // config-helper.scm
-    scheme_load_string(sc_, configHelperScm.byteArray().data());
+    loadResource(":/tinyscheme/init.scm");
+    loadResource(":/tinyscheme/config-helper.scm");
 
     read_eval("(begin (display 1337) (newline))");
 
@@ -155,6 +149,12 @@ struct Config {
     pointer ret = scheme_apply0(sc_, "get-sample-rate");
 
     qDebug() << sc_->vptr->ivalue(ret);
+  }
+
+  void loadResource(const char *resource)
+  {
+    GetDataFromResource gdfr(resource);
+    scheme_load_string(sc_, gdfr.byteArray().data());
   }
 
   pointer read_eval(const char* script)
