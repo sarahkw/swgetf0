@@ -30,6 +30,7 @@
 
 using schemeconfig::Ptr;
 using schemeconfig::PtrIter;
+using schemeconfig::loadValues;
 
 namespace {
 
@@ -114,15 +115,6 @@ void Configuration::on_cmbAudioHost_currentIndexChanged(int index)
 }
 
 namespace {
-
-void loadValues(PtrIter iter) {}
-
-template <typename Arg1, typename... Args>
-void loadValues(PtrIter iter, Arg1 &arg1, Args &... args)
-{
-  arg1 = static_cast<Arg1>(*iter);
-  loadValues(++iter, args...);
-}
 
 struct TestSubConfig {
   long x;

@@ -93,6 +93,14 @@ struct PtrIter : public std::iterator<Ptr, std::forward_iterator_tag> {
 
 };
 
+inline void loadValues(PtrIter iter) {}
+
+template <typename Arg1, typename... Args>
+inline void loadValues(PtrIter iter, Arg1 &arg1, Args &... args)
+{
+  arg1 = static_cast<Arg1>(*iter);
+  loadValues(++iter, args...);
+}
 
 } // namespace schemeconfig
 
