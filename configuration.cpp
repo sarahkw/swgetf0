@@ -134,7 +134,8 @@ struct Ptr {
 
 #define P(v) Ptr(sc_, v)
 
-  bool is_nil         (pointer p)              { return p == sc_->NIL; } //\n
+  bool is_nil         (pointer p)              { return p == sc_->NIL; }
+
   bool is_string      (pointer p)              { return sc_->vptr->is_string(p); }
   char *string_value  (pointer p)              { return sc_->vptr->string_value(p); }
   bool is_number      (pointer p)              { return sc_->vptr->is_number(p); }
@@ -152,7 +153,8 @@ struct Ptr {
   Ptr vector_elem     (pointer vec, int ielem) { return P(sc_->vptr->vector_elem(vec, ielem)); }
   bool is_pair        (pointer p)              { return sc_->vptr->is_pair(p); }
   Ptr pair_car        (pointer p)              { return P(sc_->vptr->pair_car(p)); }
-  Ptr pair_cdr        (pointer p)              { return P(sc_->vptr->pair_cdr(p)); } //\n
+  Ptr pair_cdr        (pointer p)              { return P(sc_->vptr->pair_cdr(p)); }
+
   bool is_symbol      (pointer p)              { return sc_->vptr->is_symbol(p); }
   char *symname       (pointer p)              { return sc_->vptr->symname(p); }
 
