@@ -25,7 +25,7 @@
 
 #include "schemeconfig.h"
 
-using schemeconfig::Config;
+using schemeconfig::SchemeConfig;
 using schemeconfig::Ptr;
 using schemeconfig::PtrIter;
 using schemeconfig::loadValues;
@@ -173,7 +173,7 @@ void Configuration::on_buttonBox_accepted()
 {
   QString configText = ui->txtConfig->toPlainText();
   QByteArray configTextBa = configText.toUtf8();
-  Config cfg(configTextBa.constData());
+  SchemeConfig cfg(configTextBa.constData());
 
   qDebug() << TestConfig(
       PtrIter(cfg.read_eval("'(1 5 10 20 (7 \"wow\") (100 200 300))")));

@@ -77,7 +77,7 @@ Ptr::operator const char*() { return string_value(); }
 
 
 
-Config::Config(const char *configScript) : sc_(scheme_init_new())
+SchemeConfig::SchemeConfig(const char *configScript) : sc_(scheme_init_new())
 {
   Q_ASSERT(sc_ != nullptr);
 
@@ -94,13 +94,13 @@ Config::Config(const char *configScript) : sc_(scheme_init_new())
   qDebug() << ret.ivalue();
 }
 
-void Config::loadResource(const char *resource)
+void SchemeConfig::loadResource(const char *resource)
 {
   schemeconfig::GetDataFromResource gdfr(resource);
   scheme_load_string(sc_, gdfr.byteArray().data());
 }
 
-Ptr Config::read_eval(const char* script)
+Ptr SchemeConfig::read_eval(const char* script)
 {
   // tinyscheme bug: When executing
   //

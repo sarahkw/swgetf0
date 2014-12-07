@@ -102,8 +102,8 @@ inline void loadValues(PtrIter iter, Arg1 &arg1, Args &... args)
   loadValues(++iter, args...);
 }
 
-struct Config {
-  Config(const char *configScript);
+struct SchemeConfig {
+  SchemeConfig(const char *configScript);
 
   void loadResource(const char *resource);
 
