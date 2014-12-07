@@ -132,6 +132,8 @@ struct Ptr {
 
   Ptr(scheme *sc, pointer p) : sc_(sc), p_(p) {}
 
+#define P(v) Ptr(sc_, v)
+
   bool is_nil         (pointer p)              { return p == sc_->NIL; } //\n
   bool is_string      (pointer p)              { return sc_->vptr->is_string(p); }
   char *string_value  (pointer p)              { return sc_->vptr->string_value(p); }
@@ -147,12 +149,14 @@ struct Ptr {
   bool is_vector      (pointer p)              { return sc_->vptr->is_vector(p); }
   int list_length     (pointer vec)            { return sc_->vptr->list_length(sc_, vec); }
   long vector_length  (pointer vec)            { return sc_->vptr->vector_length(vec); }
-  pointer vector_elem (pointer vec, int ielem) { return sc_->vptr->vector_elem(vec, ielem); }
+  Ptr vector_elem     (pointer vec, int ielem) { return P(sc_->vptr->vector_elem(vec, ielem)); }
   bool is_pair        (pointer p)              { return sc_->vptr->is_pair(p); }
-  pointer pair_car    (pointer p)              { return sc_->vptr->pair_car(p); }
-  pointer pair_cdr    (pointer p)              { return sc_->vptr->pair_cdr(p); } //\n
+  Ptr pair_car        (pointer p)              { return P(sc_->vptr->pair_car(p)); }
+  Ptr pair_cdr        (pointer p)              { return P(sc_->vptr->pair_cdr(p)); } //\n
   bool is_symbol      (pointer p)              { return sc_->vptr->is_symbol(p); }
   char *symname       (pointer p)              { return sc_->vptr->symname(p); }
+
+#undef P
 
 };
 
