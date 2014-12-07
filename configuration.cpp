@@ -127,33 +127,52 @@ void Configuration::on_cmbAudioHost_currentIndexChanged(int index)
 namespace {
 
 struct Config {
-  Config(const char* configScript) {
+  Config(const char *configScript) : sc_(scheme_init_new())
+  {
+    Q_ASSERT(sc_ != nullptr);
 
     GetDataFromResource initScm(":/tinyscheme/init.scm");
     GetDataFromResource configHelperScm(":/tinyscheme/config-helper.scm");
 
-    scheme *sc = scheme_init_new();
-    Q_ASSERT(sc != nullptr);
-
-    scheme_set_input_port_file(sc, stdin);
-    scheme_set_output_port_file(sc, stdout);
+    scheme_set_output_port_file(sc_, stdout);
 
     // init.scm
-    scheme_load_string(sc, initScm.byteArray().data());
+    scheme_load_string(sc_, initScm.byteArray().data());
 
     // config-helper.scm
-    scheme_load_string(sc, configHelperScm.byteArray().data());
+    scheme_load_string(sc_, configHelperScm.byteArray().data());
 
-    scheme_load_string(sc, configScript);
-    if (sc->retcode != 0) qDebug() << "Scheme failed" << __LINE__;
+    read_eval("(begin (display 1337) (newline))");
 
-    scheme_load_string(sc,
+    scheme_load_string(sc_, configScript);
+    if (sc_->retcode != 0) qDebug() << "Scheme failed" << __LINE__;
+
+    pointer cfg = scheme_eval(sc_, mk_symbol(sc_, "config"));
+
+    scheme_load_string(sc_,
                        "(define (get-sample-rate) (cdr (assv ':sample-rate (cdr (assv 'audio-config config)))))");
 
-    pointer ret = scheme_apply0(sc, "get-sample-rate");
+    pointer ret = scheme_apply0(sc_, "get-sample-rate");
 
-    qDebug() << sc->vptr->ivalue(ret);
+    qDebug() << sc_->vptr->ivalue(ret);
   }
+
+  pointer read_eval(const char* script)
+  {
+    // tinyscheme bug: When executing
+    //
+    //   (read (open-input-string script))
+    //
+    // sc_->inport needs to be set, or there will be an error when
+    // read is restoring the previous inport value when returning.
+    scheme_set_input_port_file(sc_, stdin); // TODO stdin?
+
+    pointer fun = scheme_eval(sc_, mk_symbol(sc_, "read-eval"));
+    pointer arg = mk_string(sc_, script);
+    return scheme_call(sc_, fun, _cons(sc_, arg, sc_->NIL, 0));
+  }
+
+  scheme *sc_;
 };
 
 } // namespace anonymous

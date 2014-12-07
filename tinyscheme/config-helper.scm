@@ -25,3 +25,6 @@
 
 (define (rgb r g b)
   (list r g b))
+
+(define (read-eval script)
+  (eval (read (open-input-string script))))
