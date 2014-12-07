@@ -124,34 +124,45 @@ void Configuration::on_cmbAudioHost_currentIndexChanged(int index)
 
 }
 
+namespace {
+
+struct Config {
+  Config(const char* configScript) {
+
+    GetDataFromResource initScm(":/tinyscheme/init.scm");
+    GetDataFromResource configHelperScm(":/tinyscheme/config-helper.scm");
+
+    scheme *sc = scheme_init_new();
+    Q_ASSERT(sc != nullptr);
+
+    scheme_set_input_port_file(sc, stdin);
+    scheme_set_output_port_file(sc, stdout);
+
+    // init.scm
+    scheme_load_string(sc, initScm.byteArray().data());
+
+    // config-helper.scm
+    scheme_load_string(sc, configHelperScm.byteArray().data());
+
+    scheme_load_string(sc, configScript);
+    if (sc->retcode != 0) qDebug() << "Scheme failed" << __LINE__;
+
+    scheme_load_string(sc,
+                       "(define (get-sample-rate) (cdr (assv ':sample-rate (cdr (assv 'audio-config config)))))");
+
+    pointer ret = scheme_apply0(sc, "get-sample-rate");
+
+    qDebug() << sc->vptr->ivalue(ret);
+  }
+};
+
+} // namespace anonymous
+
 void Configuration::on_buttonBox_accepted()
 {
-  GetDataFromResource initScm(":/tinyscheme/init.scm");
-  GetDataFromResource configHelperScm(":/tinyscheme/config-helper.scm");
-
-  scheme* sc = scheme_init_new();
-  Q_ASSERT(sc != nullptr);
-
-  scheme_set_input_port_file(sc, stdin);
-  scheme_set_output_port_file(sc, stdout);
-
-  // init.scm
-  scheme_load_string(sc, initScm.byteArray().data());
-
-  // config-helper.scm
-  scheme_load_string(sc, configHelperScm.byteArray().data());
-
   QString configText = ui->txtConfig->toPlainText();
   QByteArray configTextBa = configText.toUtf8();
-  scheme_load_string(sc, configTextBa.data());
-  if (sc->retcode != 0) qDebug() << "Scheme failed" << __LINE__;
-
-  scheme_load_string(sc, "(define (get-sample-rate) (cdr (assv ':sample-rate (cdr (assv 'audio-config config)))))");
-
-  pointer ret = scheme_apply0(sc, "get-sample-rate");
-
-  qDebug() << ret->_flag;
-  qDebug() << sc->vptr->ivalue(ret);
+  Config cfg(configTextBa.constData());
 
   emit accept();
 }
