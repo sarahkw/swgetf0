@@ -188,11 +188,22 @@ struct PtrIter {
 
 };
 
+void loadValues(PtrIter iter) {}
+
+template <typename Arg1, typename... Args>
+void loadValues(PtrIter iter, Arg1 &arg1, Args &... args)
+{
+  arg1 = static_cast<Arg1>(*iter);
+  loadValues(++iter, args...);
+}
+
 struct TestConfig {
   long a;
   long b;
   long c;
   long d;
+
+  TestConfig(PtrIter sexp) { loadValues(sexp, a, b, c, d); }
 };
 
 QDebug operator<<(QDebug dbg, const TestConfig &tc)
@@ -201,15 +212,6 @@ QDebug operator<<(QDebug dbg, const TestConfig &tc)
                 << tc.d << ")";
 
   return dbg.space();
-}
-
-void loadValues(PtrIter iter) {}
-
-template <typename Arg1, typename... Args>
-void loadValues(PtrIter iter, Arg1 &arg1, Args &... args)
-{
-  arg1 = static_cast<Arg1>(*iter);
-  loadValues(++iter, args...);
 }
 
 struct Config {
@@ -222,10 +224,7 @@ struct Config {
     loadResource(":/tinyscheme/init.scm");
     loadResource(":/tinyscheme/config-helper.scm");
 
-    Ptr lst = read_eval("(list 1 5 10 20)");
-    TestConfig testcfg;
-    loadValues(PtrIter(lst), testcfg.a, testcfg.b, testcfg.c, testcfg.d);
-    qDebug() << testcfg;
+    qDebug() << TestConfig(PtrIter(read_eval("(list 1 5 10 20)")));
 
     scheme_load_string(sc_, configScript);
     if (sc_->retcode != 0) qDebug() << "Scheme failed" << __LINE__;
