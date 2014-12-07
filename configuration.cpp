@@ -152,8 +152,8 @@ struct Ptr {
   long vector_length  (pointer vec)            { return sc_->vptr->vector_length(vec); }
   Ptr vector_elem     (pointer vec, int ielem) { return P(sc_->vptr->vector_elem(vec, ielem)); }
   bool is_pair        (pointer p)              { return sc_->vptr->is_pair(p); }
-  Ptr pair_car        (pointer p)              { return P(sc_->vptr->pair_car(p)); }
-  Ptr pair_cdr        (pointer p)              { return P(sc_->vptr->pair_cdr(p)); }
+  Ptr car             (pointer p)              { return P(sc_->vptr->pair_car(p)); }
+  Ptr cdr             (pointer p)              { return P(sc_->vptr->pair_cdr(p)); }
 
   bool is_symbol      (pointer p)              { return sc_->vptr->is_symbol(p); }
   char *symname       (pointer p)              { return sc_->vptr->symname(p); }
