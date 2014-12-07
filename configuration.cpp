@@ -179,8 +179,8 @@ struct Config {
     scheme_load_string(sc_, configScript);
     if (sc_->retcode != 0) qDebug() << "Scheme failed" << __LINE__;
 
-    pointer ret = read_eval("(cdr (assv ':sample-rate (cdr (assv 'audio-config config))))");
-    qDebug() << sc_->vptr->ivalue(ret);
+    Ptr ret = read_eval("(cdr (assv ':sample-rate (cdr (assv 'audio-config config))))");
+    qDebug() << ret.ivalue();
   }
 
   void loadResource(const char *resource)
@@ -189,7 +189,7 @@ struct Config {
     scheme_load_string(sc_, gdfr.byteArray().data());
   }
 
-  pointer read_eval(const char* script)
+  Ptr read_eval(const char* script)
   {
     // tinyscheme bug: When executing
     //
@@ -201,7 +201,7 @@ struct Config {
 
     pointer fun = scheme_eval(sc_, mk_symbol(sc_, "read-eval"));
     pointer arg = mk_string(sc_, script);
-    return scheme_call(sc_, fun, _cons(sc_, arg, sc_->NIL, 0));
+    return Ptr(sc_, scheme_call(sc_, fun, _cons(sc_, arg, sc_->NIL, 0)));
   }
 
   scheme *sc_;
