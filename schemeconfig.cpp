@@ -19,3 +19,18 @@
 #include "tinyscheme/scheme-private.h"
 #include "tinyscheme/scheme.h"
 
+using namespace schemeconfig;
+
+GetDataFromResource::GetDataFromResource(const char* file)
+{
+  QResource resource(file);
+  Q_ASSERT(resource.isValid());
+  if (resource.isCompressed())
+    m_byteArray = qUncompress(resource.data(), resource.size());
+  else
+    m_byteArray = QByteArray(reinterpret_cast<const char*>(resource.data()),
+                             resource.size());
+}
+
+const QByteArray& GetDataFromResource::byteArray() const { return m_byteArray; }
+

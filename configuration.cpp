@@ -18,7 +18,6 @@
 #include "ui_configuration.h"
 
 #include <QDebug>
-#include <QResource>
 
 #include <portaudiocpp/System.hxx>
 #include <portaudiocpp/SystemHostApiIterator.hxx>
@@ -64,23 +63,6 @@ static void insertWithDefault(QComboBox *comboBox, IndexMapType &map,
 
 }
 
-struct GetDataFromResource {
-
-  GetDataFromResource(const char *file)
-  {
-    QResource resource(file);
-    Q_ASSERT(resource.isValid());
-    if (resource.isCompressed())
-      m_byteArray = qUncompress(resource.data(), resource.size());
-    else
-      m_byteArray = QByteArray(reinterpret_cast<const char*>(resource.data()), resource.size());
-  }
-
-  const QByteArray& byteArray() const { return m_byteArray; }
-
-  QByteArray m_byteArray;
-};
-
 } // namespace anonymous
 
 Configuration::Configuration(QWidget *parent) :
@@ -89,7 +71,9 @@ Configuration::Configuration(QWidget *parent) :
 {
   ui->setupUi(this);
 
-  GetDataFromResource defaultConfigScm(":/tinyscheme/default-config.scm");
+  schemeconfig::GetDataFromResource defaultConfigScm(
+      ":/tinyscheme/default-config.scm");
+
   ui->txtConfig->setPlainText(
       QString::fromUtf8(defaultConfigScm.byteArray().data(),
                         defaultConfigScm.byteArray().size()));
@@ -275,7 +259,7 @@ struct Config {
 
   void loadResource(const char *resource)
   {
-    GetDataFromResource gdfr(resource);
+    schemeconfig::GetDataFromResource gdfr(resource);
     scheme_load_string(sc_, gdfr.byteArray().data());
   }
 

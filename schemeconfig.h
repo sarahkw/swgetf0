@@ -17,9 +17,18 @@
 #ifndef INCLUDED_SCHEMECONFIG_H
 #define INCLUDED_SCHEMECONFIG_H
 
+#include <QResource>
+
 namespace schemeconfig {
 
+struct GetDataFromResource {
 
+  GetDataFromResource(const char *file);
+
+  const QByteArray& byteArray() const;
+
+  QByteArray m_byteArray;
+};
 
 } // namespace schemeconfig
 
