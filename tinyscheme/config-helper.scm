@@ -19,8 +19,8 @@
 
 (defmacro audio-config)
 (defmacro ui-config)
+(defmacro ui-marker-lines)
 (defmacro esps-config)
 
-(macro (ui-marker-lines form))
-
-(define (rgb r g b))
+(define (rgb r g b)
+  (list r g b))
