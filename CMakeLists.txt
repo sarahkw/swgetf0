@@ -34,6 +34,7 @@ add_executable(swgetf0
   CircularBuffer.cpp
   about.cpp
   configuration.cpp
+  schemeconfig.cpp
   ${QTFILES_UI} ${QTFILES_CPP}
   ${QTFILES_RCC})
 qt5_use_modules(swgetf0 Widgets OpenGL)

@@ -27,6 +27,8 @@
 #include "tinyscheme/scheme-private.h"
 #include "tinyscheme/scheme.h"
 
+#include "schemeconfig.h"
+
 namespace {
 
 template <class IndexMapType, class ItemIter, class ItemType, class Callable1,
