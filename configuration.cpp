@@ -28,6 +28,8 @@
 
 #include "schemeconfig.h"
 
+using schemeconfig::Ptr;
+
 namespace {
 
 template <class IndexMapType, class ItemIter, class ItemType, class Callable1,
@@ -112,47 +114,6 @@ void Configuration::on_cmbAudioHost_currentIndexChanged(int index)
 
 namespace {
 
-struct Ptr {
-  scheme *sc_;
-  pointer p_;
-
-  Ptr(scheme *sc, pointer p) : sc_(sc), p_(p) {}
-
-#define P(v) Ptr(sc_, v)
-
-  Ptr nil           ()          { return P(sc_->NIL); }
-
-  bool is_nil       ()          { return p_ == sc_->NIL; }
-
-  bool is_string    ()          { return sc_->vptr->is_string(p_); }
-  char *string_value()          { return sc_->vptr->string_value(p_); }
-  bool is_number    ()          { return sc_->vptr->is_number(p_); }
-  num nvalue        ()          { return sc_->vptr->nvalue(p_); }
-  long ivalue       ()          { return sc_->vptr->ivalue(p_); }
-  double rvalue     ()          { return sc_->vptr->rvalue(p_); }
-  bool is_integer   ()          { return sc_->vptr->is_integer(p_); }
-  bool is_real      ()          { return sc_->vptr->is_real(p_); }
-  bool is_character ()          { return sc_->vptr->is_character(p_); }
-  long charvalue    ()          { return sc_->vptr->charvalue(p_); }
-  bool is_list      ()          { return sc_->vptr->is_list(sc_, p_); }
-  bool is_vector    ()          { return sc_->vptr->is_vector(p_); }
-  int list_length   ()          { return sc_->vptr->list_length(sc_, p_); }
-  long vector_length()          { return sc_->vptr->vector_length(p_); }
-  Ptr vector_elem   (int ielem) { return P(sc_->vptr->vector_elem(p_, ielem)); }
-  bool is_pair      ()          { return sc_->vptr->is_pair(p_); }
-  Ptr car           ()          { return P(sc_->vptr->pair_car(p_)); }
-  Ptr cdr           ()          { return P(sc_->vptr->pair_cdr(p_)); }
-
-  bool is_symbol    ()          { return sc_->vptr->is_symbol(p_); }
-  char *symname     ()          { return sc_->vptr->symname(p_); }
-
-#undef P
-
-  operator long() { return ivalue(); }
-  operator double() { return rvalue(); }
-  operator const char*() { return string_value(); }
-
-};
 
 struct PtrIter : public std::iterator<Ptr, std::forward_iterator_tag> {
 

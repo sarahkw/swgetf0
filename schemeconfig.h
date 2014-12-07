@@ -19,6 +19,12 @@
 
 #include <QResource>
 
+// forward declare
+struct scheme;
+struct cell;
+typedef struct scheme scheme;
+typedef struct cell *pointer;
+
 namespace schemeconfig {
 
 struct GetDataFromResource {
@@ -29,6 +35,43 @@ struct GetDataFromResource {
 
   QByteArray m_byteArray;
 };
+
+struct Ptr {
+  scheme *sc_;
+  pointer p_;
+
+  Ptr(scheme *sc, pointer p);
+
+  Ptr nil();
+
+  bool is_nil();
+
+  bool is_string();
+  char *string_value();
+  bool is_number();
+  long ivalue();
+  double rvalue();
+  bool is_integer();
+  bool is_real();
+  bool is_character();
+  long charvalue();
+  bool is_list();
+  bool is_vector();
+  int list_length();
+  long vector_length();
+  Ptr vector_elem(int ielem);
+  bool is_pair();
+  Ptr car();
+  Ptr cdr();
+
+  bool is_symbol();
+  char *symname();
+
+  operator long();
+  operator double();
+  operator const char *();
+};
+
 
 } // namespace schemeconfig
 
