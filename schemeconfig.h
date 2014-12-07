@@ -102,6 +102,16 @@ inline void loadValues(PtrIter iter, Arg1 &arg1, Args &... args)
   loadValues(++iter, args...);
 }
 
+struct Config {
+  Config(const char *configScript);
+
+  void loadResource(const char *resource);
+
+  Ptr read_eval(const char* script);
+
+  scheme *sc_;
+};
+
 } // namespace schemeconfig
 
 #endif
