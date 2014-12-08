@@ -35,6 +35,7 @@ add_executable(swgetf0
   about.cpp
   configuration.cpp
   schemeconfig.cpp
+  config.cpp
   ${QTFILES_UI} ${QTFILES_CPP}
   ${QTFILES_RCC})
 qt5_use_modules(swgetf0 Widgets OpenGL)
