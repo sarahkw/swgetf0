@@ -24,11 +24,7 @@
 #include <portaudiocpp/SystemDeviceIterator.hxx>
 
 #include "schemeconfig.h"
-
-using schemeconfig::SchemeConfig;
-using schemeconfig::Ptr;
-using schemeconfig::PtrIter;
-using schemeconfig::loadValues;
+#include "config.h"
 
 namespace {
 
@@ -116,7 +112,28 @@ void Configuration::on_buttonBox_accepted()
 {
   QString configText = ui->txtConfig->toPlainText();
   QByteArray configTextBa = configText.toUtf8();
-  SchemeConfig cfg(configTextBa.constData());
+  schemeconfig::SchemeConfig scfg(configTextBa.constData());
+
+  auto p = scfg.read_eval(
+       "(let* ((get-key (lambda (key alist) (cdr (assv key alist))))           \n"
+       "       (get-items (lambda (keys alist)                                 \n"
+       "                    (let ((getter (lambda (key) (get-key key alist)))) \n"
+       "                      (map getter keys)))))                            \n"
+       "  (list                                                                \n"
+       "   (get-items '(:sample-rate)                                          \n"
+       "              (get-key 'audio-config config))                          \n"
+       "   (get-items '(:width :height :note-width :min-note :max-note)        \n"
+       "              (get-key 'ui-config config))                             \n"
+       "   (get-key 'ui-marker-lines config)                                   \n"
+       "   (get-items '(:cand-thresh :lag-weight :freq-weight :trans-cost      \n"
+       "                             :trans-amp :trans-spec :voice-bias        \n"
+       "                             :double-cost :min-f0 :max-f0 :frame-step  \n"
+       "                             :wind-dur :n-cands)                       \n"
+       "              (get-key 'esps-config config))))                         \n");
+
+  config::Config cfg(p);
+
+  qDebug() << cfg.espsConfig.min_f0;
 
   emit accept();
 }
