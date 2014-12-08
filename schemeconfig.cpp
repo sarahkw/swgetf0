@@ -89,9 +89,6 @@ SchemeConfig::SchemeConfig(const char *configScript) : sc_(scheme_init_new())
   scheme_load_string(sc_, configScript);
   if (sc_->retcode != 0) qDebug() << "Scheme failed" << __LINE__;
 
-  Ptr ret =
-      read_eval("(cdr (assv ':sample-rate (cdr (assv 'audio-config config))))");
-  qDebug() << ret.ivalue();
 }
 
 void SchemeConfig::loadResource(const char *resource)

@@ -92,6 +92,12 @@ PaDeviceIndex Configuration::getDeviceIndex() const
   return m_indexToDeviceIndex[index];
 }
 
+config::Config Configuration::getConfig() const
+{
+  return m_config;
+}
+
+
 void Configuration::on_cmbAudioHost_currentIndexChanged(int index)
 {
   if (index == -1)
@@ -131,9 +137,7 @@ void Configuration::on_buttonBox_accepted()
        "                             :wind-dur :n-cands)                       \n"
        "              (get-key 'esps-config config))))                         \n");
 
-  config::Config cfg(p);
-
-  qDebug() << cfg.espsConfig.min_f0;
+  m_config = config::Config(p);
 
   emit accept();
 }

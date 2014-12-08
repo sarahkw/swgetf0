@@ -23,6 +23,7 @@
 
 #include "mainwindow.h"
 #include "configuration.h"
+#include "config.h"
 #include "GetF0/get_f0_stream.h"
 
 
@@ -50,12 +51,17 @@ int main(int argc, char* argv[])
   }
 
   PaDeviceIndex paDeviceIndex = inputDevice->getDeviceIndex();
+  config::Config config = inputDevice->getConfig();
   delete inputDevice;
 
   class Foo : public GetF0::GetF0Stream {
   public:
 
-    Foo(portaudio::BlockingStream *s) : GetF0Stream(44100), s(s) { s->start(); }
+    Foo(portaudio::BlockingStream* s, double sampleFrequency)
+        : GetF0Stream(sampleFrequency), s(s)
+    {
+      s->start();
+    }
 
     void setViewer(MainWindow* viewer) { m_viewer = viewer; }
 
@@ -92,13 +98,13 @@ int main(int argc, char* argv[])
         device, 1, portaudio::INT16, true, device.defaultLowInputLatency(),
         NULL);
     portaudio::StreamParameters sp(
-        isp, portaudio::DirectionSpecificStreamParameters::null(), 44100,
-        paFramesPerBufferUnspecified, paNoFlag);
+        isp, portaudio::DirectionSpecificStreamParameters::null(),
+        config.audioConfig.sample_rate, paFramesPerBufferUnspecified, paNoFlag);
 
     Q_ASSERT(sp.isSupported());
 
-    f0 = new Foo(new portaudio::BlockingStream(sp));
-
+    f0 = new Foo(new portaudio::BlockingStream(sp),
+                 config.audioConfig.sample_rate);
   }
 
   f0->init();

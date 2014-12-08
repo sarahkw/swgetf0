@@ -23,6 +23,8 @@
 #include <portaudiocpp/Device.hxx>
 #include <portaudiocpp/HostApi.hxx>
 
+#include "config.h"
+
 namespace Ui {
 class Configuration;
 }
@@ -37,6 +39,8 @@ public:
 
   PaDeviceIndex getDeviceIndex() const;
 
+  config::Config getConfig() const;
+
 public slots:
 
   void on_cmbAudioHost_currentIndexChanged(int index);
@@ -48,6 +52,8 @@ private:
 
   QMap<int, PaHostApiTypeId> m_indexToHostApiTypeId;
   QMap<int, PaDeviceIndex> m_indexToDeviceIndex;
+
+  config::Config m_config;
 };
 
 #endif // CONFIGURATION_H
