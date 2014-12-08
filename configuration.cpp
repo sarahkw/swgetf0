@@ -112,71 +112,11 @@ void Configuration::on_cmbAudioHost_currentIndexChanged(int index)
 
 }
 
-namespace {
-
-struct TestSubConfig {
-  long x;
-  QString y;
-
-  TestSubConfig() {}
-
-  TestSubConfig(PtrIter sexp) { loadValues(sexp, x, y); }
-};
-
-struct TestList {
-
-  QList<long> lst;
-
-  TestList() { }
-
-  TestList(PtrIter sexp) {
-    std::copy(sexp, sexp.end(), std::back_inserter(lst));
-  }
-};
-
-struct TestConfig {
-  long a;
-  long b;
-  long c;
-  long d;
-  TestSubConfig tsc;
-  TestList tl;
-
-  TestConfig(PtrIter sexp) { loadValues(sexp, a, b, c, d, tsc, tl); }
-};
-
-QDebug operator<<(QDebug dbg, const TestSubConfig &tsc)
-{
-  dbg.nospace() << "(TestSubConfig " << tsc.x << " " << tsc.y << ")";
-
-  return dbg.space();
-}
-
-QDebug operator<<(QDebug dbg, const TestList &tl)
-{
-  dbg.nospace() << "(TestList " << tl.lst << ")";
-
-  return dbg.space();
-}
-
-QDebug operator<<(QDebug dbg, const TestConfig &tc)
-{
-  dbg.nospace() << "(TestConfig " << tc.a << " " << tc.b << " " << tc.c << " "
-                << tc.d << " " << tc.tsc << " " << tc.tl << ")";
-
-  return dbg.space();
-}
-
-} // namespace anonymous
-
 void Configuration::on_buttonBox_accepted()
 {
   QString configText = ui->txtConfig->toPlainText();
   QByteArray configTextBa = configText.toUtf8();
   SchemeConfig cfg(configTextBa.constData());
-
-  qDebug() << TestConfig(
-      PtrIter(cfg.read_eval("'(1 5 10 20 (7 \"wow\") (100 200 300))")));
 
   emit accept();
 }
