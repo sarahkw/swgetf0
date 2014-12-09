@@ -21,11 +21,6 @@
 
 #include "config.h"
 
-namespace {
-const float MINNOTE = 100;
-const float MAXNOTE = 400;
-}
-
 ViewerWidget::ViewerWidget(QWidget* parent)
     : QGLWidget(parent),
       m_timer(new QTimer(this)),
@@ -52,17 +47,21 @@ void ViewerWidget::renderNow() {
   const QPen penWhite(QColor(255, 255, 255));
   const QBrush brushWhite(QColor(255, 255, 255));
 
+  const auto& uiConfig = m_parent->config().uiConfig;
 
-  int m_width = 1024;
-  int m_height = 800;
+  int m_width = uiConfig.width;
+  int m_height = uiConfig.height;
 
   std::lock_guard<std::mutex> lockGuard(m_parent->mutex());
 
-  auto noteToPos = [this, m_height](double note) {
-    return m_height - (note - MINNOTE) * (m_height / (MAXNOTE - MINNOTE));
+  auto noteToPos = [this, uiConfig, m_height](double note) {
+    return m_height -
+           (note - uiConfig.min_note) *
+               (static_cast<double>(m_height) /
+                (uiConfig.max_note - uiConfig.min_note));
   };
 
-  const double noteWidth = 2;
+  const double noteWidth = uiConfig.note_width;
 
 
   double position = 0;
@@ -103,8 +102,8 @@ void ViewerWidget::paintEvent(QPaintEvent* event) {
   renderNow();
 }
 
-MainWindow::MainWindow(std::size_t bufferCapacity, const config::Config& config)
-    : m_cb(bufferCapacity), m_config(config)
+MainWindow::MainWindow(const config::Config& config)
+    : m_cb(config.uiConfig.width / config.uiConfig.note_width), m_config(config)
 {
   m_ui.setupUi(this);
 

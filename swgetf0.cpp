@@ -109,9 +109,7 @@ int main(int argc, char* argv[])
 
   f0->init();
 
-  enum { SECONDS = 5 };
-
-  MainWindow mainWindow(f0->pitchFrameRate() * SECONDS, config);
+  MainWindow mainWindow(config);
   mainWindow.show();
 
   f0->setViewer(&mainWindow);

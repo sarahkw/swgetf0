@@ -59,7 +59,7 @@ class MainWindow : public QMainWindow {
 
 public:
 
-  MainWindow(std::size_t bufferCapacity, const config::Config& config);
+  MainWindow(const config::Config& config);
 
   CircularBuffer<float>& cb() { return m_cb; }
 
