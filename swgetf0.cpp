@@ -73,7 +73,7 @@ int main(int argc, char* argv[])
       auto& cb = m_viewer->cb();
 
       for (int i = vecsize - 1; i >= 0; --i) {
-        cb.push_back({f0p[i], rms_speech[i]});
+        cb.push_back(f0p[i]);
       }
     }
 

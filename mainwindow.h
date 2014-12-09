@@ -59,14 +59,9 @@ class MainWindow : public QMainWindow {
 
 public:
 
-  struct Point {
-    float f0;
-    float rms;
-  };
-
   MainWindow(std::size_t bufferCapacity, const config::Config& config);
 
-  CircularBuffer<Point>& cb() { return m_cb; }
+  CircularBuffer<float>& cb() { return m_cb; }
 
   std::mutex& mutex() { return m_mutex; }
 
@@ -81,7 +76,7 @@ private:
   Ui::MainWindow m_ui;
 
   std::mutex m_mutex;
-  CircularBuffer<Point> m_cb;
+  CircularBuffer<float> m_cb;
 
   const config::Config& m_config;
 };

@@ -66,10 +66,10 @@ void ViewerWidget::renderNow() {
 
 
   double position = 0;
-  for (auto note : m_parent->cb()) {
-    if (note.f0 != 0) {  // TODO float compare
+  for (auto f0 : m_parent->cb()) {
+    if (f0 != 0) {
 
-      double ypos = noteToPos(note.f0);
+      double ypos = noteToPos(f0);
 
       painter.setPen(penWhite);
       painter.setBrush(brushWhite);
