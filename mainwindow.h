@@ -50,6 +50,10 @@ private:
 
 };
 
+namespace config {
+struct Config;
+}
+
 class MainWindow : public QMainWindow {
   Q_OBJECT
 
@@ -60,11 +64,13 @@ public:
     float rms;
   };
 
-  MainWindow(std::size_t bufferCapacity);
+  MainWindow(std::size_t bufferCapacity, const config::Config& config);
 
   CircularBuffer<Point>& cb() { return m_cb; }
 
   std::mutex& mutex() { return m_mutex; }
+
+  const config::Config& config() const { return m_config; }
 
 private slots:
 
@@ -77,4 +83,5 @@ private:
   std::mutex m_mutex;
   CircularBuffer<Point> m_cb;
 
+  const config::Config& m_config;
 };

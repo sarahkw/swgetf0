@@ -111,7 +111,7 @@ int main(int argc, char* argv[])
 
   enum { SECONDS = 5 };
 
-  MainWindow mainWindow(f0->pitchFrameRate() * SECONDS);
+  MainWindow mainWindow(f0->pitchFrameRate() * SECONDS, config);
   mainWindow.show();
 
   f0->setViewer(&mainWindow);

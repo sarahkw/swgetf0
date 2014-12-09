@@ -19,6 +19,8 @@
 
 #include <QPainter>
 
+#include "config.h"
+
 namespace {
 const float MINNOTE = 100;
 const float MAXNOTE = 400;
@@ -78,63 +80,9 @@ void ViewerWidget::renderNow() {
     position += noteWidth;
   }
 
-  const QPen penNormal(QColor(100, 0, 0));
-  const QPen penSub(QColor(50, 0, 0)); // not much attention
-  const QPen penTarget(QColor(255, 0, 0));
-
-  // G3
-  {
-    double ypos = noteToPos(196);
-    painter.setPen(penNormal);
-    painter.drawLine(0, ypos, m_width, ypos);
-  }
-
-  // A3
-  {
-    double ypos = noteToPos(220);
-    painter.setPen(penTarget);
-    painter.drawLine(0, ypos, m_width, ypos);
-  }
-
-  // A#3
-  {
-    double ypos = noteToPos(233);
-    painter.setPen(penSub);
-    painter.drawLine(0, ypos, m_width, ypos);
-  }
-
-  // B3
-  {
-    double ypos = noteToPos(247);
-    painter.setPen(penNormal);
-    painter.drawLine(0, ypos, m_width, ypos);
-  }
-
-  // C4 - wow!
-  {
-    double ypos = noteToPos(262);
-    painter.setPen(penNormal);
-    painter.drawLine(0, ypos, m_width, ypos);
-  }
-
-  // D4
-  {
-    double ypos = noteToPos(294);
-    painter.setPen(penNormal);
-    painter.drawLine(0, ypos, m_width, ypos);
-  }
-
-  // E4
-  {
-    double ypos = noteToPos(330);
-    painter.setPen(penNormal);
-    painter.drawLine(0, ypos, m_width, ypos);
-  }
-
-  // C3
-  {
-    double ypos = noteToPos(131);
-    painter.setPen(penNormal);
+  for (const auto& line : m_parent->config().uiMarkerLines.lines) {
+    double ypos = noteToPos(line.frequency);
+    painter.setPen(line.pen);
     painter.drawLine(0, ypos, m_width, ypos);
   }
 }
@@ -155,7 +103,8 @@ void ViewerWidget::paintEvent(QPaintEvent* event) {
   renderNow();
 }
 
-MainWindow::MainWindow(std::size_t bufferCapacity) : m_cb(bufferCapacity)
+MainWindow::MainWindow(std::size_t bufferCapacity, const config::Config& config)
+    : m_cb(bufferCapacity), m_config(config)
 {
   m_ui.setupUi(this);
 

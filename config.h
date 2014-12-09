@@ -1,7 +1,7 @@
 #ifndef INCLUDED_CONFIG_H
 #define INCLUDED_CONFIG_H
 
-#include <QColor>
+#include <QPen>
 #include <QList>
 
 #include "schemeconfig.h"
@@ -44,11 +44,11 @@ struct UiMarkerLines {
     Line(schemeconfig::Ptr ptr) {
       long r, g, b;
       schemeconfig::loadValues(schemeconfig::PtrIter(ptr), frequency, r, g, b);
-      color = QColor(r, g, b);
+      pen = QPen(QColor(r, g, b));
     }
 
     double frequency;
-    QColor color;
+    QPen pen;
 
   };
 
