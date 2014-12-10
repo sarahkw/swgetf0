@@ -49,15 +49,15 @@ void ViewerWidget::renderNow() {
 
   const auto& uiConfig = m_parent->config().uiConfig;
 
-  int m_width = uiConfig.width;
-  int m_height = uiConfig.height;
+  int width = uiConfig.width;
+  int height = uiConfig.height;
 
   std::lock_guard<std::mutex> lockGuard(m_parent->mutex());
 
-  auto noteToPos = [this, uiConfig, m_height](double note) {
-    return m_height -
+  auto noteToPos = [this, uiConfig, height](double note) {
+    return height -
            (note - uiConfig.min_note) *
-               (static_cast<double>(m_height) /
+               (static_cast<double>(height) /
                 (uiConfig.max_note - uiConfig.min_note));
   };
 
@@ -82,7 +82,7 @@ void ViewerWidget::renderNow() {
   for (const auto& line : m_parent->config().uiMarkerLines.lines) {
     double ypos = noteToPos(line.frequency);
     painter.setPen(line.pen);
-    painter.drawLine(0, ypos, m_width, ypos);
+    painter.drawLine(0, ypos, width, ypos);
   }
 }
 
