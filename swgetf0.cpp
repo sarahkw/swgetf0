@@ -25,6 +25,7 @@
 #include "configuration.h"
 #include "config.h"
 #include "GetF0/get_f0_stream.h"
+#include "configuregetf0.h"
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -106,6 +107,8 @@ int main(int argc, char* argv[])
     f0 = new Foo(new portaudio::BlockingStream(sp),
                  config.audioConfig.sample_rate);
   }
+
+  ConfigureGetF0(*f0, config.espsConfig);
 
   f0->init();
 
