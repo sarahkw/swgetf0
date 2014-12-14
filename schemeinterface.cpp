@@ -100,7 +100,7 @@ SchemeInterface::SchemeInterface() : sc_(scheme_init_new())
   loadResource(":/tinyscheme/init.scm");
   loadResource(":/scheme/schemeinterface.scm");
 
-  scheme_registerable foreignFuncs[] = {{ff_report_error, "report-error"}};
+  scheme_registerable foreignFuncs[] = {{ff_report_error, "si/report-error"}};
   scheme_register_foreign_func_list(
       sc_, foreignFuncs, sizeof(foreignFuncs) / sizeof(*foreignFuncs));
 }
@@ -121,7 +121,7 @@ Ptr SchemeInterface::read_eval(const char* script)
   // read is restoring the previous inport value when returning.
   scheme_set_input_port_file(sc_, stdin); // TODO stdin?
 
-  pointer fun = eval(mk_symbol(sc_, "read-eval"));
+  pointer fun = eval(mk_symbol(sc_, "si/read-eval"));
   pointer arg = mk_string(sc_, script);
   Ptr ret = call(fun, _cons(sc_, arg, sc_->NIL, 0));
 

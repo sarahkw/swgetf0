@@ -1,4 +1,4 @@
 ;; Functions needed for schemeinterface
 
-(define (read-eval script)
+(define (si/read-eval script)
   (eval (read (open-input-string script))))
