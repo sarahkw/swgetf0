@@ -69,7 +69,7 @@ Configuration::Configuration(QWidget *parent) :
   ui->setupUi(this);
 
   schemeinterface::GetDataFromResource defaultConfigScm(
-      ":/tinyscheme/default-config.scm");
+      ":/scheme/default-config.scm");
 
   ui->txtConfig->setPlainText(
       QString::fromUtf8(defaultConfigScm.byteArray().data(),

@@ -1,7 +1,7 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
     <file>tinyscheme/init.scm</file>
-    <file>tinyscheme/default-config.scm</file>
+    <file>scheme/default-config.scm</file>
     <file>scheme/schemeinterface.scm</file>
     <file>scheme/config.scm</file>
 </qresource>
