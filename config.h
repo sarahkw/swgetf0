@@ -90,11 +90,9 @@ struct EspsConfig {
 
 struct Config {
 
-  Config() { }
-  Config(schemeinterface::PtrIter sexp) {
-    schemeinterface::loadValues(sexp, audioConfig, uiConfig, uiMarkerLines,
-                                espsConfig);
-  }
+  Config() {}
+
+  Config(const char* configData);
 
   AudioConfig audioConfig;
   UiConfig uiConfig;
