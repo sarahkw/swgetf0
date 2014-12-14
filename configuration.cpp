@@ -23,7 +23,7 @@
 #include <portaudiocpp/SystemHostApiIterator.hxx>
 #include <portaudiocpp/SystemDeviceIterator.hxx>
 
-#include "schemeconfig.h"
+#include "schemeinterface.h"
 #include "config.h"
 
 namespace {
@@ -69,7 +69,7 @@ Configuration::Configuration(QWidget *parent) :
 {
   ui->setupUi(this);
 
-  schemeconfig::GetDataFromResource defaultConfigScm(
+  schemeinterface::GetDataFromResource defaultConfigScm(
       ":/tinyscheme/default-config.scm");
 
   ui->txtConfig->setPlainText(
@@ -118,7 +118,7 @@ void Configuration::on_buttonBox_accepted()
 {
   QString configText = ui->txtConfig->toPlainText();
   QByteArray configTextBa = configText.toUtf8();
-  schemeconfig::SchemeConfig scfg(configTextBa.constData());
+  schemeinterface::SchemeInterface scfg(configTextBa.constData());
 
   auto p = scfg.read_eval(
        "(let* ((get-key (lambda (key alist) (cdr (assv key alist))))           \n"

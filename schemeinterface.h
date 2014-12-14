@@ -14,8 +14,8 @@
   limitations under the License.
 */
 
-#ifndef INCLUDED_SCHEMECONFIG_H
-#define INCLUDED_SCHEMECONFIG_H
+#ifndef INCLUDED_SCHEMEINTERFACE_H
+#define INCLUDED_SCHEMEINTERFACE_H
 
 #include <QString>
 #include <QResource>
@@ -26,7 +26,7 @@ struct cell;
 typedef struct scheme scheme;
 typedef struct cell *pointer;
 
-namespace schemeconfig {
+namespace schemeinterface {
 
 class SchemeException {
 public:
@@ -126,8 +126,8 @@ inline void loadValues(PtrIter iter, Arg1 &arg1, Args &... args)
   loadValues(++iter, args...);
 }
 
-struct SchemeConfig {
-  SchemeConfig(const char *configScript);
+struct SchemeInterface {
+  SchemeInterface(const char *configScript);
 
   void loadResource(const char *resource);
 
@@ -145,6 +145,6 @@ struct SchemeConfig {
   scheme *sc_;
 };
 
-} // namespace schemeconfig
+} // namespace schemeinterface
 
 #endif

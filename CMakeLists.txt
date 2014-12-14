@@ -34,7 +34,7 @@ add_executable(swgetf0
   CircularBuffer.cpp
   about.cpp
   configuration.cpp
-  schemeconfig.cpp
+  schemeinterface.cpp
   config.cpp
   configuregetf0.cpp
   ${QTFILES_UI} ${QTFILES_CPP}

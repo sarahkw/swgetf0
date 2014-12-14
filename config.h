@@ -4,15 +4,15 @@
 #include <QPen>
 #include <QList>
 
-#include "schemeconfig.h"
+#include "schemeinterface.h"
 
 namespace config {
 
 struct AudioConfig {
 
   AudioConfig() {}
-  AudioConfig(schemeconfig::PtrIter sexp) {
-    schemeconfig::loadValues(sexp, sample_rate);
+  AudioConfig(schemeinterface::PtrIter sexp) {
+    schemeinterface::loadValues(sexp, sample_rate);
   }
 
   long sample_rate;
@@ -22,9 +22,9 @@ struct AudioConfig {
 struct UiConfig {
 
   UiConfig() {}
-  UiConfig(schemeconfig::PtrIter sexp) {
-    schemeconfig::loadValues(sexp, width, height, note_width, min_note,
-                             max_note);
+  UiConfig(schemeinterface::PtrIter sexp) {
+    schemeinterface::loadValues(sexp, width, height, note_width, min_note,
+                                max_note);
   }
 
   long width;
@@ -41,9 +41,10 @@ struct UiMarkerLines {
 
     Line() {}
 
-    Line(schemeconfig::Ptr ptr) {
+    Line(schemeinterface::Ptr ptr) {
       long r, g, b;
-      schemeconfig::loadValues(schemeconfig::PtrIter(ptr), frequency, r, g, b);
+      schemeinterface::loadValues(schemeinterface::PtrIter(ptr), frequency, r,
+                                  g, b);
       pen = QPen(QColor(r, g, b));
     }
 
@@ -55,7 +56,7 @@ struct UiMarkerLines {
   QList<Line> lines;
 
   UiMarkerLines() {}
-  UiMarkerLines(schemeconfig::PtrIter sexp) {
+  UiMarkerLines(schemeinterface::PtrIter sexp) {
     std::copy(sexp, sexp.end(), std::back_inserter(lines));
   }
 
@@ -64,11 +65,11 @@ struct UiMarkerLines {
 struct EspsConfig {
 
   EspsConfig() {}
-  EspsConfig(schemeconfig::PtrIter sexp) {
-    schemeconfig::loadValues(sexp, cand_thresh, lag_weight, freq_weight,
-                             trans_cost, trans_amp, trans_spec, voice_bias,
-                             double_cost, min_f0, max_f0, frame_step, wind_dur,
-                             n_cands);
+  EspsConfig(schemeinterface::PtrIter sexp) {
+    schemeinterface::loadValues(sexp, cand_thresh, lag_weight, freq_weight,
+                                trans_cost, trans_amp, trans_spec, voice_bias,
+                                double_cost, min_f0, max_f0, frame_step,
+                                wind_dur, n_cands);
   }
 
   double cand_thresh;
@@ -90,8 +91,9 @@ struct EspsConfig {
 struct Config {
 
   Config() { }
-  Config(schemeconfig::PtrIter sexp) {
-    schemeconfig::loadValues(sexp, audioConfig, uiConfig, uiMarkerLines, espsConfig);
+  Config(schemeinterface::PtrIter sexp) {
+    schemeinterface::loadValues(sexp, audioConfig, uiConfig, uiMarkerLines,
+                                espsConfig);
   }
 
   AudioConfig audioConfig;

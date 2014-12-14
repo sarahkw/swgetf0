@@ -14,14 +14,14 @@
   limitations under the License.
 */
 
-#include "schemeconfig.h"
+#include "schemeinterface.h"
 
 #include <QDebug>
 
 #include "tinyscheme/scheme-private.h"
 #include "tinyscheme/scheme.h"
 
-using namespace schemeconfig;
+using namespace schemeinterface;
 
 
 
@@ -32,7 +32,7 @@ GetDataFromResource::GetDataFromResource(const char* file)
   if (resource.isCompressed())
     m_byteArray = qUncompress(resource.data(), resource.size());
   else
-    m_byteArray = QByteArray(reinterpret_cast<const char*>(resource.data()),
+    m_byteArray = QByteArray(reinterpret_cast<const char *>(resource.data()),
                              resource.size());
 }
 
@@ -91,7 +91,8 @@ pointer ff_report_error(scheme * sc, pointer args)
 
 
 
-SchemeConfig::SchemeConfig(const char *configScript) : sc_(scheme_init_new())
+SchemeInterface::SchemeInterface(const char *configScript)
+    : sc_(scheme_init_new())
 {
   Q_ASSERT(sc_ != nullptr);
 
@@ -108,13 +109,13 @@ SchemeConfig::SchemeConfig(const char *configScript) : sc_(scheme_init_new())
   load_string(configScript);
 }
 
-void SchemeConfig::loadResource(const char *resource)
+void SchemeInterface::loadResource(const char *resource)
 {
-  schemeconfig::GetDataFromResource gdfr(resource);
+  GetDataFromResource gdfr(resource);
   load_string(gdfr.byteArray().data());
 }
 
-Ptr SchemeConfig::read_eval(const char* script)
+Ptr SchemeInterface::read_eval(const char* script)
 {
   // tinyscheme bug: When executing
   //
@@ -140,39 +141,39 @@ void check_retcode(scheme *sc)
 }
 }
 
-void SchemeConfig::load_file(FILE *fin)
+void SchemeInterface::load_file(FILE *fin)
 {
   scheme_load_file(sc_, fin);
   check_retcode(sc_);
 }
 
-void SchemeConfig::load_named_file(FILE *fin, const char *filename)
+void SchemeInterface::load_named_file(FILE *fin, const char *filename)
 {
   scheme_load_named_file(sc_, fin, filename);
   check_retcode(sc_);
 }
 
-void SchemeConfig::load_string(const char *cmd)
+void SchemeInterface::load_string(const char *cmd)
 {
   scheme_load_string(sc_, cmd);
   check_retcode(sc_);
 }
 
-Ptr SchemeConfig::apply0(const char *procname)
+Ptr SchemeInterface::apply0(const char *procname)
 {
   pointer ret = scheme_apply0(sc_, procname);
   check_retcode(sc_);
   return Ptr(sc_, ret);
 }
 
-Ptr SchemeConfig::call(pointer func, pointer args)
+Ptr SchemeInterface::call(pointer func, pointer args)
 {
   pointer ret = scheme_call(sc_, func, args);
   check_retcode(sc_);
   return Ptr(sc_, ret);
 }
 
-Ptr SchemeConfig::eval(pointer obj)
+Ptr SchemeInterface::eval(pointer obj)
 {
   pointer ret = scheme_eval(sc_, obj);
   check_retcode(sc_);
