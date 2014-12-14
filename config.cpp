@@ -5,6 +5,7 @@ using namespace config;
 Config::Config(const char* configData)
 {
   schemeinterface::SchemeInterface si;
+  si.loadResource(":/scheme/config.scm");
   si.load_string(configData);
 
   auto p = si.read_eval(
