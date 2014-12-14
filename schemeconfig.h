@@ -17,6 +17,7 @@
 #ifndef INCLUDED_SCHEMECONFIG_H
 #define INCLUDED_SCHEMECONFIG_H
 
+#include <QString>
 #include <QResource>
 
 // forward declare
@@ -26,6 +27,28 @@ typedef struct scheme scheme;
 typedef struct cell *pointer;
 
 namespace schemeconfig {
+
+class SchemeException {
+public:
+  SchemeException(QString arg) : arg_(arg) {}
+
+  QString what() const {
+    return arg_;
+  }
+
+protected:
+
+  QString arg_;
+
+};
+
+class SchemeReturnCodeException : public SchemeException {
+public:
+  SchemeReturnCodeException(int retcode)
+      : SchemeException(QString("Non-zero return code %1").arg(retcode))
+  {
+  }
+};
 
 struct GetDataFromResource {
 

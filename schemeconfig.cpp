@@ -77,6 +77,19 @@ Ptr::operator const char*() { return string_value(); }
 
 
 
+namespace {
+
+pointer ff_report_error(scheme * sc, pointer args)
+{
+  PtrIter argsIter(Ptr(sc, args));
+
+  qDebug() << "Reported error" << (*argsIter).string_value();
+}
+
+} // namespace anonymous
+
+
+
 SchemeConfig::SchemeConfig(const char *configScript) : sc_(scheme_init_new())
 {
   Q_ASSERT(sc_ != nullptr);
@@ -86,9 +99,15 @@ SchemeConfig::SchemeConfig(const char *configScript) : sc_(scheme_init_new())
   loadResource(":/tinyscheme/init.scm");
   loadResource(":/tinyscheme/config-helper.scm");
 
-  scheme_load_string(sc_, configScript);
-  if (sc_->retcode != 0) qDebug() << "Scheme failed" << __LINE__;
+  scheme_registerable foreignFuncs[] = {{ff_report_error, "report-error"}};
+  scheme_register_foreign_func_list(
+      sc_, foreignFuncs, sizeof(foreignFuncs) / sizeof(*foreignFuncs));
 
+
+  scheme_load_string(sc_, configScript);
+  if (sc_->retcode != 0) {
+    throw SchemeReturnCodeException(sc_->retcode);
+  }
 }
 
 void SchemeConfig::loadResource(const char *resource)
@@ -109,5 +128,11 @@ Ptr SchemeConfig::read_eval(const char* script)
 
   pointer fun = scheme_eval(sc_, mk_symbol(sc_, "read-eval"));
   pointer arg = mk_string(sc_, script);
-  return Ptr(sc_, scheme_call(sc_, fun, _cons(sc_, arg, sc_->NIL, 0)));
+  pointer ret = scheme_call(sc_, fun, _cons(sc_, arg, sc_->NIL, 0));
+
+  if (sc_->retcode != 0) {
+    throw SchemeReturnCodeException(sc_->retcode);
+  }
+
+  return Ptr(sc_, ret);
 }
