@@ -71,6 +71,7 @@ char *Ptr::symname     ()          { return sc_->vptr->symname(p_); }
 
 #undef P
 
+Ptr::operator pointer() { return p_; }
 Ptr::operator long() { return ivalue(); }
 Ptr::operator double() { return rvalue(); }
 Ptr::operator const char*() { return string_value(); }
@@ -104,16 +105,13 @@ SchemeConfig::SchemeConfig(const char *configScript) : sc_(scheme_init_new())
       sc_, foreignFuncs, sizeof(foreignFuncs) / sizeof(*foreignFuncs));
 
 
-  scheme_load_string(sc_, configScript);
-  if (sc_->retcode != 0) {
-    throw SchemeReturnCodeException(sc_->retcode);
-  }
+  load_string(configScript);
 }
 
 void SchemeConfig::loadResource(const char *resource)
 {
   schemeconfig::GetDataFromResource gdfr(resource);
-  scheme_load_string(sc_, gdfr.byteArray().data());
+  load_string(gdfr.byteArray().data());
 }
 
 Ptr SchemeConfig::read_eval(const char* script)
@@ -126,13 +124,57 @@ Ptr SchemeConfig::read_eval(const char* script)
   // read is restoring the previous inport value when returning.
   scheme_set_input_port_file(sc_, stdin); // TODO stdin?
 
-  pointer fun = scheme_eval(sc_, mk_symbol(sc_, "read-eval"));
+  pointer fun = eval(mk_symbol(sc_, "read-eval"));
   pointer arg = mk_string(sc_, script);
-  pointer ret = scheme_call(sc_, fun, _cons(sc_, arg, sc_->NIL, 0));
+  Ptr ret = call(fun, _cons(sc_, arg, sc_->NIL, 0));
 
-  if (sc_->retcode != 0) {
-    throw SchemeReturnCodeException(sc_->retcode);
+  return ret;
+}
+
+namespace {
+void check_retcode(scheme *sc)
+{
+  if (sc->retcode != 0) {
+    throw SchemeReturnCodeException(sc->retcode);
   }
+}
+}
 
+void SchemeConfig::load_file(FILE *fin)
+{
+  scheme_load_file(sc_, fin);
+  check_retcode(sc_);
+}
+
+void SchemeConfig::load_named_file(FILE *fin, const char *filename)
+{
+  scheme_load_named_file(sc_, fin, filename);
+  check_retcode(sc_);
+}
+
+void SchemeConfig::load_string(const char *cmd)
+{
+  scheme_load_string(sc_, cmd);
+  check_retcode(sc_);
+}
+
+Ptr SchemeConfig::apply0(const char *procname)
+{
+  pointer ret = scheme_apply0(sc_, procname);
+  check_retcode(sc_);
+  return Ptr(sc_, ret);
+}
+
+Ptr SchemeConfig::call(pointer func, pointer args)
+{
+  pointer ret = scheme_call(sc_, func, args);
+  check_retcode(sc_);
+  return Ptr(sc_, ret);
+}
+
+Ptr SchemeConfig::eval(pointer obj)
+{
+  pointer ret = scheme_eval(sc_, obj);
+  check_retcode(sc_);
   return Ptr(sc_, ret);
 }

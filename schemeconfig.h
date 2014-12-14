@@ -90,6 +90,7 @@ struct Ptr {
   bool is_symbol();
   char *symname();
 
+  operator pointer();
   operator long();
   operator double();
   operator const char *();
@@ -131,6 +132,15 @@ struct SchemeConfig {
   void loadResource(const char *resource);
 
   Ptr read_eval(const char* script);
+
+  // Wrappers around functions that execute code. Throw exception if
+  // retcode isn't 0.
+  void load_file(FILE *fin);
+  void load_named_file(FILE *fin, const char *filename);
+  void load_string(const char *cmd);
+  Ptr apply0(const char *procname);
+  Ptr call(pointer func, pointer args);
+  Ptr eval(pointer obj);
 
   scheme *sc_;
 };
