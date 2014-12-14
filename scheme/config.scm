@@ -25,3 +25,20 @@
 (define (rgb r g b)
   (list r g b))
 
+
+(define (config/serialize-config)
+  (let* ((get-key (lambda (key alist) (cdr (assv key alist))))
+         (get-items (lambda (keys alist)
+                      (let ((getter (lambda (key) (get-key key alist))))
+                        (map getter keys)))))
+    (list
+     (get-items '(:sample-rate)
+                (get-key 'audio-config config))
+     (get-items '(:width :height :note-width :min-note :max-note)
+                (get-key 'ui-config config))
+     (get-key 'ui-marker-lines config)
+     (get-items '(:cand-thresh :lag-weight :freq-weight :trans-cost
+                               :trans-amp :trans-spec :voice-bias
+                               :double-cost :min-f0 :max-f0 :frame-step
+                               :wind-dur :n-cands)
+                (get-key 'esps-config config)))))
