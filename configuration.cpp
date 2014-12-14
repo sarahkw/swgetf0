@@ -118,9 +118,11 @@ void Configuration::on_buttonBox_accepted()
 {
   QString configText = ui->txtConfig->toPlainText();
   QByteArray configTextBa = configText.toUtf8();
-  schemeinterface::SchemeInterface scfg(configTextBa.constData());
 
-  auto p = scfg.read_eval(
+  schemeinterface::SchemeInterface si;
+  si.load_string(configTextBa.constData());
+
+  auto p = si.read_eval(
        "(let* ((get-key (lambda (key alist) (cdr (assv key alist))))           \n"
        "       (get-items (lambda (keys alist)                                 \n"
        "                    (let ((getter (lambda (key) (get-key key alist)))) \n"

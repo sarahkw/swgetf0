@@ -91,8 +91,7 @@ pointer ff_report_error(scheme * sc, pointer args)
 
 
 
-SchemeInterface::SchemeInterface(const char *configScript)
-    : sc_(scheme_init_new())
+SchemeInterface::SchemeInterface() : sc_(scheme_init_new())
 {
   Q_ASSERT(sc_ != nullptr);
 
@@ -104,9 +103,6 @@ SchemeInterface::SchemeInterface(const char *configScript)
   scheme_registerable foreignFuncs[] = {{ff_report_error, "report-error"}};
   scheme_register_foreign_func_list(
       sc_, foreignFuncs, sizeof(foreignFuncs) / sizeof(*foreignFuncs));
-
-
-  load_string(configScript);
 }
 
 void SchemeInterface::loadResource(const char *resource)

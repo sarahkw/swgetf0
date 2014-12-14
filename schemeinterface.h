@@ -127,7 +127,7 @@ inline void loadValues(PtrIter iter, Arg1 &arg1, Args &... args)
 }
 
 struct SchemeInterface {
-  SchemeInterface(const char *configScript);
+  SchemeInterface();
 
   void loadResource(const char *resource);
 
