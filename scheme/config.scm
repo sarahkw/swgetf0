@@ -1,4 +1,3 @@
-
 (define config '())
 
 ;; (make-eval-alist '(a b c d)) => ((c . (eval d)) (a . (eval b)))
@@ -26,5 +25,3 @@
 (define (rgb r g b)
   (list r g b))
 
-(define (read-eval script)
-  (eval (read (open-input-string script))))

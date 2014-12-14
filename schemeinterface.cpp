@@ -98,7 +98,8 @@ SchemeInterface::SchemeInterface() : sc_(scheme_init_new())
   scheme_set_output_port_file(sc_, stdout);
 
   loadResource(":/tinyscheme/init.scm");
-  loadResource(":/tinyscheme/config-helper.scm");
+  loadResource(":/scheme/schemeinterface.scm");
+  loadResource(":/scheme/config.scm");
 
   scheme_registerable foreignFuncs[] = {{ff_report_error, "report-error"}};
   scheme_register_foreign_func_list(
