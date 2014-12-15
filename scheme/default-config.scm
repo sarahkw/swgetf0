@@ -20,11 +20,10 @@
 (define color-target (rgb 255 0 0)) ; More attention
 
 (ui-marker-lines
- 196 color-normal ; G3
  220 color-target ; A3
- 233 color-sub    ; A#3
  247 color-normal ; B3
  262 color-normal ; C4
+ 277 color-sub    ; C#4
  294 color-normal ; D4
  330 color-normal ; E4
  131 color-normal ; C3
