@@ -18,6 +18,7 @@
 #define INCLUDED_CIRCULARBUFFER
 
 #include <stdexcept>
+#include <vector>
 
 template <class T>
 class CircularBuffer {
@@ -62,7 +63,7 @@ public:
       throw std::invalid_argument("Circular buffer cannot be of zero capacity");
     }
 
-    m_data = new T[capacity];
+    m_data.resize(capacity);
   }
 
   iterator begin() { return iterator(*this, m_begin, m_capacity == m_size); }
@@ -85,7 +86,7 @@ public:
 
   size_t size() const { return m_size; }
 
-  virtual ~CircularBuffer() { delete [] m_data; }
+  virtual ~CircularBuffer() { }
 
 private:
   // Disable copy and assign
@@ -100,7 +101,7 @@ private:
   size_t m_begin;
   size_t m_ptr;
 
-  T* m_data;
+  std::vector<T> m_data;
 };
 
 #endif
