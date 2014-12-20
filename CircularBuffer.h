@@ -66,7 +66,7 @@ public:
   } iterator;
 
   CircularBuffer(std::size_t workingSet)
-      : m_workingSet(workingSet), m_ptr(0), m_full(false)
+      : m_workingSet(workingSet), m_ptr(0), m_full(false), m_skip(0)
   {
     m_data.resize(workingSet);
   }
@@ -101,9 +101,37 @@ public:
     std::fill(data + m_ptr, data + m_ptr + expandCount, T());
   }
 
+  void shrink(std::size_t shrinkCount)
+  {
+    m_skip += shrinkCount;
+  }
+
   const_iterator begin() const
   {
-    return const_iterator(*this, m_full ? m_ptr : 0, m_full);
+    size_t beginpos;
+    bool oneMoreLoop;
+    if (m_full) {
+      beginpos = m_ptr + m_skip;
+      oneMoreLoop = true;
+
+      if (beginpos >= m_workingSet) {
+        beginpos -= m_workingSet;
+        oneMoreLoop = false;
+      }
+    } else {
+      // Not full
+
+      auto amountOfExpectedItems = m_workingSet - m_skip;
+      if (m_ptr > amountOfExpectedItems) {
+        beginpos = m_ptr - amountOfExpectedItems;
+      } else {
+        beginpos = 0;
+      }
+
+      oneMoreLoop = false;
+    }
+
+    return const_iterator(*this, beginpos, oneMoreLoop);
   }
 
   const_iterator end() const { return const_iterator(*this, m_ptr, false); }
@@ -122,7 +150,11 @@ public:
     }
   }
 
-  size_t size() const { return m_full ? m_workingSet : m_ptr; }
+  size_t size() const
+  {
+    return m_full ? m_workingSet - m_skip
+                  : std::min(m_ptr, m_workingSet - m_skip);
+  }
 
   virtual ~CircularBuffer() { }
 
@@ -134,6 +166,8 @@ private:
   size_t m_workingSet;
   size_t m_ptr;
   bool m_full;
+
+  size_t m_skip;
 
   std::vector<T> m_data;
 };
