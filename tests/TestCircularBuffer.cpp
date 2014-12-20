@@ -86,3 +86,58 @@ TEST_F(TestCircularBuffer, ZeroWorkingSet)
   m_cb0.push_back(0);
   ASSERT_TRUE(m_cb0.begin() == m_cb0.end());
 }
+
+TEST_F(TestCircularBuffer, ExpandBlank)
+{
+  m_cb3.expand(3);
+  ASSERT_THAT(m_cb3, ElementsAre());
+}
+
+TEST_F(TestCircularBuffer, ExpandNotFull)
+{
+  m_cb3.push_back(1);
+  m_cb3.push_back(2);
+  m_cb3.expand(3);
+  ASSERT_THAT(m_cb3, ElementsAre(1, 2));
+}
+
+TEST_F(TestCircularBuffer, ExpandFull)
+{
+  m_cb3.push_back(1);
+  m_cb3.push_back(2);
+  m_cb3.push_back(3);
+  m_cb3.expand(3);
+  ASSERT_THAT(m_cb3, ElementsAre(0, 0, 0, 1, 2, 3));
+}
+
+TEST_F(TestCircularBuffer, ExpandOverflow1)
+{
+  m_cb3.push_back(1);
+  m_cb3.push_back(2);
+  m_cb3.push_back(3);
+  m_cb3.push_back(4);
+  m_cb3.expand(3);
+  ASSERT_THAT(m_cb3, ElementsAre(0, 0, 0, 2, 3, 4));
+}
+
+TEST_F(TestCircularBuffer, ExpandOverflow2)
+{
+  m_cb3.push_back(1);
+  m_cb3.push_back(2);
+  m_cb3.push_back(3);
+  m_cb3.push_back(4);
+  m_cb3.push_back(5);
+  m_cb3.push_back(6);
+  m_cb3.expand(3);
+  ASSERT_THAT(m_cb3, ElementsAre(0, 0, 0, 4, 5, 6));
+
+  // Make sure it still works afterwards
+
+  m_cb3.push_back(7);
+  m_cb3.push_back(8);
+  m_cb3.push_back(9);
+  ASSERT_THAT(m_cb3, ElementsAre(4, 5, 6, 7, 8, 9));
+
+  m_cb3.push_back(10);
+  ASSERT_THAT(m_cb3, ElementsAre(5, 6, 7, 8, 9, 10));
+}

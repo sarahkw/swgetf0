@@ -71,6 +71,36 @@ public:
     m_data.resize(workingSet);
   }
 
+  void expand(std::size_t expandCount)
+  {
+    // No need for padding if the buffer hasn't filled up yet.
+    if (!m_full) {
+      m_data.resize(m_workingSet += expandCount);
+      return;
+    }
+
+    /*
+      Padding to be added in the beginning.
+
+      | 4 | 5 | 1 | 2 | 3 |   |   |
+              ^ ptr
+                          ^ workingSet
+
+               Padding
+              vvvvvvvvv
+      | 4 | 5 | 0 | 0 | 1 | 2 | 3 |
+              ^ ptr
+                                  ^ workingSet
+    */
+
+    auto oldSize = m_workingSet;
+    m_data.resize(m_workingSet += expandCount);
+
+    T* data = m_data.data();
+    std::move_backward(data + m_ptr, data + oldSize, data + m_workingSet);
+    std::fill(data + m_ptr, data + m_ptr + expandCount, T());
+  }
+
   const_iterator begin() const
   {
     return const_iterator(*this, m_full ? m_ptr : 0, m_full);
