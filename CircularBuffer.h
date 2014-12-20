@@ -66,15 +66,14 @@ public:
   } iterator;
 
   CircularBuffer(std::size_t workingSet)
-      : m_workingSet(workingSet), m_size(0), m_begin(0), m_ptr(0)
+      : m_workingSet(workingSet), m_ptr(0), m_full(false)
   {
     m_data.resize(workingSet);
   }
 
   const_iterator begin() const
   {
-    return const_iterator(*this, m_begin,
-                          m_workingSet != 0 && m_workingSet == m_size);
+    return const_iterator(*this, m_full ? m_ptr : 0, m_full);
   }
 
   const_iterator end() const { return const_iterator(*this, m_ptr, false); }
@@ -87,17 +86,13 @@ public:
 
     m_data[m_ptr++] = val;
 
-    if (m_size < m_workingSet)
-      m_size++;
-    else
-      m_begin = (m_begin + 1) % m_workingSet;
-
     if (m_ptr == m_workingSet) {
       m_ptr = 0;
+      m_full = true;
     }
   }
 
-  size_t size() const { return m_size; }
+  size_t size() const { return m_full ? m_workingSet : m_ptr; }
 
   virtual ~CircularBuffer() { }
 
@@ -107,10 +102,8 @@ private:
   CircularBuffer& operator=(CircularBuffer&);
 
   size_t m_workingSet;
-
-  size_t m_size;
-  size_t m_begin;
   size_t m_ptr;
+  bool m_full;
 
   std::vector<T> m_data;
 };
