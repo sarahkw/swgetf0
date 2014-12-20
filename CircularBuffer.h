@@ -31,7 +31,7 @@ public:
     iterator& operator++()
     {
       m_ptr++;
-      if (m_ptr == m_cb.m_capacity) {
+      if (m_ptr == m_cb.m_workingSet) {
         m_ptr = 0;
         m_oneMoreLoop = false;
       }
@@ -56,17 +56,17 @@ public:
     }
   };
 
-  CircularBuffer(std::size_t capacity)
-      : m_capacity(capacity), m_size(0), m_begin(0), m_ptr(0)
+  CircularBuffer(std::size_t workingSet)
+      : m_workingSet(workingSet), m_size(0), m_begin(0), m_ptr(0)
   {
-    if (capacity == 0) {
-      throw std::invalid_argument("Circular buffer cannot be of zero capacity");
+    if (workingSet == 0) {
+      throw std::invalid_argument("Working set must be non-zero");
     }
 
-    m_data.resize(capacity);
+    m_data.resize(workingSet);
   }
 
-  iterator begin() { return iterator(*this, m_begin, m_capacity == m_size); }
+  iterator begin() { return iterator(*this, m_begin, m_workingSet == m_size); }
 
   iterator end() { return iterator(*this, m_ptr, false); }
 
@@ -74,12 +74,12 @@ public:
   {
     m_data[m_ptr++] = val;
 
-    if (m_size < m_capacity)
+    if (m_size < m_workingSet)
       m_size++;
     else
-      m_begin = (m_begin + 1) % m_capacity;
+      m_begin = (m_begin + 1) % m_workingSet;
 
-    if (m_ptr == m_capacity) {
+    if (m_ptr == m_workingSet) {
       m_ptr = 0;
     }
   }
@@ -95,7 +95,7 @@ private:
 
   friend class iterator;
 
-  size_t m_capacity;
+  size_t m_workingSet;
 
   size_t m_size;
   size_t m_begin;
