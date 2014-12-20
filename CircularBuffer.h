@@ -59,6 +59,12 @@ public:
     }
   };
 
+  // XXX gtest's pretty printer will only think we're a container if
+  //     we have both ::iterator and ::const_iterator. At the moment
+  //     we don't need non-const iterator.
+  typedef struct DummyType {
+  } iterator;
+
   CircularBuffer(std::size_t workingSet)
       : m_workingSet(workingSet), m_size(0), m_begin(0), m_ptr(0)
   {
@@ -99,8 +105,6 @@ private:
   // Disable copy and assign
   CircularBuffer(CircularBuffer&);
   CircularBuffer& operator=(CircularBuffer&);
-
-  friend class iterator;
 
   size_t m_workingSet;
 
