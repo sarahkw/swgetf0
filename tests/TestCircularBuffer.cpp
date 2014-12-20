@@ -15,8 +15,11 @@
 */
 
 #include "gtest/gtest.h"
+#include "gmock/gmock.h"
 
 #include "../CircularBuffer.h"
+
+using namespace testing;
 
 namespace {
 
@@ -47,21 +50,7 @@ TEST_F(TestCircularBuffer, ReadWithoutLoop)
   m_cb3.push_back(2);
   m_cb3.push_back(3);
 
-  auto iter = m_cb3.begin();
-  ASSERT_TRUE(iter != m_cb3.end());
-  ASSERT_EQ(*iter, 1);
-  ++iter;
-
-  ASSERT_TRUE(iter != m_cb3.end());
-  ASSERT_EQ(*iter, 2);
-  ++iter;
-
-  ASSERT_TRUE(iter != m_cb3.end());
-  ASSERT_EQ(*iter, 3);
-  ++iter;
-
-  ASSERT_TRUE(iter == m_cb3.end())
-      << "Make sure after we read the whole buffer, we stop reading.";
+  ASSERT_THAT(m_cb3, ElementsAre(1, 2, 3));
 
   ASSERT_EQ(m_cb3.size(), 3);
 }
@@ -74,21 +63,7 @@ TEST_F(TestCircularBuffer, ReadLoop)
   m_cb3.push_back(4);
   m_cb3.push_back(5);
 
-  auto iter = m_cb3.begin();
-  ASSERT_TRUE(iter != m_cb3.end());
-  ASSERT_EQ(*iter, 3);
-  ++iter;
-
-  ASSERT_TRUE(iter != m_cb3.end());
-  ASSERT_EQ(*iter, 4);
-  ++iter;
-
-  ASSERT_TRUE(iter != m_cb3.end());
-  ASSERT_EQ(*iter, 5);
-  ++iter;
-
-  ASSERT_TRUE(iter == m_cb3.end())
-      << "Make sure after we read the whole buffer, we stop reading.";
+  ASSERT_THAT(m_cb3, ElementsAre(3, 4, 5));
 
   ASSERT_EQ(m_cb3.size(), 3);
 }
@@ -100,21 +75,7 @@ TEST_F(TestCircularBuffer, ReadLoopTwiceWithIteratorWrite)
     m_cb3.push_back(value);
   }
 
-  auto iter = m_cb3.begin();
-  ASSERT_TRUE(iter != m_cb3.end());
-  ASSERT_EQ(*iter, 5);
-  ++iter;
-
-  ASSERT_TRUE(iter != m_cb3.end());
-  ASSERT_EQ(*iter, 6);
-  ++iter;
-
-  ASSERT_TRUE(iter != m_cb3.end());
-  ASSERT_EQ(*iter, 7);
-  ++iter;
-
-  ASSERT_TRUE(iter == m_cb3.end())
-      << "Make sure after we read the whole buffer, we stop reading.";
+  ASSERT_THAT(m_cb3, ElementsAre(5, 6, 7));
 
   ASSERT_EQ(m_cb3.size(), 3);
 }

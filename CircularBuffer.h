@@ -24,11 +24,14 @@ template <class T>
 class CircularBuffer {
 public:
 
-  class iterator : public std::iterator<T, std::forward_iterator_tag> {
+  typedef T value_type;
+
+  class const_iterator : public std::iterator<T, std::forward_iterator_tag>
+  {
   public:
 
-    T& operator*() { return m_cb.m_data[m_ptr]; }
-    iterator& operator++()
+    const T& operator*() { return m_cb.m_data[m_ptr]; }
+    const_iterator& operator++()
     {
       m_ptr++;
       if (m_ptr == m_cb.m_workingSet) {
@@ -37,20 +40,20 @@ public:
       }
       return *this;
     }
-    bool operator==(const iterator& o) const
+    bool operator==(const const_iterator& o) const
     {
       return m_oneMoreLoop == o.m_oneMoreLoop && m_ptr == o.m_ptr;
     }
-    bool operator!=(const iterator& o) const { return !(*this == o); }
+    bool operator!=(const const_iterator& o) const { return !(*this == o); }
 
   private:
     friend class CircularBuffer;
 
-    CircularBuffer& m_cb;
+    const CircularBuffer& m_cb;
     size_t m_ptr;
     bool m_oneMoreLoop;
 
-    iterator(CircularBuffer& cb, size_t ptr, bool oneMoreLoop)
+    const_iterator(const CircularBuffer& cb, size_t ptr, bool oneMoreLoop)
         : m_cb(cb), m_ptr(ptr), m_oneMoreLoop(oneMoreLoop)
     {
     }
@@ -62,13 +65,13 @@ public:
     m_data.resize(workingSet);
   }
 
-  iterator begin()
+  const_iterator begin() const
   {
-    return iterator(*this, m_begin,
-                    m_workingSet != 0 && m_workingSet == m_size);
+    return const_iterator(*this, m_begin,
+                          m_workingSet != 0 && m_workingSet == m_size);
   }
 
-  iterator end() { return iterator(*this, m_ptr, false); }
+  const_iterator end() const { return const_iterator(*this, m_ptr, false); }
 
   void push_back(const T& val)
   {
