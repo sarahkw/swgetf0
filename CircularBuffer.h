@@ -59,19 +59,23 @@ public:
   CircularBuffer(std::size_t workingSet)
       : m_workingSet(workingSet), m_size(0), m_begin(0), m_ptr(0)
   {
-    if (workingSet == 0) {
-      throw std::invalid_argument("Working set must be non-zero");
-    }
-
     m_data.resize(workingSet);
   }
 
-  iterator begin() { return iterator(*this, m_begin, m_workingSet == m_size); }
+  iterator begin()
+  {
+    return iterator(*this, m_begin,
+                    m_workingSet != 0 && m_workingSet == m_size);
+  }
 
   iterator end() { return iterator(*this, m_ptr, false); }
 
   void push_back(const T& val)
   {
+    if (m_workingSet == 0) {
+      return;
+    }
+
     m_data[m_ptr++] = val;
 
     if (m_size < m_workingSet)

@@ -22,19 +22,16 @@ namespace {
 
 class TestCircularBuffer : public ::testing::Test {
 protected:
-  TestCircularBuffer() : m_cb3(3) {}
+  TestCircularBuffer() : m_cb3(3), m_cb0(0) {}
 
   void SetUp() override {}
 
   void TearDown() override {}
 
   CircularBuffer<int> m_cb3;
-};
-}
 
-TEST(CircularBufferZeroTest, TestThrow)
-{
-  EXPECT_THROW(CircularBuffer<int>(0), std::invalid_argument);
+  CircularBuffer<int> m_cb0;
+};
 }
 
 TEST_F(TestCircularBuffer, ReadEmptyBuffer)
@@ -120,4 +117,11 @@ TEST_F(TestCircularBuffer, ReadLoopTwiceWithIteratorWrite)
       << "Make sure after we read the whole buffer, we stop reading.";
 
   ASSERT_EQ(m_cb3.size(), 3);
+}
+
+TEST_F(TestCircularBuffer, ZeroWorkingSet)
+{
+  ASSERT_TRUE(m_cb0.begin() == m_cb0.end());
+  m_cb0.push_back(0);
+  ASSERT_TRUE(m_cb0.begin() == m_cb0.end());
 }
