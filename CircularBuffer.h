@@ -71,8 +71,37 @@ public:
     m_data.resize(workingSet);
   }
 
+#define C(s) std::cout << "Coverage:" << s << std::endl
+
   void expand(std::size_t expandCount)
   {
+    if (m_skip > 0) {
+      // m_skip > 0 ==> m_full is true
+
+      auto unskipCount = std::min(expandCount, m_skip);
+
+      auto erasePtr = m_ptr + m_skip - unskipCount;
+      while (expandCount > 0 && m_skip > 0) {
+        if (erasePtr >= m_workingSet) {
+          C(1);
+          erasePtr -= m_workingSet;
+        }
+
+        m_data[erasePtr] = T();
+
+        ++erasePtr;
+        --m_skip;
+        --expandCount;
+      }
+
+      if (expandCount == 0) {
+        C(2);
+        return;
+      }
+    }
+
+    C(3);
+
     // No need for padding if the buffer hasn't filled up yet.
     if (!m_full) {
       m_data.resize(m_workingSet += expandCount);
@@ -103,6 +132,21 @@ public:
 
   void shrink(std::size_t shrinkCount)
   {
+    if (!m_full) {
+      // We will chop off the right-most part of the working set size.
+
+      auto discardSlots = std::min(m_workingSet - m_ptr, shrinkCount);
+      shrinkCount -= discardSlots;
+      m_workingSet -= discardSlots;
+      m_data.resize(m_workingSet); // vector probably won't do anything
+
+      if (m_ptr == m_workingSet) {
+        m_ptr = 0;
+        m_full = true;
+      }
+    }
+
+    // shrinkCount nonzero means we're full
     m_skip += shrinkCount;
   }
 
