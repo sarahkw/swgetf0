@@ -75,8 +75,6 @@ public:
     }
   }
 
-#define C(s) std::cout << "Coverage:" << s << std::endl
-
   void expand(std::size_t expandCount)
   {
     if (m_skip > 0) {
@@ -87,7 +85,6 @@ public:
       auto erasePtr = m_ptr + m_skip - unskipCount;
       while (expandCount > 0 && m_skip > 0) {
         if (erasePtr >= m_workingSet) {
-          C(1);
           erasePtr -= m_workingSet;
         }
 
@@ -99,12 +96,9 @@ public:
       }
 
       if (expandCount == 0) {
-        C(2);
         return;
       }
     }
-
-    C(3);
 
     // No need for padding if the buffer hasn't filled up yet.
     if (!m_full) {
