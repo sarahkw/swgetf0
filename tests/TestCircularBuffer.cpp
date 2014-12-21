@@ -348,3 +348,23 @@ TEST_F(TestCircularBuffer, ShrinkExpandNotFullBecomeFull)
   ASSERT_THAT(m_cb3, ElementsAre(0, 1, 2));
   ASSERT_EQ(m_cb3.size(), 3);
 }
+
+TEST_F(TestCircularBuffer, ExpandZeroSize)
+{
+  m_cb0.push_back(1);
+
+  m_cb0.expand(3);
+  ASSERT_THAT(m_cb0, ElementsAre(0, 0, 0));
+  ASSERT_EQ(m_cb0.size(), 3);
+
+  // Still works?
+  m_cb0.push_back(2);
+  ASSERT_THAT(m_cb0, ElementsAre(0, 0, 2));
+  ASSERT_EQ(m_cb0.size(), 3);
+
+  m_cb0.push_back(3);
+  m_cb0.push_back(4);
+  m_cb0.push_back(5);
+  ASSERT_THAT(m_cb0, ElementsAre(3, 4, 5));
+  ASSERT_EQ(m_cb0.size(), 3);
+}

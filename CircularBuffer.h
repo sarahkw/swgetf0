@@ -69,6 +69,10 @@ public:
       : m_workingSet(workingSet), m_ptr(0), m_full(false), m_skip(0)
   {
     m_data.resize(workingSet);
+
+    if (workingSet == 0) {
+      m_full = true;
+    }
   }
 
 #define C(s) std::cout << "Coverage:" << s << std::endl
