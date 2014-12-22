@@ -18,6 +18,7 @@
 #include "about.h"
 
 #include <QPainter>
+#include <QResizeEvent>
 
 #include "config.h"
 
@@ -49,8 +50,8 @@ void ViewerWidget::renderNow() {
 
   const auto& uiConfig = m_parent->config().uiConfig;
 
-  int width = uiConfig.width;
-  int height = uiConfig.height;
+  int width = size().width();
+  int height = size().height();
 
   std::lock_guard<std::mutex> lockGuard(m_parent->mutex());
 
@@ -98,16 +99,24 @@ bool ViewerWidget::event(QEvent* event)
   }
 }
 
-void ViewerWidget::paintEvent(QPaintEvent* event) {
+void ViewerWidget::paintEvent(QPaintEvent* event)
+{
   renderNow();
 }
 
-MainWindow::MainWindow(const config::Config& config)
-    : m_cb(config.uiConfig.width / config.uiConfig.note_width), m_config(config)
+void ViewerWidget::resizeEvent(QResizeEvent* event)
 {
-  m_ui.setupUi(this);
+  emit widthChanged(event->size().width());
+}
 
+MainWindow::MainWindow(const config::Config& config)
+    : m_cb(0), m_config(config)
+{
   ViewerWidget* vw = new ViewerWidget(this);
+  vw->setObjectName("viewer");
+
+  m_ui.setupUi(this);
+  resize(m_config.uiConfig.width, m_config.uiConfig.height);
 
   setCentralWidget(vw);
 }
@@ -116,4 +125,10 @@ void MainWindow::on_action_About_triggered()
 {
   About* about = new About(this);
   about->show();
+}
+
+void MainWindow::on_viewer_widthChanged(int width)
+{
+  std::lock_guard<std::mutex> lockGuard(mutex());
+  cb().resize(width / m_config.uiConfig.note_width);
 }

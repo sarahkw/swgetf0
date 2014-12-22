@@ -34,11 +34,17 @@ public slots:
   void renderLater();
   void renderNow();
 
+signals:
+
+  void widthChanged(int newWidth);
+
 protected:
 
   bool event(QEvent *event) override;
 
   void paintEvent(QPaintEvent *) override;
+
+  void resizeEvent(QResizeEvent* event) override;
 
 private:
 
@@ -70,6 +76,8 @@ public:
 private slots:
 
   void on_action_About_triggered();
+
+  void on_viewer_widthChanged(int width);
 
 private:
 
