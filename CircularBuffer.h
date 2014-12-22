@@ -148,6 +148,17 @@ public:
     m_skip += shrinkCount;
   }
 
+  void resize(std::size_t newSize)
+  {
+    auto size_ = m_workingSet - m_skip;
+
+    if (newSize > size_) {
+      expand(newSize - size_);
+    } else if (newSize < size_) {
+      shrink(size_ - newSize);
+    }
+  }
+
   const_iterator begin() const
   {
     size_t beginpos;

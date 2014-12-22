@@ -89,7 +89,7 @@ TEST_F(TestCircularBuffer, ZeroWorkingSet)
 
 TEST_F(TestCircularBuffer, ExpandBlank)
 {
-  m_cb3.expand(3);
+  m_cb3.resize(6);
   ASSERT_THAT(m_cb3, ElementsAre());
 }
 
@@ -97,7 +97,7 @@ TEST_F(TestCircularBuffer, ExpandNotFull)
 {
   m_cb3.push_back(1);
   m_cb3.push_back(2);
-  m_cb3.expand(3);
+  m_cb3.resize(6);
   ASSERT_THAT(m_cb3, ElementsAre(1, 2));
 }
 
@@ -106,7 +106,7 @@ TEST_F(TestCircularBuffer, ExpandFull)
   m_cb3.push_back(1);
   m_cb3.push_back(2);
   m_cb3.push_back(3);
-  m_cb3.expand(3);
+  m_cb3.resize(6);
   ASSERT_THAT(m_cb3, ElementsAre(0, 0, 0, 1, 2, 3));
 }
 
@@ -116,7 +116,7 @@ TEST_F(TestCircularBuffer, ExpandOverflow1)
   m_cb3.push_back(2);
   m_cb3.push_back(3);
   m_cb3.push_back(4);
-  m_cb3.expand(3);
+  m_cb3.resize(6);
   ASSERT_THAT(m_cb3, ElementsAre(0, 0, 0, 2, 3, 4));
 }
 
@@ -128,7 +128,7 @@ TEST_F(TestCircularBuffer, ExpandOverflow2)
   m_cb3.push_back(4);
   m_cb3.push_back(5);
   m_cb3.push_back(6);
-  m_cb3.expand(3);
+  m_cb3.resize(6);
   ASSERT_THAT(m_cb3, ElementsAre(0, 0, 0, 4, 5, 6));
 
   // Make sure it still works afterwards
@@ -144,7 +144,7 @@ TEST_F(TestCircularBuffer, ExpandOverflow2)
 
 TEST_F(TestCircularBuffer, ShrinkAllEmpty)
 {
-  m_cb3.shrink(3);
+  m_cb3.resize(0);
   ASSERT_THAT(m_cb3, ElementsAre());
   ASSERT_EQ(m_cb3.size(), 0);
 
@@ -159,7 +159,7 @@ TEST_F(TestCircularBuffer, ShrinkAllFull)
   m_cb3.push_back(1);
   m_cb3.push_back(2);
   m_cb3.push_back(3);
-  m_cb3.shrink(3);
+  m_cb3.resize(0);
   ASSERT_EQ(m_cb3.size(), 0);
   ASSERT_THAT(m_cb3, ElementsAre());
 
@@ -174,7 +174,7 @@ TEST_F(TestCircularBuffer, ShrinkAllOverflow)
   m_cb3.push_back(2);
   m_cb3.push_back(3);
   m_cb3.push_back(4);
-  m_cb3.shrink(3);
+  m_cb3.resize(0);
   ASSERT_EQ(m_cb3.size(), 0);
   ASSERT_THAT(m_cb3, ElementsAre());
 
@@ -187,7 +187,7 @@ TEST_F(TestCircularBuffer, ShrinkAllPartial)
 {
   m_cb3.push_back(1);
   m_cb3.push_back(2);
-  m_cb3.shrink(3);
+  m_cb3.resize(0);
   ASSERT_EQ(m_cb3.size(), 0);
   ASSERT_THAT(m_cb3, ElementsAre());
 
@@ -198,7 +198,7 @@ TEST_F(TestCircularBuffer, ShrinkAllPartial)
 
 TEST_F(TestCircularBuffer, ShrinkPartialEmpty)
 {
-  m_cb3.shrink(2);
+  m_cb3.resize(1);
   ASSERT_THAT(m_cb3, ElementsAre());
   ASSERT_EQ(m_cb3.size(), 0);
 
@@ -212,7 +212,7 @@ TEST_F(TestCircularBuffer, ShrinkPartialNotFullNoLoss)
 {
   m_cb3.push_back(1);
   m_cb3.push_back(2);
-  m_cb3.shrink(1);
+  m_cb3.resize(2);
   ASSERT_THAT(m_cb3, ElementsAre(1, 2));
   ASSERT_EQ(m_cb3.size(), 2);
 
@@ -229,7 +229,7 @@ TEST_F(TestCircularBuffer, ShrinkPartialNotFullWithLoss)
 {
   m_cb3.push_back(1);
   m_cb3.push_back(2);
-  m_cb3.shrink(2);
+  m_cb3.resize(1);
   ASSERT_THAT(m_cb3, ElementsAre(2));
   ASSERT_EQ(m_cb3.size(), 1);
 
@@ -250,7 +250,7 @@ TEST_F(TestCircularBuffer, ShrinkPartialFull)
   m_cb3.push_back(1);
   m_cb3.push_back(2);
   m_cb3.push_back(3);
-  m_cb3.shrink(2);
+  m_cb3.resize(1);
   ASSERT_THAT(m_cb3, ElementsAre(3));
   ASSERT_EQ(m_cb3.size(), 1);
 
@@ -267,7 +267,7 @@ TEST_F(TestCircularBuffer, ShrinkPartialOverflow)
   m_cb3.push_back(2);
   m_cb3.push_back(3);
   m_cb3.push_back(4);
-  m_cb3.shrink(1);
+  m_cb3.resize(2);
   ASSERT_EQ(m_cb3.size(), 2);
   ASSERT_THAT(m_cb3, ElementsAre(3, 4));
 
@@ -286,7 +286,7 @@ TEST_F(TestCircularBuffer, ShrinkPartialOverflow2)
   m_cb3.push_back(3);
   m_cb3.push_back(4);
   m_cb3.push_back(5);
-  m_cb3.shrink(2);
+  m_cb3.resize(1);
   ASSERT_EQ(m_cb3.size(), 1);
   ASSERT_THAT(m_cb3, ElementsAre(5));
 
@@ -304,8 +304,8 @@ TEST_F(TestCircularBuffer, ShrinkExpandFull)
   m_cb3.push_back(2);
   m_cb3.push_back(3);
 
-  m_cb3.shrink(2);
-  m_cb3.expand(1);
+  m_cb3.resize(1);
+  m_cb3.resize(2);
 
   ASSERT_THAT(m_cb3, ElementsAre(0, 3));
   ASSERT_EQ(m_cb3.size(), 2);
@@ -319,8 +319,8 @@ TEST_F(TestCircularBuffer, ShrinkExpandFullWrap)
   m_cb3.push_back(4);
   m_cb3.push_back(5);
 
-  m_cb3.shrink(2);
-  m_cb3.expand(2);
+  m_cb3.resize(1);
+  m_cb3.resize(3);
 
   ASSERT_EQ(m_cb3.size(), 3);
   ASSERT_THAT(m_cb3, ElementsAre(0, 0, 5));
@@ -330,8 +330,8 @@ TEST_F(TestCircularBuffer, ShrinkExpandNotFull)
 {
   m_cb3.push_back(1);
 
-  m_cb3.shrink(1);
-  m_cb3.expand(1);
+  m_cb3.resize(2);
+  m_cb3.resize(3);
 
   ASSERT_THAT(m_cb3, ElementsAre(1));
   ASSERT_EQ(m_cb3.size(), 1);
@@ -342,18 +342,19 @@ TEST_F(TestCircularBuffer, ShrinkExpandNotFullBecomeFull)
   m_cb3.push_back(1);
   m_cb3.push_back(2);
 
-  m_cb3.shrink(1);
-  m_cb3.expand(1);
+  m_cb3.resize(2);
+  ASSERT_EQ(m_cb3.size(), 2);
+  m_cb3.resize(3);
+  ASSERT_EQ(m_cb3.size(), 3);
 
   ASSERT_THAT(m_cb3, ElementsAre(0, 1, 2));
-  ASSERT_EQ(m_cb3.size(), 3);
 }
 
 TEST_F(TestCircularBuffer, ExpandZeroSize)
 {
   m_cb0.push_back(1);
 
-  m_cb0.expand(3);
+  m_cb0.resize(3);
   ASSERT_THAT(m_cb0, ElementsAre(0, 0, 0));
   ASSERT_EQ(m_cb0.size(), 3);
 
