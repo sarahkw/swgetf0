@@ -163,13 +163,7 @@ public:
     } else {
       // Not full
 
-      auto amountOfExpectedItems = m_workingSet - m_skip;
-      if (m_ptr > amountOfExpectedItems) {
-        beginpos = m_ptr - amountOfExpectedItems;
-      } else {
-        beginpos = 0;
-      }
-
+      beginpos = 0;
       oneMoreLoop = false;
     }
 
@@ -195,7 +189,7 @@ public:
   size_t size() const
   {
     return m_full ? m_workingSet - m_skip
-                  : std::min(m_ptr, m_workingSet - m_skip);
+                  : m_ptr;
   }
 
   virtual ~CircularBuffer() { }
