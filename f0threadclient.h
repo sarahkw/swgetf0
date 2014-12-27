@@ -13,5 +13,20 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 */
-#include "f0thread.h"
+#ifndef INCLUDED_F0THREADCLIENT
+#define INCLUDED_F0THREADCLIENT
 
+#include <mutex>
+
+#include "CircularBuffer.h"
+
+class F0ThreadClient {
+public:
+
+  virtual CircularBuffer<float>& cb() = 0;
+
+  virtual std::mutex& mutex() = 0;
+
+};
+
+#endif

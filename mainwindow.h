@@ -19,8 +19,7 @@
 #include <QGLWidget>
 #include <QTimer>
 
-#include "CircularBuffer.h"
-#include <mutex>
+#include "f0threadclient.h"
 
 class MainWindow;
 
@@ -65,11 +64,9 @@ class MainWindow : public QMainWindow {
 
 public:
 
-  MainWindow(const config::Config& config);
+  MainWindow(const config::Config& config, F0ThreadClient& f0client);
 
-  CircularBuffer<float>& cb() { return m_cb; }
-
-  std::mutex& mutex() { return m_mutex; }
+  F0ThreadClient& f0client() { return m_f0client; }
 
   const config::Config& config() const { return m_config; }
 
@@ -83,8 +80,7 @@ private:
 
   Ui::MainWindow m_ui;
 
-  std::mutex m_mutex;
-  CircularBuffer<float> m_cb;
+  F0ThreadClient& m_f0client;
 
   const config::Config& m_config;
 };

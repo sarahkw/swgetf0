@@ -53,7 +53,7 @@ void ViewerWidget::renderNow() {
   int width = size().width();
   int height = size().height();
 
-  std::lock_guard<std::mutex> lockGuard(m_parent->mutex());
+  std::lock_guard<std::mutex> lockGuard(m_parent->f0client().mutex());
 
   auto noteToPos = [this, uiConfig, height](double note) {
     return height -
@@ -66,7 +66,7 @@ void ViewerWidget::renderNow() {
 
 
   double position = 0;
-  for (auto f0 : m_parent->cb()) {
+  for (auto f0 : m_parent->f0client().cb()) {
     if (f0 != 0) {
 
       double ypos = noteToPos(f0);
@@ -109,8 +109,8 @@ void ViewerWidget::resizeEvent(QResizeEvent* event)
   emit widthChanged(event->size().width());
 }
 
-MainWindow::MainWindow(const config::Config& config)
-    : m_cb(0), m_config(config)
+MainWindow::MainWindow(const config::Config& config, F0ThreadClient& f0client)
+    : m_config(config), m_f0client(f0client)
 {
   ViewerWidget* vw = new ViewerWidget(this);
   vw->setObjectName("viewer");
@@ -129,6 +129,6 @@ void MainWindow::on_action_About_triggered()
 
 void MainWindow::on_viewer_widthChanged(int width)
 {
-  std::lock_guard<std::mutex> lockGuard(mutex());
-  cb().resize(width / m_config.uiConfig.note_width);
+  std::lock_guard<std::mutex> lockGuard(m_f0client.mutex());
+  m_f0client.cb().resize(width / m_config.uiConfig.note_width);
 }

@@ -26,6 +26,7 @@
 #include "config.h"
 #include "GetF0/get_f0_stream.h"
 #include "configuregetf0.h"
+#include "f0thread.h"
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -55,41 +56,7 @@ int main(int argc, char* argv[])
   config::Config config = inputDevice->getConfig();
   delete inputDevice;
 
-  class Foo : public GetF0::GetF0Stream {
-  public:
-
-    Foo(portaudio::BlockingStream* s, double sampleFrequency)
-        : GetF0Stream(sampleFrequency), s(s)
-    {
-      s->start();
-    }
-
-    void setViewer(MainWindow* viewer) { m_viewer = viewer; }
-
-    void write_output_reversed(float* f0p, float* vuvp, float* rms_speech,
-                               float* acpkp, int vecsize) override
-    {
-      std::lock_guard<std::mutex> lockGuard(m_viewer->mutex());
-
-      auto& cb = m_viewer->cb();
-
-      for (int i = vecsize - 1; i >= 0; --i) {
-        cb.push_back(f0p[i]);
-      }
-    }
-
-    long read_stream_samples(short* buffer, long num_records) override {
-      s->read(buffer, num_records);
-      return num_records;
-    }
-
-    MainWindow *m_viewer;
-
-    portaudio::BlockingStream *s;
-
-  };
-
-  Foo* f0;
+  F0Thread* f0;
 
   {
     portaudio::System& sys = portaudio::System::instance();
@@ -104,21 +71,18 @@ int main(int argc, char* argv[])
 
     Q_ASSERT(sp.isSupported());
 
-    f0 = new Foo(new portaudio::BlockingStream(sp),
-                 config.audioConfig.sample_rate);
+    f0 = new F0Thread(new portaudio::BlockingStream(sp),
+                      config.audioConfig.sample_rate);
   }
 
-  ConfigureGetF0(*f0, config.espsConfig);
+  ConfigureGetF0(f0->f0(), config.espsConfig);
 
-  f0->init();
+  f0->f0().init();
 
-  MainWindow mainWindow(config);
+  MainWindow mainWindow(config, *f0);
   mainWindow.show();
 
-  f0->setViewer(&mainWindow);
-
-  // Run on new thread
-  std::thread inputThread(std::bind(&Foo::run, f0));
+  f0->start();
 
   return app.exec();
 }
