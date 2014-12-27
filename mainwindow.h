@@ -19,7 +19,7 @@
 #include <QGLWidget>
 #include <QTimer>
 
-#include "f0threadclient.h"
+#include "f0thread.h"
 
 class MainWindow;
 
@@ -47,8 +47,6 @@ protected:
 
 private:
 
-  QTimer *m_timer;
-
   MainWindow *m_parent;
 
   bool m_update_pending;
@@ -64,9 +62,9 @@ class MainWindow : public QMainWindow {
 
 public:
 
-  MainWindow(const config::Config& config, F0ThreadClient& f0client);
+  MainWindow(const config::Config& config, F0Thread& f0thread);
 
-  F0ThreadClient& f0client() { return m_f0client; }
+  F0Thread& f0thread() { return m_f0thread; }
 
   const config::Config& config() const { return m_config; }
 
@@ -80,7 +78,7 @@ private:
 
   Ui::MainWindow m_ui;
 
-  F0ThreadClient& m_f0client;
+  F0Thread& m_f0thread;
 
   const config::Config& m_config;
 };

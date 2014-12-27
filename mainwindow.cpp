@@ -24,13 +24,9 @@
 
 ViewerWidget::ViewerWidget(QWidget* parent)
     : QGLWidget(parent),
-      m_timer(new QTimer(this)),
       m_parent(dynamic_cast<MainWindow*>(parent)),
       m_update_pending(false)
 {
-  QObject::connect(m_timer, SIGNAL(timeout()), this, SLOT(renderLater()));
-  m_timer->setTimerType(Qt::PreciseTimer);
-  m_timer->start(1000 / 120);
 }
 
 void ViewerWidget::renderLater() {
@@ -53,7 +49,7 @@ void ViewerWidget::renderNow() {
   int width = size().width();
   int height = size().height();
 
-  std::lock_guard<std::mutex> lockGuard(m_parent->f0client().mutex());
+  std::lock_guard<std::mutex> lockGuard(m_parent->f0thread().mutex());
 
   auto noteToPos = [this, uiConfig, height](double note) {
     return height -
@@ -66,7 +62,7 @@ void ViewerWidget::renderNow() {
 
 
   double position = 0;
-  for (auto f0 : m_parent->f0client().cb()) {
+  for (auto f0 : m_parent->f0thread().cb()) {
     if (f0 != 0) {
 
       double ypos = noteToPos(f0);
@@ -109,8 +105,8 @@ void ViewerWidget::resizeEvent(QResizeEvent* event)
   emit widthChanged(event->size().width());
 }
 
-MainWindow::MainWindow(const config::Config& config, F0ThreadClient& f0client)
-    : m_config(config), m_f0client(f0client)
+MainWindow::MainWindow(const config::Config& config, F0Thread& f0thread)
+    : m_config(config), m_f0thread(f0thread)
 {
   ViewerWidget* vw = new ViewerWidget(this);
   vw->setObjectName("viewer");
@@ -119,6 +115,8 @@ MainWindow::MainWindow(const config::Config& config, F0ThreadClient& f0client)
   resize(m_config.uiConfig.width, m_config.uiConfig.height);
 
   setCentralWidget(vw);
+
+  QObject::connect(&f0thread, SIGNAL(updated()), vw, SLOT(renderLater()));
 }
 
 void MainWindow::on_action_About_triggered()
@@ -129,6 +127,6 @@ void MainWindow::on_action_About_triggered()
 
 void MainWindow::on_viewer_widthChanged(int width)
 {
-  std::lock_guard<std::mutex> lockGuard(m_f0client.mutex());
-  m_f0client.cb().resize(width / m_config.uiConfig.note_width);
+  std::lock_guard<std::mutex> lockGuard(m_f0thread.mutex());
+  m_f0thread.cb().resize(width / m_config.uiConfig.note_width);
 }

@@ -17,23 +17,28 @@
 #ifndef INCLUDED_F0THREAD
 #define INCLUDED_F0THREAD
 
+#include <mutex>
+
 #include <QThread>
 
 #include <portaudiocpp/BlockingStream.hxx>
 
+#include "CircularBuffer.h"
 #include "GetF0/get_f0_stream.h"
-#include "f0threadclient.h"
 
-class F0Thread : public QThread,
-                 public F0ThreadClient {
+class F0Thread : public QThread {
   Q_OBJECT
 private:
 
   struct F0StreamImpl : public GetF0::GetF0Stream {
 
     F0StreamImpl(portaudio::BlockingStream* s, double sampleFrequency,
-                 std::mutex& mutex, CircularBuffer<float>& cb)
-        : GetF0Stream(sampleFrequency), s_(s), mutex_i_(mutex), cb_i_(cb)
+                 F0Thread& parent, std::mutex& mutex, CircularBuffer<float>& cb)
+        : GetF0Stream(sampleFrequency),
+          s_(s),
+          parent_(parent),
+          mutex_i_(mutex),
+          cb_i_(cb)
     {
       s_->start();
     }
@@ -41,11 +46,15 @@ private:
     void write_output_reversed(float* f0p, float* vuvp, float* rms_speech,
                                float* acpkp, int vecsize) override
     {
-      std::lock_guard<std::mutex> lockGuard(mutex_i_);
+      {
+        std::lock_guard<std::mutex> lockGuard(mutex_i_);
 
-      for (int i = vecsize - 1; i >= 0; --i) {
-        cb_i_.push_back(f0p[i]);
+        for (int i = vecsize - 1; i >= 0; --i) {
+          cb_i_.push_back(f0p[i]);
+        }
       }
+
+      emit parent_.updated();
     }
 
     long read_stream_samples(short* buffer, long num_records) override
@@ -53,6 +62,8 @@ private:
       s_->read(buffer, num_records);
       return num_records;
     }
+
+    F0Thread& parent_;
 
     portaudio::BlockingStream *s_;
 
@@ -63,15 +74,19 @@ private:
 public:
 
   F0Thread(portaudio::BlockingStream* s, double sampleFrequency)
-      : cb_(0), f0_(s, sampleFrequency, mutex_, cb_)
+      : cb_(0), f0_(s, sampleFrequency, *this, mutex_, cb_)
   {
   }
 
-  CircularBuffer<float>& cb() override { return cb_; }
+  CircularBuffer<float>& cb() { return cb_; }
 
-  std::mutex& mutex() override { return mutex_; }
+  std::mutex& mutex() { return mutex_; }
 
   F0StreamImpl& f0() { return f0_; }
+
+signals:
+
+  void updated();
 
 protected:
 
