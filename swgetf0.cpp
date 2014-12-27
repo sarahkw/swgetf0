@@ -24,20 +24,8 @@
 #include "mainwindow.h"
 #include "configuration.h"
 #include "config.h"
-#include "GetF0/get_f0_stream.h"
 #include "configuregetf0.h"
 #include "f0thread.h"
-
-
-////////////////////////////////////////////////////////////////////////////////
-//
-
-#include <iostream>
-#include <thread>
-
-//
-////////////////////////////////////////////////////////////////////////////////
-
 
 int main(int argc, char* argv[])
 {
@@ -56,8 +44,7 @@ int main(int argc, char* argv[])
   config::Config config = inputDevice->getConfig();
   delete inputDevice;
 
-  F0Thread* f0;
-
+  portaudio::BlockingStream* blockingStream = nullptr;
   {
     portaudio::System& sys = portaudio::System::instance();
 
@@ -71,18 +58,19 @@ int main(int argc, char* argv[])
 
     Q_ASSERT(sp.isSupported());
 
-    f0 = new F0Thread(new portaudio::BlockingStream(sp),
-                      config.audioConfig.sample_rate);
+    blockingStream = new portaudio::BlockingStream(sp);
   }
 
-  ConfigureGetF0(f0->f0(), config.espsConfig);
+  F0Thread f0(blockingStream, config.audioConfig.sample_rate);
 
-  f0->f0().init();
+  ConfigureGetF0(f0.f0(), config.espsConfig);
 
-  MainWindow mainWindow(config, *f0);
+  f0.f0().init();
+
+  MainWindow mainWindow(config, f0);
   mainWindow.show();
 
-  f0->start();
+  f0.start();
 
   return app.exec();
 }
