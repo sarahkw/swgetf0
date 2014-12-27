@@ -1,5 +1,5 @@
-#ifndef INCLUDED_GET_F0_H
-#define INCLUDED_GET_F0_H
+#ifndef INCLUDED_GET_F0
+#define INCLUDED_GET_F0
 
 #include <sstream>
 #include <stdexcept>

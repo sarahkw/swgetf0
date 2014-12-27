@@ -14,8 +14,8 @@
   limitations under the License.
 */
 
-#ifndef INCLUDED_SCHEMEINTERFACE_H
-#define INCLUDED_SCHEMEINTERFACE_H
+#ifndef INCLUDED_SCHEMEINTERFACE
+#define INCLUDED_SCHEMEINTERFACE
 
 #include <QString>
 #include <QResource>

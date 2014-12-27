@@ -14,8 +14,8 @@
   limitations under the License.
 */
 
-#ifndef INCLUDED_CONFIGUREGETF0_H
-#define INCLUDED_CONFIGUREGETF0_H
+#ifndef INCLUDED_CONFIGUREGETF0
+#define INCLUDED_CONFIGUREGETF0
 
 namespace GetF0 {
 class GetF0;
