@@ -27,3 +27,10 @@ TEST(Scheme, HelloWorld)
   EXPECT_EQ(std::string(ptr.string_value()),
             std::string("hello world!"));
 }
+
+TEST(Scheme, ParseError)
+{
+  schemeinterface::SchemeInterface si;
+  EXPECT_THROW(si.read_eval(")"), // syntax error
+               schemeinterface::SchemeReturnCodeException);
+}
