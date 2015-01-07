@@ -84,7 +84,7 @@ pointer ff_report_error(scheme * sc, pointer args)
 {
   PtrIter argsIter(Ptr(sc, args));
 
-  qDebug() << "Reported error" << (*argsIter).string_value();
+  qDebug() << "(ff_report_error)" << (*argsIter).string_value();
 }
 
 } // namespace anonymous
@@ -97,12 +97,12 @@ SchemeInterface::SchemeInterface() : sc_(scheme_init_new())
 
   scheme_set_output_port_file(sc_, stdout);
 
-  loadResource(":/tinyscheme/init.scm");
-  loadResource(":/scheme/schemeinterface.scm");
-
   scheme_registerable foreignFuncs[] = {{ff_report_error, "si/report-error"}};
   scheme_register_foreign_func_list(
       sc_, foreignFuncs, sizeof(foreignFuncs) / sizeof(*foreignFuncs));
+
+  loadResource(":/tinyscheme/init.scm");
+  loadResource(":/scheme/schemeinterface.scm");
 }
 
 void SchemeInterface::loadResource(const char *resource)
