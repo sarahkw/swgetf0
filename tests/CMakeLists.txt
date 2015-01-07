@@ -7,6 +7,7 @@ include_directories("${GMOCK_PATH}/include")
 add_executable(unittest
   TestCircularBuffer.cpp
   TestStreamReadBuffer.cpp
+  TestScheme.cpp
   ../unused/StreamReadBuffer.cpp)
 qt5_use_modules(unittest Widgets)
 target_link_libraries(unittest
