@@ -14,10 +14,16 @@
   limitations under the License.
 */
 
+#include "../schemeinterface.h"
+
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
 TEST(Scheme, HelloWorld)
 {
-  ASSERT_TRUE(true);
+  schemeinterface::SchemeInterface si;
+  auto ptr = si.read_eval("\"hello world!\"");
+  ASSERT_TRUE(ptr.is_string());
+  EXPECT_EQ(std::string(ptr.string_value()),
+            std::string("hello world!"));
 }
