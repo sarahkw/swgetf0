@@ -6,7 +6,6 @@ include_directories("${GMOCK_PATH}/include")
 
 add_executable(unittest
   TestCircularBuffer.cpp
-  TestStreamReadBuffer.cpp
   TestScheme.cpp
   ../schemeinterface.cpp
   ../unused/StreamReadBuffer.cpp
