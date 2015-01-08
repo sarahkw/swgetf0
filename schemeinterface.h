@@ -28,24 +28,32 @@ typedef struct cell *pointer;
 
 namespace schemeinterface {
 
+struct Ptr;
+
 class SchemeException {
 public:
-  SchemeException(QString arg) : arg_(arg) {}
+  SchemeException(pointer error, QString arg) : error_(error), arg_(arg) {}
 
   QString what() const {
     return arg_;
+  }
+
+  pointer error() const {
+    return error_;
   }
 
 protected:
 
   QString arg_;
 
+  pointer error_;
+
 };
 
 class SchemeReturnCodeException : public SchemeException {
 public:
-  SchemeReturnCodeException(int retcode)
-      : SchemeException(QString("Non-zero return code %1").arg(retcode))
+  SchemeReturnCodeException(pointer error, int retcode)
+      : SchemeException(error, QString("Non-zero return code %1").arg(retcode))
   {
   }
 };
@@ -143,6 +151,13 @@ struct SchemeInterface {
   Ptr eval(pointer obj);
 
   scheme *sc_;
+
+  pointer lastError_;
+
+private:
+
+  void check_retcode();
+
 };
 
 } // namespace schemeinterface

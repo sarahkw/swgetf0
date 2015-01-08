@@ -31,6 +31,20 @@ TEST(Scheme, HelloWorld)
 TEST(Scheme, ParseError)
 {
   schemeinterface::SchemeInterface si;
-  EXPECT_THROW(si.read_eval(")"), // syntax error
+  ASSERT_THROW(si.read_eval(")"), // syntax error
                schemeinterface::SchemeReturnCodeException);
+
+  try {
+    si.read_eval(")");
+  } catch (const schemeinterface::SchemeReturnCodeException& e) {
+    schemeinterface::PtrIter errorArgs(schemeinterface::Ptr(si.sc_, e.error()));
+
+    ASSERT_NE(errorArgs.begin(), errorArgs.end());
+
+    schemeinterface::Ptr firstArg(*errorArgs.begin());
+
+    ASSERT_TRUE(firstArg.is_string());
+    EXPECT_EQ(std::string(firstArg.string_value()),
+              "syntax error: illegal token");
+  }
 }

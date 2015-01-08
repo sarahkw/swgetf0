@@ -82,18 +82,19 @@ namespace {
 
 pointer ff_report_error(scheme * sc, pointer args)
 {
-  PtrIter argsIter(Ptr(sc, args));
-
-  qDebug() << "(ff_report_error)" << (*argsIter).string_value();
+  SchemeInterface *si = reinterpret_cast<SchemeInterface *>(sc->ext_data);
+  si->lastError_ = args;
 }
 
 } // namespace anonymous
 
 
 
-SchemeInterface::SchemeInterface() : sc_(scheme_init_new())
+SchemeInterface::SchemeInterface() : sc_(scheme_init_new()), lastError_(NULL)
 {
   Q_ASSERT(sc_ != nullptr);
+
+  scheme_set_external_data(sc_, reinterpret_cast<void *>(this));
 
   scheme_set_output_port_file(sc_, stdout);
 
@@ -128,50 +129,50 @@ Ptr SchemeInterface::read_eval(const char* script)
   return ret;
 }
 
-namespace {
-void check_retcode(scheme *sc)
-{
-  if (sc->retcode != 0) {
-    throw SchemeReturnCodeException(sc->retcode);
-  }
-}
-}
-
 void SchemeInterface::load_file(FILE *fin)
 {
   scheme_load_file(sc_, fin);
-  check_retcode(sc_);
+  check_retcode();
 }
 
 void SchemeInterface::load_named_file(FILE *fin, const char *filename)
 {
   scheme_load_named_file(sc_, fin, filename);
-  check_retcode(sc_);
+  check_retcode();
 }
 
 void SchemeInterface::load_string(const char *cmd)
 {
   scheme_load_string(sc_, cmd);
-  check_retcode(sc_);
+  check_retcode();
 }
 
 Ptr SchemeInterface::apply0(const char *procname)
 {
   pointer ret = scheme_apply0(sc_, procname);
-  check_retcode(sc_);
+  check_retcode();
   return Ptr(sc_, ret);
 }
 
 Ptr SchemeInterface::call(pointer func, pointer args)
 {
   pointer ret = scheme_call(sc_, func, args);
-  check_retcode(sc_);
+  check_retcode();
   return Ptr(sc_, ret);
 }
 
 Ptr SchemeInterface::eval(pointer obj)
 {
   pointer ret = scheme_eval(sc_, obj);
-  check_retcode(sc_);
+  check_retcode();
   return Ptr(sc_, ret);
+}
+
+void SchemeInterface::check_retcode()
+{
+  if (sc_->retcode != 0) {
+    auto errorToThrow = lastError_;
+    lastError_ = NULL;
+    throw SchemeReturnCodeException(errorToThrow, sc_->retcode);
+  }
 }
