@@ -64,7 +64,7 @@ void ViewerWidget::renderNow() {
   double minNote = frequencyToKey(uiConfig.min_note);
   double maxNote = frequencyToKey(uiConfig.max_note);
 
-  auto noteToPos = [this, uiConfig, height, minNote, maxNote](double note) {
+  auto noteToPos = [height, minNote, maxNote](double note) {
     note = frequencyToKey(note);
     return height -
            (note - minNote) *
