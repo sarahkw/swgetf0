@@ -106,6 +106,11 @@ SchemeInterface::SchemeInterface() : sc_(scheme_init_new()), lastError_(NULL)
   loadResource(":/scheme/schemeinterface.scm");
 }
 
+SchemeInterface::~SchemeInterface()
+{
+  scheme_deinit(sc_);
+}
+
 void SchemeInterface::loadResource(const char *resource)
 {
   GetDataFromResource gdfr(resource);

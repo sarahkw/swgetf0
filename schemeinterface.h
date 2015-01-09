@@ -137,6 +137,8 @@ inline void loadValues(PtrIter iter, Arg1 &arg1, Args &... args)
 struct SchemeInterface {
   SchemeInterface();
 
+  virtual ~SchemeInterface();
+
   void loadResource(const char *resource);
 
   Ptr read_eval(const char* script);
