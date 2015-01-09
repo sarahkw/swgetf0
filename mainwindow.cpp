@@ -20,6 +20,8 @@
 #include <QPainter>
 #include <QResizeEvent>
 
+#include <cmath>
+
 #include "config.h"
 
 ViewerWidget::ViewerWidget(QWidget* parent)
@@ -36,6 +38,16 @@ void ViewerWidget::renderLater() {
     }
 }
 
+namespace {
+
+double frequencyToKey(double frequency)
+{
+  // http://en.wikipedia.org/wiki/Piano_key_frequencies
+  return 12 * log2(frequency / 440) + 49;
+}
+
+} // namespace anonymous
+
 void ViewerWidget::renderNow() {
   QPainter painter(this);
 
@@ -51,11 +63,14 @@ void ViewerWidget::renderNow() {
 
   std::lock_guard<std::mutex> lockGuard(m_parent->f0thread().mutex());
 
-  auto noteToPos = [this, uiConfig, height](double note) {
+  double minNote = frequencyToKey(uiConfig.min_note);
+  double maxNote = frequencyToKey(uiConfig.max_note);
+
+  auto noteToPos = [this, uiConfig, height, minNote, maxNote](double note) {
+    note = frequencyToKey(note);
     return height -
-           (note - uiConfig.min_note) *
-               (static_cast<double>(height) /
-                (uiConfig.max_note - uiConfig.min_note));
+           (note - minNote) *
+               (static_cast<double>(height) / (maxNote - minNote));
   };
 
   const double noteWidth = uiConfig.note_width;
