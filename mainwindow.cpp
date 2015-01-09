@@ -61,8 +61,6 @@ void ViewerWidget::renderNow() {
   int width = size().width();
   int height = size().height();
 
-  std::lock_guard<std::mutex> lockGuard(m_parent->f0thread().mutex());
-
   double minNote = frequencyToKey(uiConfig.min_note);
   double maxNote = frequencyToKey(uiConfig.max_note);
 
@@ -75,20 +73,22 @@ void ViewerWidget::renderNow() {
 
   const double noteWidth = uiConfig.note_width;
 
+  {
+    std::lock_guard<std::mutex> lockGuard(m_parent->f0thread().mutex());
 
-  double position = 0;
-  for (auto f0 : m_parent->f0thread().cb()) {
-    if (f0 != 0) {
+    double position = 0;
+    for (auto f0 : m_parent->f0thread().cb()) {
+      if (f0 != 0) {
+        double ypos = noteToPos(f0);
 
-      double ypos = noteToPos(f0);
+        painter.setPen(penWhite);
+        painter.setBrush(brushWhite);
 
-      painter.setPen(penWhite);
-      painter.setBrush(brushWhite);
+        painter.drawRect(position, ypos - 1, noteWidth, noteWidth);
+      }
 
-      painter.drawRect(position, ypos - 1, noteWidth, noteWidth);
+      position += noteWidth;
     }
-
-    position += noteWidth;
   }
 
   for (const auto& line : m_parent->config().uiMarkerLines.lines) {
