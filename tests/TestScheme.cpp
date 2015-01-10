@@ -37,23 +37,7 @@ TEST(Scheme, ParseError)
   try {
     si.read_eval(")");
   } catch (const schemeinterface::SchemeException& e) {
-    EXPECT_EQ(e.error(), QLatin1String("syntax error: illegal token"));
-  }
-}
-
-TEST(Scheme, BadError)
-{
-  schemeinterface::SchemeInterface si;
-
-  const char CODE[] = "(*error-hook* 123))";
-
-  ASSERT_THROW(si.read_eval(CODE),
-               schemeinterface::SchemeException);
-
-  try {
-    si.read_eval(CODE);
-  } catch (const schemeinterface::SchemeException& e) {
-    EXPECT_EQ(e.error(), QLatin1String(""));
+    EXPECT_EQ(e.error(), QLatin1String("(\"syntax error: illegal token\")"));
   }
 }
 
@@ -74,5 +58,22 @@ TEST(Scheme, ErrorWithoutReporting)
     si.read_eval(CODE);
   } catch (const schemeinterface::SchemeException& e) {
     EXPECT_EQ(e.error(), QLatin1String(""));
+  }
+}
+
+TEST(Scheme, MultipleErrorComponents)
+{
+  schemeinterface::SchemeInterface si;
+
+  // undefined variable
+  const char CODE[] = "asdf";
+
+  ASSERT_THROW(si.read_eval(CODE),
+               schemeinterface::SchemeException);
+
+  try {
+    si.read_eval(CODE);
+  } catch (const schemeinterface::SchemeException& e) {
+    EXPECT_EQ(e.error(), QLatin1String("(\"eval: unbound variable:\" asdf)"));
   }
 }

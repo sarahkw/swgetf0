@@ -83,14 +83,25 @@ namespace {
 pointer ff_report_error(scheme * sc, pointer args)
 {
   SchemeInterface *si = reinterpret_cast<SchemeInterface *>(sc->ext_data);
-  si->lastError_ = args;
+
+  // We're expecting lastError_ to be a list of 1 item, with an
+  // error string.
+  PtrIter pIter(Ptr(sc, args));
+
+  if (pIter.begin() != pIter.end() && (*pIter).is_string()) {
+    si->lastError_ = (*pIter).string_value();
+  } else {
+    // TODO Can we do something better here?
+    qDebug() << "Got an error that's not a list with a string as a first item.";
+    si->lastError_.clear();
+  }
 }
 
 } // namespace anonymous
 
 
 
-SchemeInterface::SchemeInterface() : sc_(scheme_init_new()), lastError_(NULL)
+SchemeInterface::SchemeInterface() : sc_(scheme_init_new())
 {
   Q_ASSERT(sc_ != nullptr);
 
@@ -175,27 +186,10 @@ Ptr SchemeInterface::eval(pointer obj)
 
 void SchemeInterface::check_retcode()
 {
+  auto throwError = lastError_;
+  lastError_.clear();
+
   if (sc_->retcode != 0) {
-    QString errorMessage;
-
-    if (lastError_ != NULL) {
-
-      // We're expecting lastError_ to be a list of 1 item, with an
-      // error string.
-      PtrIter pIter(Ptr(sc_, lastError_));
-
-      if (pIter.begin() != pIter.end() && (*pIter).is_string()) {
-        errorMessage = (*pIter).string_value();
-      }
-      else {
-        // TODO Can we do something better here?
-        qDebug()
-            << "Got an error that's not a list with a string as a first item.";
-      }
-
-      lastError_ = NULL;
-    }
-
-    throw SchemeException(sc_->retcode, errorMessage);
+    throw SchemeException(sc_->retcode, throwError);
   }
 }

@@ -148,7 +148,7 @@ struct SchemeInterface {
 
   scheme *sc_;
 
-  pointer lastError_;
+  QString lastError_;
 
 private:
 

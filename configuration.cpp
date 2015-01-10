@@ -123,7 +123,16 @@ void Configuration::on_buttonBox_accepted()
   QString configText = ui->txtConfig->toPlainText();
   QByteArray configTextBa = configText.toUtf8();
 
-  m_config = config::Config(configTextBa.constData());
+  try {
+    m_config = config::Config(configTextBa.constData());
+  } catch (const schemeinterface::SchemeException& e) {
+      QMessageBox msgBox(this);
+      msgBox.setText("Error loading configuration.");
+      msgBox.setInformativeText(e.error());
+      msgBox.setIcon(QMessageBox::Warning);
+      msgBox.exec();
+      return;
+  }
 
   {
     portaudio::System &sys = portaudio::System::instance();
