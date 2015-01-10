@@ -176,8 +176,22 @@ Ptr SchemeInterface::eval(pointer obj)
 void SchemeInterface::check_retcode()
 {
   if (sc_->retcode != 0) {
-    auto errorToThrow = lastError_;
+    pointer errorToThrow = lastError_;
     lastError_ = NULL;
-    throw SchemeReturnCodeException(errorToThrow, sc_->retcode);
+
+    // We're expecting errorToThrow to be a list of 1 item, with an
+    // error string.
+    PtrIter pIter(Ptr(sc_, errorToThrow));
+    QString errorMessage;
+
+    if (pIter.begin() != pIter.end() && (*pIter).is_string()) {
+      errorMessage = (*pIter).string_value();
+    } else {
+      // TODO Can we do something better here?
+      qDebug()
+          << "Got an error that's not a list with a string as a first item.";
+    }
+
+    throw SchemeException(sc_->retcode, errorMessage);
   }
 }

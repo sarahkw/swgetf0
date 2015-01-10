@@ -32,19 +32,27 @@ TEST(Scheme, ParseError)
 {
   schemeinterface::SchemeInterface si;
   ASSERT_THROW(si.read_eval(")"), // syntax error
-               schemeinterface::SchemeReturnCodeException);
+               schemeinterface::SchemeException);
 
   try {
     si.read_eval(")");
-  } catch (const schemeinterface::SchemeReturnCodeException& e) {
-    schemeinterface::PtrIter errorArgs(schemeinterface::Ptr(si.sc_, e.error()));
+  } catch (const schemeinterface::SchemeException& e) {
+    EXPECT_EQ(e.error(), QLatin1String("syntax error: illegal token"));
+  }
+}
 
-    ASSERT_NE(errorArgs.begin(), errorArgs.end());
+TEST(Scheme, BadError)
+{
+  schemeinterface::SchemeInterface si;
 
-    schemeinterface::Ptr firstArg(*errorArgs.begin());
+  const char CODE[] = "(*error-hook* 123))";
 
-    ASSERT_TRUE(firstArg.is_string());
-    EXPECT_EQ(std::string(firstArg.string_value()),
-              "syntax error: illegal token");
+  ASSERT_THROW(si.read_eval(CODE),
+               schemeinterface::SchemeException);
+
+  try {
+    si.read_eval(CODE);
+  } catch (const schemeinterface::SchemeException& e) {
+    EXPECT_EQ(e.error(), QLatin1String(""));
   }
 }

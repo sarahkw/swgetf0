@@ -32,30 +32,24 @@ struct Ptr;
 
 class SchemeException {
 public:
-  SchemeException(pointer error, QString arg) : error_(error), arg_(arg) {}
-
-  QString what() const {
-    return arg_;
+  SchemeException(int retcode, QString error) : retcode_(retcode), error_(error)
+  {
   }
 
-  pointer error() const {
+  int retcode() const {
+    return retcode_;
+  }
+
+  const QString& error() const {
     return error_;
   }
 
 protected:
 
-  QString arg_;
+  int retcode_;
 
-  pointer error_;
+  QString error_;
 
-};
-
-class SchemeReturnCodeException : public SchemeException {
-public:
-  SchemeReturnCodeException(pointer error, int retcode)
-      : SchemeException(error, QString("Non-zero return code %1").arg(retcode))
-  {
-  }
 };
 
 struct GetDataFromResource {
