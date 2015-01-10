@@ -18,6 +18,7 @@
 #include "ui_configuration.h"
 
 #include <QDebug>
+#include <QMessageBox>
 
 #include <portaudiocpp/System.hxx>
 #include <portaudiocpp/SystemHostApiIterator.hxx>
@@ -144,7 +145,15 @@ void Configuration::on_buttonBox_accepted()
         paFramesPerBufferUnspecified,
         paNoFlag);
 
-    Q_ASSERT(m_streamParameters.isSupported());
+
+    if (!m_streamParameters.isSupported()) {
+      // Test by setting sample rate to something absurd like -1.
+      QMessageBox msgBox(this);
+      msgBox.setText("Audio configuration not supported.");
+      msgBox.setIcon(QMessageBox::Warning);
+      msgBox.exec();
+      return;
+    }
   }
 
   emit accept();
