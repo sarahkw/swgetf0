@@ -42,24 +42,10 @@ int main(int argc, char* argv[])
 
   PaDeviceIndex paDeviceIndex = inputDevice->getDeviceIndex();
   config::Config config = inputDevice->getConfig();
+
+  portaudio::BlockingStream* blockingStream =
+      new portaudio::BlockingStream(inputDevice->getStreamParameters());
   delete inputDevice;
-
-  portaudio::BlockingStream* blockingStream = nullptr;
-  {
-    portaudio::System& sys = portaudio::System::instance();
-
-    portaudio::Device &device = sys.deviceByIndex(paDeviceIndex);
-    portaudio::DirectionSpecificStreamParameters isp(
-        device, 1, portaudio::INT16, true, device.defaultLowInputLatency(),
-        NULL);
-    portaudio::StreamParameters sp(
-        isp, portaudio::DirectionSpecificStreamParameters::null(),
-        config.audioConfig.sample_rate, paFramesPerBufferUnspecified, paNoFlag);
-
-    Q_ASSERT(sp.isSupported());
-
-    blockingStream = new portaudio::BlockingStream(sp);
-  }
 
   F0Thread f0(blockingStream, config.audioConfig.sample_rate);
 

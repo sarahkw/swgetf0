@@ -22,6 +22,7 @@
 
 #include <portaudiocpp/Device.hxx>
 #include <portaudiocpp/HostApi.hxx>
+#include <portaudiocpp/StreamParameters.hxx>
 
 #include "config.h"
 
@@ -41,6 +42,8 @@ public:
 
   config::Config getConfig() const;
 
+  portaudio::StreamParameters getStreamParameters() const;
+
 public slots:
 
   void on_cmbAudioHost_currentIndexChanged(int index);
@@ -54,6 +57,8 @@ private:
   QMap<int, PaDeviceIndex> m_indexToDeviceIndex;
 
   config::Config m_config;
+
+  portaudio::StreamParameters m_streamParameters;
 };
 
 #endif // CONFIGURATION_H

@@ -96,6 +96,10 @@ config::Config Configuration::getConfig() const
   return m_config;
 }
 
+portaudio::StreamParameters Configuration::getStreamParameters() const
+{
+  return m_streamParameters;
+}
 
 void Configuration::on_cmbAudioHost_currentIndexChanged(int index)
 {
@@ -119,6 +123,29 @@ void Configuration::on_buttonBox_accepted()
   QByteArray configTextBa = configText.toUtf8();
 
   m_config = config::Config(configTextBa.constData());
+
+  {
+    portaudio::System &sys = portaudio::System::instance();
+
+    portaudio::Device &device = sys.deviceByIndex(getDeviceIndex());
+
+    portaudio::DirectionSpecificStreamParameters isp(
+        device,
+        1,
+        portaudio::INT16,
+        true,
+        device.defaultLowInputLatency(),
+        NULL);
+
+    m_streamParameters = portaudio::StreamParameters(
+        isp,
+        portaudio::DirectionSpecificStreamParameters::null(),
+        m_config.audioConfig.sample_rate,
+        paFramesPerBufferUnspecified,
+        paNoFlag);
+
+    Q_ASSERT(m_streamParameters.isSupported());
+  }
 
   emit accept();
 }
