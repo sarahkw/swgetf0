@@ -56,3 +56,23 @@ TEST(Scheme, BadError)
     EXPECT_EQ(e.error(), QLatin1String(""));
   }
 }
+
+TEST(Scheme, ErrorWithoutReporting)
+{
+  // *error-hook* is set up to call si/report-error so that
+  // *schemeinterface knows about the error. If we bypass *error-hook*
+  // *and call error directly, we should not segfault.
+
+  schemeinterface::SchemeInterface si;
+
+  const char CODE[] = "(error 123)";
+
+  ASSERT_THROW(si.read_eval(CODE),
+               schemeinterface::SchemeException);
+
+  try {
+    si.read_eval(CODE);
+  } catch (const schemeinterface::SchemeException& e) {
+    EXPECT_EQ(e.error(), QLatin1String(""));
+  }
+}

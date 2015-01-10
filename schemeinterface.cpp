@@ -176,20 +176,24 @@ Ptr SchemeInterface::eval(pointer obj)
 void SchemeInterface::check_retcode()
 {
   if (sc_->retcode != 0) {
-    pointer errorToThrow = lastError_;
-    lastError_ = NULL;
-
-    // We're expecting errorToThrow to be a list of 1 item, with an
-    // error string.
-    PtrIter pIter(Ptr(sc_, errorToThrow));
     QString errorMessage;
 
-    if (pIter.begin() != pIter.end() && (*pIter).is_string()) {
-      errorMessage = (*pIter).string_value();
-    } else {
-      // TODO Can we do something better here?
-      qDebug()
-          << "Got an error that's not a list with a string as a first item.";
+    if (lastError_ != NULL) {
+
+      // We're expecting lastError_ to be a list of 1 item, with an
+      // error string.
+      PtrIter pIter(Ptr(sc_, lastError_));
+
+      if (pIter.begin() != pIter.end() && (*pIter).is_string()) {
+        errorMessage = (*pIter).string_value();
+      }
+      else {
+        // TODO Can we do something better here?
+        qDebug()
+            << "Got an error that's not a list with a string as a first item.";
+      }
+
+      lastError_ = NULL;
     }
 
     throw SchemeException(sc_->retcode, errorMessage);
