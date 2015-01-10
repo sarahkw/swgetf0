@@ -19,6 +19,16 @@
 (define color-sub    (rgb 50 0 0))  ; Less attention
 (define color-target (rgb 255 0 0)) ; More attention
 
+
+; http://www.reddit.com/r/asktransgender/comments/1wi7uk/violets_voice_tips/
+(define (violet stage)
+  (map (lambda (freq) (cons freq (rgb 0 80 0)))
+       (case stage
+         ((1) '(165 170))
+         ((2) '(175 185))
+         ((3) '(185 200))
+         ((4) '(205 220)))))
+
 (ui-marker-lines
  220 color-target ; A3
  247 color-normal ; B3
@@ -27,6 +37,9 @@
  294 color-normal ; D4
  330 color-normal ; E4
  131 color-normal ; C3
+
+ (violet 1)
+ (violet 4)
  )
 
 ;; ESPS ------------------------------------------------------------------------
