@@ -15,17 +15,15 @@
 */
 
 #include <QApplication>
-#include <QDebug>
 
 #include <portaudiocpp/AutoSystem.hxx>
-#include <portaudiocpp/StreamParameters.hxx>
 #include <portaudiocpp/BlockingStream.hxx>
 
-#include "mainwindow.h"
-#include "configuration.h"
 #include "config.h"
+#include "configuration.h"
 #include "configuregetf0.h"
 #include "f0thread.h"
+#include "mainwindow.h"
 
 int main(int argc, char* argv[])
 {
@@ -33,19 +31,19 @@ int main(int argc, char* argv[])
 
   QApplication app(argc, argv);
 
-  Configuration* inputDevice = new Configuration();
-  int result = inputDevice->exec();
+  Configuration* configDialog = new Configuration();
+  int result = configDialog->exec();
   if (result == QDialog::Rejected) {
-    delete inputDevice;
+    delete configDialog;
     return 0;
   }
 
-  PaDeviceIndex paDeviceIndex = inputDevice->getDeviceIndex();
-  config::Config config = inputDevice->getConfig();
+  PaDeviceIndex paDeviceIndex = configDialog->getDeviceIndex();
+  config::Config config = configDialog->getConfig();
 
   portaudio::BlockingStream* blockingStream =
-      new portaudio::BlockingStream(inputDevice->getStreamParameters());
-  delete inputDevice;
+      new portaudio::BlockingStream(configDialog->getStreamParameters());
+  delete configDialog;
 
   F0Thread f0(blockingStream, config.audioConfig.sample_rate);
 
