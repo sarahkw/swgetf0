@@ -45,9 +45,9 @@ int dp_f0(float *fdata, int buff_size, int sdstep, double freq, F0_params *par,
 
 namespace GetF0 {
 
-GetF0::GetF0(SampleFrequency sampleFrequency, DebugLevel debugLevel)
+GetF0::GetF0(DebugLevel debugLevel)
     : m_par(new f0_params),
-      m_sampleFrequency(sampleFrequency),
+      m_sampleFrequency(0),
       m_debugLevel(debugLevel),
       m_initialized(false),
       m_streamBufferSize(0),
@@ -75,9 +75,11 @@ void GetF0::resetParameters()
   m_par->n_cands = 20;
 }
 
-void GetF0::init()
+void GetF0::init(SampleFrequency sampleFrequency)
 {
-  checkParameters();
+  checkParameters(sampleFrequency);
+
+  m_sampleFrequency = sampleFrequency;
 
   /*SW: Removed range restricter, but this may be interesting:
     if (total_samps < ((par->frame_step * 2.0) + par->wind_dur) * sf), then
@@ -130,7 +132,7 @@ void GetF0::run()
   }
 }
 
-void GetF0::checkParameters()
+void GetF0::checkParameters(SampleFrequency sampleFrequency)
 {
   std::vector<std::string> errors;
 
@@ -144,14 +146,14 @@ void GetF0::checkParameters()
     errors.push_back("n_cands parameter must be between [3,100].");
   }
   if ((m_par->max_f0 <= m_par->min_f0) ||
-      (m_par->max_f0 >= (m_sampleFrequency / 2.0)) ||
-      (m_par->min_f0 < (m_sampleFrequency / 10000.0))) {
+      (m_par->max_f0 >= (sampleFrequency / 2.0)) ||
+      (m_par->min_f0 < (sampleFrequency / 10000.0))) {
     errors.push_back(
         "min(max)_f0 parameter inconsistent with sampling frequency.");
   }
   double dstep =
-      ((double)((int)(0.5 + (m_sampleFrequency * m_par->frame_step)))) /
-      m_sampleFrequency;
+      ((double)((int)(0.5 + (sampleFrequency * m_par->frame_step)))) /
+      sampleFrequency;
   if (dstep != m_par->frame_step) {
     if (debug_level)
       Fprintf(stderr,
@@ -160,7 +162,7 @@ void GetF0::checkParameters()
     m_par->frame_step = dstep;
   }
   if ((m_par->frame_step > 0.1) ||
-      (m_par->frame_step < (1.0 / m_sampleFrequency))) {
+      (m_par->frame_step < (1.0 / sampleFrequency))) {
     errors.push_back(
         "frame_step parameter must be between [1/sampling rate, "
         "0.1].");

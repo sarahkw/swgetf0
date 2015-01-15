@@ -5,8 +5,8 @@
 
 namespace GetF0 {
 
-GetF0Stream::GetF0Stream(SampleFrequency sampleFrequency, DebugLevel debugLevel)
-    : GetF0(sampleFrequency, debugLevel), m_buffer(nullptr), m_eof(false)
+GetF0Stream::GetF0Stream(DebugLevel debugLevel)
+    : GetF0(debugLevel), m_buffer(nullptr), m_eof(false)
 {
 }
 
@@ -16,9 +16,9 @@ GetF0Stream::~GetF0Stream()
     delete [] m_buffer;
 }
 
-void GetF0Stream::init()
+void GetF0Stream::init(SampleFrequency sampleFrequency)
 {
-  GetF0::init();
+  GetF0::init(sampleFrequency);
 
   m_buffer = new Sample[streamBufferSize()];
 

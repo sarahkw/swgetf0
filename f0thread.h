@@ -32,13 +32,9 @@ private:
 
   struct F0StreamImpl : public GetF0::GetF0Stream {
 
-    F0StreamImpl(portaudio::BlockingStream* s, double sampleFrequency,
-                 F0Thread& parent, std::mutex& mutex, CircularBuffer<float>& cb)
-        : GetF0Stream(sampleFrequency),
-          s_(s),
-          parent_(parent),
-          mutex_i_(mutex),
-          cb_i_(cb)
+    F0StreamImpl(portaudio::BlockingStream* s, F0Thread& parent,
+                 std::mutex& mutex, CircularBuffer<float>& cb)
+        : s_(s), parent_(parent), mutex_i_(mutex), cb_i_(cb)
     {
       s_->start();
     }
@@ -73,8 +69,8 @@ private:
 
 public:
 
-  F0Thread(portaudio::BlockingStream* s, double sampleFrequency)
-      : cb_(0), f0_(s, sampleFrequency, *this, mutex_, cb_)
+  F0Thread(portaudio::BlockingStream* s)
+      : cb_(0), f0_(s, *this, mutex_, cb_)
   {
   }
 

@@ -44,16 +44,16 @@ public:
   typedef double SampleFrequency;
   typedef int DebugLevel;
 
-  GetF0(SampleFrequency sampleFrequency, DebugLevel debugLevel = 0);
+  GetF0(DebugLevel debugLevel = 0);
   virtual ~GetF0();
 
   void resetParameters();
 
   /// @brief Some consistency checks on parameter values. Throws
   /// ParameterError if there's something wrong.
-  void checkParameters();
+  void checkParameters(SampleFrequency sampleFrequency);
 
-  virtual void init();
+  virtual void init(SampleFrequency sampleFrequency);
   void run();
 
   // ----------------------------------------

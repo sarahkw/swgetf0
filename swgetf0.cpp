@@ -45,11 +45,11 @@ int main(int argc, char* argv[])
       new portaudio::BlockingStream(configDialog->getStreamParameters());
   delete configDialog;
 
-  F0Thread f0(blockingStream, config.audioConfig.sample_rate);
+  F0Thread f0(blockingStream);
 
   ConfigureGetF0(f0.f0(), config.espsConfig);
 
-  f0.f0().init();
+  f0.f0().init(config.audioConfig.sample_rate);
 
   MainWindow mainWindow(config, f0);
   mainWindow.show();

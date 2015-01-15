@@ -10,11 +10,11 @@ namespace GetF0 {
 class GetF0Stream : public GetF0 {
 public:
 
-  GetF0Stream(SampleFrequency sampleFrequency, DebugLevel debugLevel = 0);
+  GetF0Stream(DebugLevel debugLevel = 0);
 
   virtual ~GetF0Stream();
 
-  void init() override;
+  void init(SampleFrequency sampleFrequency) override;
 
 protected:
 
