@@ -23,8 +23,8 @@
  220 color-target ; A3
  247 color-normal ; B3
  262 color-normal ; C4
- 277 color-sub    ; C#4
  294 color-normal ; D4
+ 311 color-sub    ; D#4
  330 color-normal ; E4
  131 color-normal ; C3
  )
