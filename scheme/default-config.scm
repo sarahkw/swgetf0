@@ -19,15 +19,6 @@
 (define color-sub    (rgb 50 0 0))  ; Less attention
 (define color-target (rgb 255 0 0)) ; More attention
 
-; Some pitch targets
-(define (violets-voice-tips stage)
-  (map (lambda (freq) (cons freq (rgb 0 80 0)))
-       (case stage
-         ((1) '(165 170))
-         ((2) '(175 185))
-         ((3) '(185 200))
-         ((4) '(205 220)))))
-
 (ui-marker-lines
  220 color-target ; A3
  247 color-normal ; B3
@@ -36,8 +27,6 @@
  294 color-normal ; D4
  330 color-normal ; E4
  131 color-normal ; C3
-
- (violets-voice-tips 4)
  )
 
 ;; ESPS ------------------------------------------------------------------------
