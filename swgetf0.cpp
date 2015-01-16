@@ -45,7 +45,8 @@ int main(int argc, char* argv[])
       new portaudio::BlockingStream(configDialog->getStreamParameters());
   delete configDialog;
 
-  F0Thread f0(blockingStream);
+  F0Thread f0;
+  f0.f0().setStream(blockingStream);
 
   ConfigureGetF0(f0.f0(), config.espsConfig);
 

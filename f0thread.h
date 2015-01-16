@@ -32,10 +32,14 @@ private:
 
   struct F0StreamImpl : public GetF0::GetF0Stream {
 
-    F0StreamImpl(portaudio::BlockingStream* s, F0Thread& parent,
-                 std::mutex& mutex, CircularBuffer<float>& cb)
-        : s_(s), parent_(parent), mutex_i_(mutex), cb_i_(cb)
+    F0StreamImpl(F0Thread& parent, std::mutex& mutex, CircularBuffer<float>& cb)
+        : s_(nullptr), parent_(parent), mutex_i_(mutex), cb_i_(cb)
     {
+    }
+
+    void setStream(portaudio::BlockingStream* s)
+    {
+      s_ = s;
       s_->start();
     }
 
@@ -55,6 +59,7 @@ private:
 
     long read_stream_samples(short* buffer, long num_records) override
     {
+      Q_ASSERT(s_ != nullptr);
       s_->read(buffer, num_records);
       return num_records;
     }
@@ -69,8 +74,8 @@ private:
 
 public:
 
-  F0Thread(portaudio::BlockingStream* s)
-      : cb_(0), f0_(s, *this, mutex_, cb_)
+  F0Thread()
+      : cb_(0), f0_(*this, mutex_, cb_)
   {
   }
 
