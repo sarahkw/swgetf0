@@ -63,9 +63,10 @@ static void insertWithDefault(QComboBox *comboBox, IndexMapType &map,
 
 } // namespace anonymous
 
-Configuration::Configuration(QWidget *parent) :
+Configuration::Configuration(GetF0::GetF0& getf0, QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::Configuration)
+    ui(new Ui::Configuration),
+    m_getf0(getf0)
 {
   ui->setupUi(this);
 
@@ -164,6 +165,9 @@ void Configuration::on_buttonBox_accepted()
       return;
     }
   }
+
+  // TODO Apply m_config to m_getf0, and call checkParameters, alert
+  //      user about errors.
 
   emit accept();
 }

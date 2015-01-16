@@ -31,7 +31,9 @@ int main(int argc, char* argv[])
 
   QApplication app(argc, argv);
 
-  Configuration* configDialog = new Configuration();
+  F0Thread f0;
+
+  Configuration* configDialog = new Configuration(f0.f0());
   int result = configDialog->exec();
   if (result == QDialog::Rejected) {
     delete configDialog;
@@ -45,7 +47,6 @@ int main(int argc, char* argv[])
       new portaudio::BlockingStream(configDialog->getStreamParameters());
   delete configDialog;
 
-  F0Thread f0;
   f0.f0().setStream(blockingStream);
 
   ConfigureGetF0(f0.f0(), config.espsConfig);

@@ -24,6 +24,7 @@
 #include <portaudiocpp/HostApi.hxx>
 #include <portaudiocpp/StreamParameters.hxx>
 
+#include "GetF0/get_f0.h"
 #include "config.h"
 
 namespace Ui {
@@ -35,7 +36,7 @@ class Configuration : public QDialog
   Q_OBJECT
 
 public:
-  explicit Configuration(QWidget *parent = 0);
+  explicit Configuration(GetF0::GetF0& getf0, QWidget *parent = 0);
   ~Configuration();
 
   PaDeviceIndex getDeviceIndex() const;
@@ -52,6 +53,8 @@ public slots:
 
 private:
   Ui::Configuration *ui;
+
+  GetF0::GetF0& m_getf0;
 
   QMap<int, PaHostApiTypeId> m_indexToHostApiTypeId;
   QMap<int, PaDeviceIndex> m_indexToDeviceIndex;
