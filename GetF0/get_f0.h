@@ -27,9 +27,9 @@ CREATE_ERROR(ProcessingError, RuntimeError);
 #define THROW_ERROR(condition, exception, s) \
   do {                                       \
     if (condition) {                         \
-      std::stringstream ss;                  \
-      ss << s;                               \
-      throw exception(ss.str());             \
+      std::stringstream ss_;                 \
+      ss_ << s;                              \
+      throw exception(ss_.str());            \
     }                                        \
   } while (0)
 

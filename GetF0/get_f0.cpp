@@ -172,8 +172,9 @@ void GetF0::checkParameters(SampleFrequency sampleFrequency)
     std::stringstream ss;
     bool first = true;
     for (auto& error : errors) {
-      if (!first) ss << " ";
+      if (!first) ss << "\n";
       ss << error;
+      first = false;
     }
 
     THROW_ERROR(true, ParameterError, ss.str());

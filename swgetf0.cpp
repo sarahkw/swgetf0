@@ -21,7 +21,6 @@
 
 #include "config.h"
 #include "configuration.h"
-#include "configuregetf0.h"
 #include "f0thread.h"
 #include "mainwindow.h"
 
@@ -48,9 +47,6 @@ int main(int argc, char* argv[])
   delete configDialog;
 
   f0.f0().setStream(blockingStream);
-
-  ConfigureGetF0(f0.f0(), config.espsConfig);
-
   f0.f0().init(config.audioConfig.sample_rate);
 
   MainWindow mainWindow(config, f0);

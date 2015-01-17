@@ -17,6 +17,9 @@
 #include "configuration.h"
 #include "ui_configuration.h"
 
+#include "configuregetf0.h"
+#include "config.h"
+
 #include <QDebug>
 #include <QMessageBox>
 
@@ -24,7 +27,6 @@
 #include <portaudiocpp/SystemHostApiIterator.hxx>
 #include <portaudiocpp/SystemDeviceIterator.hxx>
 
-#include "config.h"
 
 namespace {
 
@@ -166,8 +168,18 @@ void Configuration::on_buttonBox_accepted()
     }
   }
 
-  // TODO Apply m_config to m_getf0, and call checkParameters, alert
-  //      user about errors.
+  ConfigureGetF0(m_getf0, m_config.espsConfig);
+
+  try {
+    m_getf0.checkParameters(m_config.audioConfig.sample_rate);
+  } catch (const GetF0::ParameterError& e) {
+    QMessageBox msgBox(this);
+    msgBox.setText("Invalid ESPS config.");
+    msgBox.setInformativeText(e.what());
+    msgBox.setIcon(QMessageBox::Warning);
+    msgBox.exec();
+    return;
+  }
 
   emit accept();
 }
