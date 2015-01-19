@@ -30,7 +30,6 @@
 
 #include "f0.h"
 
-int	    debug_level = 0;
 
 // ----------------------------------------
 // Externs
@@ -39,16 +38,17 @@ int init_dp_f0(double freq, F0_params *par, long *buffsize, long *sdstep);
 int dp_f0(float *fdata, int buff_size, int sdstep, double freq, F0_params *par,
           float **f0p_pt, float **vuvp_pt, float **rms_speech_pt,
           float **acpkp_pt, int *vecsize, int last_time);
+
+int	    debug_level = 0;
 }
 
 
 
 namespace GetF0 {
 
-GetF0::GetF0(DebugLevel debugLevel)
+GetF0::GetF0()
     : m_par(new f0_params),
       m_sampleFrequency(0),
-      m_debugLevel(debugLevel),
       m_initialized(false),
       m_streamBufferSize(0),
       m_streamOverlapSize(0)

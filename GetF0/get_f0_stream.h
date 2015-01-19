@@ -10,7 +10,7 @@ namespace GetF0 {
 class GetF0Stream : public GetF0 {
 public:
 
-  GetF0Stream(DebugLevel debugLevel = 0);
+  GetF0Stream();
 
   virtual ~GetF0Stream();
 

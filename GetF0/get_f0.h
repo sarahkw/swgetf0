@@ -42,9 +42,8 @@ public:
 
   typedef float Sample;
   typedef double SampleFrequency;
-  typedef int DebugLevel;
 
-  GetF0(DebugLevel debugLevel = 0);
+  GetF0();
   virtual ~GetF0();
 
   void resetParameters();
@@ -80,7 +79,6 @@ public:
   int  & paramNCands();       // max. # of F0 cands. to consider at each frame
 
   SampleFrequency &sampleFrequency() { return m_sampleFrequency; };
-  DebugLevel &debugLevel() { return m_debugLevel; };
 
 protected:
 
@@ -113,7 +111,6 @@ private:
 
   f0_params* m_par;
   SampleFrequency m_sampleFrequency;
-  DebugLevel m_debugLevel;
 
   bool m_initialized;
 

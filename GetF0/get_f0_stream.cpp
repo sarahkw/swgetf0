@@ -5,8 +5,8 @@
 
 namespace GetF0 {
 
-GetF0Stream::GetF0Stream(DebugLevel debugLevel)
-    : GetF0(debugLevel), m_buffer(nullptr), m_eof(false)
+GetF0Stream::GetF0Stream()
+    : m_buffer(nullptr), m_eof(false)
 {
 }
 
