@@ -54,5 +54,23 @@ int main(int argc, char* argv[])
 
   f0.start();
 
-  return app.exec();
+  app.exec();
+
+  /*TODO
+
+    We recommend that you connect clean-up code to the aboutToQuit()
+    signal, instead of putting it in your application's main()
+    function because on some platforms the QCoreApplication::exec()
+    call may not return. For example, on Windows when the user logs
+    off, the system terminates the process after Qt closes all
+    top-level windows. Hence, there is no guarantee that the
+    application will have time to exit its event loop and execute code
+    at the end of the main() function after the
+    QCoreApplication::exec() call.
+   */
+
+  f0.f0().stop();
+  f0.wait();
+
+  return 0;
 }

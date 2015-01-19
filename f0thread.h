@@ -33,7 +33,7 @@ private:
   struct F0StreamImpl : public GetF0::GetF0Stream {
 
     F0StreamImpl(F0Thread& parent, std::mutex& mutex, CircularBuffer<float>& cb)
-        : s_(nullptr), parent_(parent), mutex_i_(mutex), cb_i_(cb)
+        : s_(nullptr), parent_(parent), mutex_i_(mutex), cb_i_(cb), stop_(false)
     {
     }
 
@@ -60,8 +60,18 @@ private:
     long read_stream_samples(short* buffer, long num_records) override
     {
       Q_ASSERT(s_ != nullptr);
-      s_->read(buffer, num_records);
-      return num_records;
+
+      if (stop_) {
+        return 0;
+      } else {
+        s_->read(buffer, num_records);
+        return num_records;
+      }
+    }
+
+    void stop()
+    {
+      stop_ = true;
     }
 
     F0Thread& parent_;
@@ -70,6 +80,8 @@ private:
 
     std::mutex& mutex_i_;
     CircularBuffer<float>& cb_i_;
+
+    volatile bool stop_;
   };
 
 public:
