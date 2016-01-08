@@ -15,4 +15,4 @@ qt5_use_modules(unittest Widgets)
 target_link_libraries(unittest
   pthread
   tinyscheme
-  "${GTEST_PATH}/make/gtest.a" "${GMOCK_PATH}/make/gmock_main.a")
+  "${GTEST_PATH}/libgtest.a" "${GMOCK_PATH}/libgmock_main.a")
