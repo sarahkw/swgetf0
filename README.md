@@ -7,3 +7,12 @@ Algorithm for Pitch Tracking
 (RAPT)](http://www.ee.columbia.edu/~dpwe/papers/Talkin95-rapt.pdf) by
 David Talkin.
 
+## Building and running on Linux
+
+```
+$ git clone https://github.com/sarahkw/swgetf0.git
+$ cd swgetf0/
+$ cmake .
+$ make -j4
+$ ./swgetf0
+```
