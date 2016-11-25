@@ -20,7 +20,9 @@
 #include <mutex>
 
 #include <QThread>
+#include <QtDebug>
 
+#include <portaudiocpp/Exception.hxx>
 #include <portaudiocpp/BlockingStream.hxx>
 
 #include "CircularBuffer.h"
@@ -64,8 +66,12 @@ private:
       if (stop_) {
         return 0;
       } else {
-        s_->read(buffer, num_records);
-        return num_records;
+          try {
+            s_->read(buffer, num_records);
+          } catch (const portaudio::PaException& e) {
+            qWarning() << "Error reading from stream: " << e.what();
+          }
+          return num_records;
       }
     }
 
