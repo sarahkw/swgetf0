@@ -15,36 +15,78 @@
 */
 
 #include <QApplication>
+#include <QCommandLineParser>
+#include <QFile>
+#include <QTextStream>
 
 #include <portaudiocpp/AutoSystem.hxx>
 #include <portaudiocpp/BlockingStream.hxx>
 
+#include <iostream>
+
 #include "config.h"
-#include "configuration.h"
+#include "configurationdialog.h"
+#include "configurationgeneric.h"
 #include "f0thread.h"
 #include "mainwindow.h"
 
-int main(int argc, char* argv[])
+int startGui(QApplication& app, const QString* configFileName)
 {
   portaudio::AutoSystem autoSys;
 
-  QApplication app(argc, argv);
-
   F0Thread f0;
 
-  Configuration* configDialog = new Configuration(f0.f0());
-  int result = configDialog->exec();
-  if (result == QDialog::Rejected) {
-    delete configDialog;
-    return 0;
+  ConfigurationGeneric configGeneric(f0.f0());
+
+  if (configFileName == NULL) {
+      // GUI
+      ConfigurationDialog* configDialog =
+          new ConfigurationDialog(configGeneric);
+      int result = configDialog->exec();
+      if (result == QDialog::Rejected) {
+          delete configDialog;
+          return 0;
+      }
+      delete configDialog;
+  } else {
+      // Text
+      QByteArray configFileData;
+      {
+          QFile configFile(*configFileName);
+          if (!configFile.open(QIODevice::ReadOnly)) {
+              // TODO More information on failure
+              qCritical("Cannot open file");
+              return 1;
+          }
+          configFileData = configFile.readAll();
+
+          // Going to pass configFileData as a C-string. Probably not
+          // ideal, but it's the easiest.
+          configFileData.append(static_cast<char>(0));
+      }
+
+      portaudio::Device& defaultDevice =
+          portaudio::System::instance().defaultInputDevice();
+
+      try {
+          configGeneric.configure(configFileData.data(), defaultDevice);
+      } catch (const schemeinterface::SchemeException& e) {
+          qCritical() << "Error loading configuration: "
+                      << e.error();
+          return 1;
+      } catch (const ConfigurationGeneric::AudioConfigurationNotSupported& e) {
+          qCritical() << "Audio configuration not supported.";
+          return 1;
+      } catch (const GetF0::ParameterError& e) {
+          qCritical() << "Invalid ESPS config: " << e.what();
+          return 1;
+      }
   }
 
-  PaDeviceIndex paDeviceIndex = configDialog->getDeviceIndex();
-  config::Config config = configDialog->getConfig();
+  const config::Config& config = configGeneric.config();
 
   portaudio::BlockingStream* blockingStream =
-      new portaudio::BlockingStream(configDialog->getStreamParameters());
-  delete configDialog;
+      new portaudio::BlockingStream(configGeneric.streamParameters());
 
   f0.f0().setStream(blockingStream);
   f0.f0().init(config.audioConfig.sample_rate);
@@ -73,4 +115,80 @@ int main(int argc, char* argv[])
   f0.wait();
 
   return 0;
+}
+
+struct CommandLineArguments {
+    QString configFileName;
+};
+
+enum class CommandLineParseResult {
+    GuiConfig,
+    FileConfig,
+    DumpDefaultConfig,
+    HelpRequested,
+    Error
+};
+
+CommandLineParseResult parseCommandLine(QCommandLineParser& parser,
+                                        CommandLineArguments* args,
+                                        QString* errorMessage)
+{
+    const QCommandLineOption dumpDefaultConfigOption(
+        "dump-default-config", "Writes default configuration to stdout");
+    parser.addOption(dumpDefaultConfigOption);
+    const QCommandLineOption configFileOption(
+        "config-file",
+        "Use provided configuration file. Uses default audio devices.", "file");
+    parser.addOption(configFileOption);
+    const QCommandLineOption helpOption = parser.addHelpOption();
+
+    if (!parser.parse(QCoreApplication::arguments())) {
+        *errorMessage = parser.errorText();
+        return CommandLineParseResult::Error;
+    }
+
+    if (parser.isSet(dumpDefaultConfigOption)) {
+        return CommandLineParseResult::DumpDefaultConfig;
+    }
+
+    if (parser.isSet(configFileOption)) {
+        args->configFileName = parser.value(configFileOption);
+        return CommandLineParseResult::FileConfig;
+    }
+
+    if (parser.isSet(helpOption)) {
+        return CommandLineParseResult::HelpRequested;
+    }
+
+    return CommandLineParseResult::GuiConfig;
+}
+
+int main(int argc, char* argv[])
+{
+  QApplication app(argc, argv);
+
+  QCommandLineParser parser;
+  parser.setApplicationDescription("swgetf0");
+
+  CommandLineArguments parsedArgs;
+  QString errorMessage;
+
+  switch (parseCommandLine(parser, &parsedArgs, &errorMessage)) {
+  case CommandLineParseResult::GuiConfig:
+      return startGui(app, NULL);
+  case CommandLineParseResult::FileConfig:
+      return startGui(app, &parsedArgs.configFileName);
+  case CommandLineParseResult::DumpDefaultConfig:
+      QTextStream(stdout) << ConfigurationGeneric::defaultConfiguration()
+                          << "\n";
+      return 0;
+  case CommandLineParseResult::HelpRequested:
+      parser.showHelp();
+      return 0;
+  case CommandLineParseResult::Error:
+      QTextStream(stderr) << errorMessage << "\n";
+      return 1;
+  }
+
+  Q_UNREACHABLE();
 }

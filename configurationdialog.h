@@ -14,8 +14,8 @@
   limitations under the License.
 */
 
-#ifndef CONFIGURATION_H
-#define CONFIGURATION_H
+#ifndef CONFIGURATIONDIALOG_H
+#define CONFIGURATIONDIALOG_H
 
 #include <QDialog>
 #include <QMap>
@@ -26,24 +26,20 @@
 
 #include "GetF0/get_f0.h"
 #include "config.h"
+#include "configurationgeneric.h"
 
 namespace Ui {
-class Configuration;
+class ConfigurationDialog;
 }
 
-class Configuration : public QDialog
+class ConfigurationDialog : public QDialog
 {
   Q_OBJECT
 
 public:
-  explicit Configuration(GetF0::GetF0& getf0, QWidget *parent = 0);
-  ~Configuration();
-
-  PaDeviceIndex getDeviceIndex() const;
-
-  config::Config getConfig() const;
-
-  portaudio::StreamParameters getStreamParameters() const;
+  explicit ConfigurationDialog(ConfigurationGeneric& configuration,
+                               QWidget *parent = 0);
+  ~ConfigurationDialog();
 
 public slots:
 
@@ -52,16 +48,14 @@ public slots:
   void on_buttonBox_accepted();
 
 private:
-  Ui::Configuration *ui;
+  PaDeviceIndex getDeviceIndex() const;
 
-  GetF0::GetF0& m_getf0;
+  Ui::ConfigurationDialog *ui;
+
+  ConfigurationGeneric& m_configuration;
 
   QMap<int, PaHostApiTypeId> m_indexToHostApiTypeId;
   QMap<int, PaDeviceIndex> m_indexToDeviceIndex;
-
-  config::Config m_config;
-
-  portaudio::StreamParameters m_streamParameters;
 };
 
-#endif // CONFIGURATION_H
+#endif // CONFIGURATIONDIALOG_H
