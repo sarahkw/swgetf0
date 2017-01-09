@@ -96,6 +96,7 @@ struct Ptr {
   operator long();
   operator double();
   operator const char *();
+  operator bool();
 };
 
 struct PtrIter : public std::iterator<Ptr, std::forward_iterator_tag> {

@@ -75,6 +75,7 @@ Ptr::operator pointer() { return p_; }
 Ptr::operator long() { return ivalue(); }
 Ptr::operator double() { return rvalue(); }
 Ptr::operator const char*() { return string_value(); }
+Ptr::operator bool() { return p_ == sc_->T; }
 
 
 
