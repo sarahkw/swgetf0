@@ -9,8 +9,9 @@
 (ui-config
  :width 1024
  :height 800
- :note-width 1
+ :maximized #f
 
+ :note-width 1
  :min-note 100
  :max-note 400
  )

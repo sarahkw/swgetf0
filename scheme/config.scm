@@ -40,7 +40,7 @@
     (list
      (get-items '(:sample-rate)
                 (get-key 'audio-config config))
-     (get-items '(:width :height :note-width :min-note :max-note)
+     (get-items '(:width :height :maximized :note-width :min-note :max-note)
                 (get-key 'ui-config config))
      (reverse (get-key 'ui-marker-lines config))
      (get-items '(:cand-thresh :lag-weight :freq-weight :trans-cost

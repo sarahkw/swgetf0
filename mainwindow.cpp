@@ -128,6 +128,9 @@ MainWindow::MainWindow(const config::Config& config, F0Thread& f0thread)
 
   m_ui.setupUi(this);
   resize(m_config.uiConfig.width, m_config.uiConfig.height);
+  if (m_config.uiConfig.maximized) {
+      showMaximized();
+  }
 
   setCentralWidget(vw);
 

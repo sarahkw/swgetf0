@@ -39,12 +39,13 @@ struct UiConfig {
 
   UiConfig() {}
   UiConfig(schemeinterface::PtrIter sexp) {
-    schemeinterface::loadValues(sexp, width, height, note_width, min_note,
-                                max_note);
+      schemeinterface::loadValues(sexp, width, height, maximized, note_width,
+                                  min_note, max_note);
   }
 
   long width;
   long height;
+  bool maximized;
   long note_width;
   long min_note;
   long max_note;
