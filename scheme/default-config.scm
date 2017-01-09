@@ -17,7 +17,7 @@
 
 (define color-normal (rgb 100 0 0))
 (define color-sub    (rgb 50 0 0))  ; Less attention
-(define color-target (rgb 255 255 0)) ; More attention
+(define color-target (rgb 255 0 0)) ; More attention
 
 (ui-marker-lines
  220 color-target ; A3
