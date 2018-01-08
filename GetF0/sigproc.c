@@ -31,14 +31,16 @@
 #define TRUE 1
 #define FALSE 0
 
+// Forward declarations
+void hnwindow(float* din, float* dout, int n, float preemp);
+
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-/* Return a time-weighting window of type type and length n in dout.
- * Dout is assumed to be at least n elements long.  Type is decoded in
- * the switch statement below.
+/* Return a time-weighting Hanning window of length n in dout.
+ * Dout is assumed to be at least n elements long.
  */
-int get_window(dout, n, type)
+void get_hnwindow(dout, n)
      register float *dout;
-     register int n, type;
+     register int n;
 {
   static float *din = NULL;
   static int n0 = 0;
@@ -52,108 +54,20 @@ int get_window(dout, n, type)
     din = NULL;
     if(!(din = (float*)malloc(sizeof(float)*n))) {
       Fprintf(stderr,"Allocation problems in get_window()\n");
-      return(FALSE);
+      return;
     }
     for(i=0, p=din; i++ < n; ) *p++ = 1;
     n0 = n;
   }
-  return(window(din, dout, n, preemp, type));
-}
-  
-/*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-/* Apply a rectangular window (i.e. none).  Optionally, preemphasize. */
-void rwindow(din, dout, n, preemp)
-     register float *din;
-     register float *dout, preemp;
-     register int n;
-{
-  register float *p;
- 
-/* If preemphasis is to be performed,  this assumes that there are n+1 valid
-   samples in the input buffer (din). */
-  if(preemp != 0.0) {
-    for( p=din+1; n-- > 0; )
-      *dout++ = (float)(*p++) - (preemp * *din++);
-  } else {
-    for( ; n-- > 0; )
-      *dout++ =  *din++;
-  }
+  hnwindow(din, dout, n, preemp);
 }
 
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-/* Generate a cos^4 window, if one does not already exist. */
-void cwindow(din, dout, n, preemp)
-     register float *din;
-     register float *dout, preemp;
-     register int n;
-{
-  register int i;
-  register float *p;
-  static int wsize = 0;
-  static float *wind=NULL;
-  register float *q, co;
- 
-  if(wsize != n) {		/* Need to create a new cos**4 window? */
-    register double arg, half=0.5;
-    
-    if(wind) wind = (float*)realloc(wind,n*sizeof(float));
-    else wind = (float*)malloc(n*sizeof(float));
-    wsize = n;
-    for(i=0, arg=3.1415927*2.0/(wsize), q=wind; i < n; ) {
-      co = half*(1.0 - cos((half + (double)i++) * arg));
-      *q++ = co * co * co * co;
-    }
-  }
-/* If preemphasis is to be performed,  this assumes that there are n+1 valid
-   samples in the input buffer (din). */
-  if(preemp != 0.0) {
-    for(i=n, p=din+1, q=wind; i--; )
-      *dout++ = *q++ * ((float)(*p++) - (preemp * *din++));
-  } else {
-    for(i=n, q=wind; i--; )
-      *dout++ = *q++ * *din++;
-  }
-}
-
-/*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-/* Generate a Hamming window, if one does not already exist. */
-void hwindow(din, dout, n, preemp)
-     register float *din;
-     register float *dout, preemp;
-     register int n;
-{
-  register int i;
-  register float *p;
-  static int wsize = 0;
-  static float *wind=NULL;
-  register float *q;
-
-  if(wsize != n) {		/* Need to create a new Hamming window? */
-    register double arg, half=0.5;
-    
-    if(wind) wind = (float*)realloc(wind,n*sizeof(float));
-    else wind = (float*)malloc(n*sizeof(float));
-    wsize = n;
-    for(i=0, arg=3.1415927*2.0/(wsize), q=wind; i < n; )
-      *q++ = (.54 - .46 * cos((half + (double)i++) * arg));
-  }
-/* If preemphasis is to be performed,  this assumes that there are n+1 valid
-   samples in the input buffer (din). */
-  if(preemp != 0.0) {
-    for(i=n, p=din+1, q=wind; i--; )
-      *dout++ = *q++ * ((float)(*p++) - (preemp * *din++));
-  } else {
-    for(i=n, q=wind; i--; )
-      *dout++ = *q++ * *din++;
-  }
-}
-
-/*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-/* Generate a Hanning window, if one does not already exist. */
-void hnwindow(din, dout, n, preemp)
-     register float *din;
-     register float *dout, preemp;
-     register int n;
+/* Apply a Hanning window to the short PCM sequence of length n
+ * in din.  Return the floating-point result sequence in dout.  If preemp
+ * is non-zero, apply preemphasis to tha data as it is windowed.
+ */
+void hnwindow(float* din, float* dout, int n, float preemp)
 {
   register int i;
   register float *p;
@@ -179,33 +93,6 @@ void hnwindow(din, dout, n, preemp)
     for(i=n, q=wind; i--; )
       *dout++ = *q++ * *din++;
   }
-}
-
-/*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-/* Apply a window of type type to the short PCM sequence of length n
- * in din.  Return the floating-point result sequence in dout.  If preemp
- * is non-zero, apply preemphasis to tha data as it is windowed.
- */
-int window(float* din, float* dout, int n, float preemp, int type)
-{
-  switch(type) {
-  case 0:			/* rectangular */
-    rwindow(din, dout, n, preemp);
-    break;
-  case 1:			/* Hamming */
-    hwindow(din, dout, n, preemp);
-    break;
-  case 2:			/* cos^4 */
-    cwindow(din, dout, n, preemp);
-    break;
-  case 3:			/* Hanning */
-    hnwindow(din, dout, n, preemp);
-    break;
-  default:
-    Fprintf(stderr,"Unknown window type (%d) requested in window()\n",type);
-    return(FALSE);
-  }
-  return(TRUE);
 }
 
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
@@ -329,10 +216,9 @@ float itakura ( p, b, c, r, gain )
  * is weighted by a window of type w_type before RMS computation.  w_type
  * is decoded above in window().
  */
-float wind_energy(data,size,w_type)
+float wind_energy(data,size)
      register float *data;	/* input PCM data */
-     register int size,		/* size of window */
-       w_type;			/* window type */
+     register int size;		/* size of window */
 {
   static int nwind = 0;
   static float *dwind = NULL;
@@ -348,7 +234,7 @@ float wind_energy(data,size,w_type)
     }
   }
   if(nwind != size) {
-    get_window(dwind, size, w_type);
+    get_hnwindow(dwind, size);
     nwind = size;
   }
   for(i=size, dp = dwind, sum = 0.0; i-- > 0; ) {
@@ -372,8 +258,7 @@ int lpc(
     float* lpck,     /* if non-NULL, return vector for PARCOR's */
     float* normerr,  /* return scaler for normalized error */
     float* rms,      /* return scaler for energy in preemphasized window */
-    float preemp,
-    int type         /* window type (decoded in window() above) */
+    float preemp
     )
 {
   static float *dwind=NULL;
@@ -392,7 +277,7 @@ int lpc(
     nwind = wsize;
   }
   
-  window(data, dwind, wsize, preemp, type);
+  hnwindow(data, dwind, wsize, preemp);
   if(!(r = ar)) r = rho;	/* Permit optional return of the various */
   if(!(kp = lpck)) kp = k;	/* coefficients and intermediate results. */
   if(!(ap = lpca)) ap = a;
@@ -408,20 +293,7 @@ int lpc(
       for(i=0;i<=lpc_ord; i++) ar[i] = r[i];
   }
   durbin ( r, kp, &ap[1], lpc_ord, &er);
-  switch(type) {		/* rms correction for window */
-  case 0:
-    wfact = 1.0;		/* rectangular */
-    break;
-  case 1:
-    wfact = .630397;		/* Hamming */
-    break;
-  case 2:
-    wfact = .443149;		/* (.5 - .5*cos)^4 */
-    break;
-  case 3:
-    wfact = .612372;		/* Hanning */
-    break;
-  }
+  wfact = .612372;		/* rms correction for Hanning window */
   *ap = 1.0;
   if(rms) *rms = en/wfact;
   if(normerr) *normerr = er;

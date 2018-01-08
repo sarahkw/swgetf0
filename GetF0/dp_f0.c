@@ -735,11 +735,11 @@ retrieve_windstat(rho, order, err, rms)
 /*--------------------------------------------------------------------*/
 static float
 get_similarity(order, size, pdata, cdata,
-	       rmsa, rms_ratio, pre, stab, w_type, init)
+	       rmsa, rms_ratio, pre, stab, init)
     int     order, size;
     float   *pdata, *cdata;
     float   *rmsa, *rms_ratio, pre, stab;
-    int     w_type, init;
+    int     init;
 {
   float rho3[BIGSORD+1], err3, rms3, rmsd3, b0, t, a2[BIGSORD+1], 
       rho1[BIGSORD+1], a1[BIGSORD+1], b[BIGSORD+1], err1, rms1, rmsd1;
@@ -752,15 +752,15 @@ get_similarity(order, size, pdata, cdata,
 
   /* get current window stat */
   lpc(order, stab, size-1, cdata,
-      a2, rho3, (float *) NULL, &err3, &rmsd3, pre, w_type);
-  rms3 = wind_energy(cdata, size, w_type);
+      a2, rho3, (float *) NULL, &err3, &rmsd3, pre);
+  rms3 = wind_energy(cdata, size);
   
   if(!init) {
       /* get previous window stat */
       if( !retrieve_windstat(rho1, order, &err1, &rms1)){
 	  lpc(order, stab, size-1, pdata,
-	      a1, rho1, (float *) NULL, &err1, &rmsd1, pre, w_type);
-	  rms1 = wind_energy(pdata, size, w_type);
+	      a1, rho1, (float *) NULL, &err1, &rmsd1, pre);
+	  rms1 = wind_energy(pdata, size);
       }
       a_to_aca(a2+1,b,&b0,order);
       t = itakura(order,b,&b0,rho1+1,&err1) - .8;
@@ -823,7 +823,7 @@ get_stationarity(fdata, freq, buff_size, nframes, frame_step, first_time)
   static float *mem;
   float preemp = 0.4, stab = 30.0;
   float *p, *q, *r, *datend;
-  int ind, i, j, m, size, order, agap, w_type = 3;
+  int ind, i, j, m, size, order, agap;
 
   agap = (int) (STAT_AINT *freq);
   size = (int) (STAT_WSIZE * freq);
@@ -874,14 +874,14 @@ get_stationarity(fdata, freq, buff_size, nframes, frame_step, first_time)
 	  stat->stat[j] = get_similarity(order,size, p, q, 
 					     &(stat->rms[j]),
 					     &(stat->rms_ratio[j]),preemp,
-					     stab,w_type, 0);
+					     stab, 0);
       else {
 	  if(first_time) {
 	      if( (p < fdata) && (q >= fdata) && (q+size <=datend) )
 		  stat->stat[j] = get_similarity(order,size, NULL, q,
 						     &(stat->rms[j]),
 						     &(stat->rms_ratio[j]),
-						     preemp,stab,w_type, 1);
+						     preemp,stab, 1);
 	      else{
 		  stat->rms[j] = 0.0;
 		  stat->stat[j] = 0.01 * 0.2;   /* a big transition */
@@ -893,7 +893,7 @@ get_stationarity(fdata, freq, buff_size, nframes, frame_step, first_time)
 						     mem + (memsize/2) + ind,
 						     &(stat->rms[j]),
 						     &(stat->rms_ratio[j]),
-						     preemp, stab,w_type, 0);
+						     preemp, stab, 0);
 		  /* prepare for the next frame_step if needed */
 		  if(p + frame_step < fdata ){
 		      for( m=0; m<(memsize-frame_step); m++) 
