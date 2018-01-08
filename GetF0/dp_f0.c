@@ -62,6 +62,7 @@
 #include "f0.h"
 #include "f0_structs.h"
 #include "spsassert.h"
+#include "get_cands.h"
 
 extern int  debug_level;
   
@@ -306,7 +307,7 @@ dp_f0(fdata, buff_size, sdstep, freq,
     float	**f0p_pt, **vuvp_pt, **rms_speech_pt, **acpkp_pt;
     int		*vecsize, last_time;
 {
-  float  maxval, engref, *sta, *rms_ratio, *dsdata, *downsample();
+  float  maxval, engref, *sta, *rms_ratio, *dsdata;
   register float ttemp, ftemp, ft1, ferr, err, errmin;
   register int  i, j, k, loc1, loc2;
   int   nframes, maxloc, ncand, ncandp, minloc,

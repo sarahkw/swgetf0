@@ -18,6 +18,8 @@
  *
  */
 
+#include "get_cands.h"
+
 #include <stdio.h>
 #include <math.h>
 #include <malloc.h>
@@ -116,10 +118,8 @@ void get_fast_cands(fdata, fdsdata, ind, step, size, dec, start, nlags, engref, 
 }
 
 /* ----------------------------------------------------------------------- */
-float *downsample(input,samsin,state_idx,freq,samsout,decimate, first_time, last_time)
-     double freq;
-     float *input;
-      int samsin, *samsout, decimate, state_idx, first_time, last_time;
+float* downsample(float* input, int samsin, int state_idx, double freq,
+                  int* samsout, int decimate, int first_time, int last_time)
 {
   static float	b[2048];
   static float *foutput;
