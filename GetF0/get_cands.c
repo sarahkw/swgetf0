@@ -44,10 +44,12 @@ static int clamp_min(int input, int minvalue)
 }
 
 /* ----------------------------------------------------------------------- */
-void get_fast_cands(float* fdata, float* fdsdata, int ind, int step, int size,
-                    int dec, int start, int nlags, float* engref, int* maxloc,
-                    float* maxval, Cross* cp, float* peaks, int* locs,
-                    int* ncand, F0_params* par)
+void get_fast_cands(const float* const fdata, const float* const fdsdata,
+                    const int ind, const int step, const int size,
+                    const int dec, const int start, const int nlags,
+                    float* engref, int* maxloc, float* maxval, Cross* cp,
+                    float* peaks, int* locs, int* ncand,
+                    const F0_params* const par)
 {
   const float lag_wt = par->lag_weight/nlags;
   const int decnlags = 1 + (nlags/dec);

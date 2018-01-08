@@ -448,7 +448,7 @@ int lpc(lpc_ord,lpc_stabl,wsize,data,lpca,ar,lpck,normerr,rms,preemp,type)
  */
 void crossf(data, size, start, nlags, engref, maxloc, maxval, correl)
      int *maxloc;
-     float *engref, *maxval, *data, *correl;
+     float *engref, *maxval, *const data, *correl;
      int size, start, nlags;
 {
   static float *dbdata=NULL;
