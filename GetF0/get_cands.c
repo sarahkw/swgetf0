@@ -35,11 +35,10 @@ static void get_cand(), peak(), do_ffir();
 static int lc_lin_fir(), downsamp();
 
 /* ----------------------------------------------------------------------- */
-void get_fast_cands(fdata, fdsdata, ind, step, size, dec, start, nlags, engref, maxloc, maxval, cp, peaks, locs, ncand, par)
-     float *fdata, *fdsdata, *engref, *maxval, *peaks;
-     int size, start, nlags, *maxloc, *locs, *ncand, ind, step, dec;
-     Cross *cp;
-     F0_params *par;
+void get_fast_cands(float* fdata, float* fdsdata, int ind, int step, int size,
+                    int dec, int start, int nlags, float* engref, int* maxloc,
+                    float* maxval, Cross* cp, float* peaks, int* locs,
+                    int* ncand, F0_params* par)
 {
   int decind, decstart, decnlags, decsize, i, j, *lp;
   float *corp, xp, yp, lag_wt;

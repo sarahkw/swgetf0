@@ -40,7 +40,7 @@ int   n_cands;		/* max. # of F0 cands. to consider at each frame */
 } F0_params;
 
 extern int lpc(), window(), get_window();
-extern void get_fast_cands(), a_to_aca(), cross(), crossf(), crossfi(),
+extern void a_to_aca(), cross(), crossf(), crossfi(),
            autoc(), durbin();
 
 #define Fprintf (void)fprintf
