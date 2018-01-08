@@ -20,6 +20,8 @@
  *
  */
 
+#include "sigproc.h"
+
 #include <math.h>
 #include <malloc.h>
 #include <stdlib.h>
@@ -184,11 +186,7 @@ void hnwindow(din, dout, n, preemp)
  * in din.  Return the floating-point result sequence in dout.  If preemp
  * is non-zero, apply preemphasis to tha data as it is windowed.
  */
-int window(din, dout, n, preemp, type)
-     register float *din;
-     register float *dout, preemp;
-     register int n;
-     int type;
+int window(float* din, float* dout, int n, float preemp, int type)
 {
   switch(type) {
   case 0:			/* rectangular */
@@ -288,9 +286,7 @@ void durbin ( r, k, a, p, ex)
  *  The magnitude of a is returned in c.
  *  2* the other autocorrelation coefficients are returned in b.
  */
-void a_to_aca ( a, b, c, p )
-float *a, *b, *c;
-register int p;
+void a_to_aca(float* a, float* b, float* c, int p)
 {
   register float  s, *ap, *a0;
   register int  i, j;
@@ -366,18 +362,19 @@ float wind_energy(data,size,w_type)
 /* Generic autocorrelation LPC analysis of the short-integer data
  * sequence in data.
  */
-int lpc(lpc_ord,lpc_stabl,wsize,data,lpca,ar,lpck,normerr,rms,preemp,type)
-     int lpc_ord,		/* Analysis order */
-       wsize,			/* window size in points */
-       type;		/* window type (decoded in window() above) */
-     float lpc_stabl,	/* Stability factor to prevent numerical problems. */
-       *lpca,		/* if non-NULL, return vvector for predictors */
-       *ar,		/* if non-NULL, return vector for normalized autoc. */
-       *lpck,		/* if non-NULL, return vector for PARCOR's */
-       *normerr,		/* return scaler for normalized error */
-       *rms,		/* return scaler for energy in preemphasized window */
-       preemp;
-     float *data;	/* input data sequence; assumed to be wsize+1 long */
+int lpc(
+    int lpc_ord,     /* Analysis order */
+    float lpc_stabl, /* Stability factor to prevent numerical problems. */
+    int wsize,       /* window size in points */
+    float* data,     /* input data sequence; assumed to be wsize+1 long */
+    float* lpca,     /* if non-NULL, return vvector for predictors */
+    float* ar,       /* if non-NULL, return vector for normalized autoc. */
+    float* lpck,     /* if non-NULL, return vector for PARCOR's */
+    float* normerr,  /* return scaler for normalized error */
+    float* rms,      /* return scaler for energy in preemphasized window */
+    float preemp,
+    int type         /* window type (decoded in window() above) */
+    )
 {
   static float *dwind=NULL;
   static int nwind=0;
@@ -446,16 +443,15 @@ int lpc(lpc_ord,lpc_stabl,wsize,data,lpca,ar,lpck,normerr,rms,preemp,type)
   correl is the array of nlags cross-correlation coefficients (-1.0 to 1.0)
  *
  */
-void crossf(data, size, start, nlags, engref, maxloc, maxval, correl)
-     int *maxloc;
-     float *engref, *maxval, *const data, *correl;
-     int size, start, nlags;
+void crossf(const float* data, int size, int start, int nlags, float* engref,
+            int* maxloc, float* maxval, float* correl)
 {
   static float *dbdata=NULL;
   static int dbsize = 0;
   register float *dp, *ds, sum, st;
   register int j;
-  register  float *dq, t, *p, engr, *dds, amax;
+  register  float *dq, t, engr, *dds, amax;
+  const float *p;
   register  double engc;
   int i, iloc, total;
   int sizei, sizeo, maxsize;
@@ -516,8 +512,11 @@ void crossf(data, size, start, nlags, engref, maxloc, maxval, correl)
   } else {	/* No energy in signal; fake reasonable return vals. */
     *maxloc = 0;
     *maxval = 0.0;
-    for(p=correl,i=nlags; i-- > 0; )
-      *p++ = 0.0;
+    {
+      float* pp;
+      for(pp=correl,i=nlags; i-- > 0; )
+        *pp++ = 0.0;
+    }
   }
 }
 
@@ -543,16 +542,16 @@ void crossf(data, size, start, nlags, engref, maxloc, maxval, correl)
   nlocs is the number of correlation patches to compute.
  *
  */
-void crossfi(data, size, start0, nlags0, nlags, engref, maxloc, maxval, correl, locs, nlocs)
-     int *maxloc;
-     float *engref, *maxval, *data, *correl;
-     int size, start0, nlags0, nlags, *locs, nlocs;
+void crossfi(const float* data, int size, int start0, int nlags0, int nlags,
+             float* engref, int* maxloc, float* maxval, float* correl,
+             int* locs, int nlocs)
 {
   static float *dbdata=NULL;
   static int dbsize = 0;
   register float *dp, *ds, sum, st;
   register int j;
-  register  float *dq, t, *p, engr, *dds, amax;
+  register  float *dq, t, engr, *dds, amax;
+  const float* p;
   register  double engc;
   int i, iloc, start, total;
 
@@ -582,8 +581,11 @@ void crossfi(data, size, start0, nlags0, nlags, engref, maxloc, maxval, correl, 
 
   /* Zero the correlation output array to avoid confusing the peak
      picker (since all lags will not be computed). */
-  for(p=correl,i=nlags0; i-- > 0; )
-    *p++ = 0.0;
+  {
+    float* pp;
+    for(pp=correl,i=nlags0; i-- > 0; )
+      *pp++ = 0.0;
+  }
 
   /* compute energy in reference window */
   for(j=size, dp=dbdata, sum=0.0; j--; ) {

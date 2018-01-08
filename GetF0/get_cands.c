@@ -27,6 +27,7 @@
 #include "f0_structs.h"
 #include "f0.h"
 #include "spsassert.h"
+#include "sigproc.h"
 
 #define TRUE 1
 #define FALSE 0
@@ -56,10 +57,9 @@ void get_fast_cands(const float* const fdata, const float* const fdsdata,
   const int decstart = clamp_min(start/dec, 1);
   const int decind = (ind * step)/dec;
   const int decsize = 1 + (size/dec);
-  const float* corp = cp->correl;
-    
+
   crossf(fdsdata + decind, decsize, decstart, decnlags, engref, maxloc,
-	maxval, corp);
+	maxval, cp->correl);
   cp->maxloc = *maxloc;	/* location of maximum in correlation */
   cp->maxval = *maxval;	/* max. correlation value (found at maxloc) */
   cp->rms = sqrt(*engref/size); /* rms in reference window */
@@ -74,7 +74,7 @@ void get_fast_cands(const float* const fdata, const float* const fdsdata,
     float *pe;
     for(i = *ncand, lp = locs, pe = peaks; i--; pe++, lp++) {
       j = *lp - decstart - 1;
-      peak(&corp[j],&xp,&yp);
+      peak(&cp->correl[j],&xp,&yp);
       *lp = (*lp * dec) + (int)(0.5+(xp*dec)); /* refined lag */
       *pe = yp*(1.0 - (lag_wt* *lp)); /* refined amplitude */
     }
@@ -101,7 +101,7 @@ void get_fast_cands(const float* const fdata, const float* const fdsdata,
     *ncand = par->n_cands-1;  /* leave room for the unvoiced hypothesis */
   }
   crossfi(fdata + (ind * step), size, start, nlags, 7, engref, maxloc,
-	  maxval, corp, locs, *ncand);
+	  maxval, cp->correl, locs, *ncand);
 
   cp->maxloc = *maxloc;	/* location of maximum in correlation */
   cp->maxval = *maxval;	/* max. correlation value (found at maxloc) */

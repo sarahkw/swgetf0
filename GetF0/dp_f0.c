@@ -63,6 +63,7 @@
 #include "f0_structs.h"
 #include "spsassert.h"
 #include "get_cands.h"
+#include "sigproc.h"
 
 extern int  debug_level;
   
