@@ -31,8 +31,12 @@
 #define TRUE 1
 #define FALSE 0
 
-static void get_cand(), peak(), do_ffir();
+static void peak(), do_ffir();
 static int lc_lin_fir(), downsamp();
+
+static void get_cand(Cross* const cross, float* peak, int* loc, int nlags,
+                     int* ncand, float cand_thresh);
+
 
 static int clamp_min(int input, int minvalue)
 {
@@ -172,47 +176,28 @@ float* downsample(float* input, int samsin, int state_idx, double freq,
 
 /* ----------------------------------------------------------------------- */
 /* Get likely candidates for F0 peaks. */
-static void get_cand(cross,peak,loc,nlags,ncand,cand_thresh)
-     Cross *cross;
-     float *peak, cand_thresh;
-     int *loc;
-     int  *ncand, nlags;
+static void get_cand(Cross* const cross, float* peak, int* loc, int nlags,
+                     int* ncand, float cand_thresh)
 {
-  register int i, lastl, *t;
-  register float o, p, q, *r, *s, clip;
-  int start, ncan, maxl;
+  const float clip = cand_thresh * cross->maxval;
+  const int lastl = nlags - 2;
+  const int start = cross->firstlag;
 
-  clip = cand_thresh * cross->maxval;
-  maxl = cross->maxloc;
-  lastl = nlags - 2;
-  start = cross->firstlag;
-
-  r = cross->correl;
-  o= *r++;			/* first point */
-  q = *r++;	                /* middle point */
-  p = *r++;
-  s = peak;
-  t = loc;
-  ncan=0;
+  float* r = cross->correl;
+  float o= *r++;			/* first point */
+  float q = *r++;	                /* middle point */
+  float p = *r++;
+  *ncand = 0;
+  int i;
   for(i=1; i < lastl; i++, o=q, q=p, p= *r++){
     if((q > clip) &&		/* is this a high enough value? */
       (q >= p) && (q >= o)){ /* NOTE: this finds SHOLDERS and PLATEAUS
 				      as well as peaks (is this a good idea?) */
-	*s++ = q;		/* record the peak value */
-	*t++ = i + start;	/* and its location */
-	ncan++;			/* count number of peaks found */
+	*peak++ = q;		/* record the peak value */
+	*loc++ = i + start;	/* and its location */
+	(*ncand)++;		/* count number of peaks found */
       }
   }
-/*
-  o = q;
-  q = p;
-  if( (q > clip) && (q >=0)){
-    *s++ = q;
-    *t++ = i+start;
-    ncan++;
-  }
-*/
-  *ncand = ncan;
 }
 
 /* ----------------------------------------------------------------------- */
