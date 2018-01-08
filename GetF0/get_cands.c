@@ -34,22 +34,23 @@
 static void get_cand(), peak(), do_ffir();
 static int lc_lin_fir(), downsamp();
 
+static int clamp_min(int input, int minvalue)
+{
+    return input < minvalue ? minvalue : input;
+}
+
 /* ----------------------------------------------------------------------- */
 void get_fast_cands(float* fdata, float* fdsdata, int ind, int step, int size,
                     int dec, int start, int nlags, float* engref, int* maxloc,
                     float* maxval, Cross* cp, float* peaks, int* locs,
                     int* ncand, F0_params* par)
 {
-  int decind, decstart, decnlags, decsize, i, j, *lp;
-  float *corp, xp, yp, lag_wt;
-  register float *pe;
-
-  lag_wt = par->lag_weight/nlags;
-  decnlags = 1 + (nlags/dec);
-  if((decstart = start/dec) < 1) decstart = 1;
-  decind = (ind * step)/dec;
-  decsize = 1 + (size/dec);
-  corp = cp->correl;
+  const float lag_wt = par->lag_weight/nlags;
+  const int decnlags = 1 + (nlags/dec);
+  const int decstart = clamp_min(start/dec, 1);
+  const int decind = (ind * step)/dec;
+  const int decsize = 1 + (size/dec);
+  const float* corp = cp->correl;
     
   crossf(fdsdata + decind, decsize, decstart, decnlags, engref, maxloc,
 	maxval, corp);
@@ -61,17 +62,23 @@ void get_fast_cands(float* fdata, float* fdsdata, int ind, int step, int size,
   get_cand(cp,peaks,locs,decnlags,ncand,par->cand_thresh); /* return high peaks in xcorr */
 
   /* Interpolate to estimate peak locations and values at high sample rate. */
-  for(i = *ncand, lp = locs, pe = peaks; i--; pe++, lp++) {
-    j = *lp - decstart - 1;
-    peak(&corp[j],&xp,&yp);
-    *lp = (*lp * dec) + (int)(0.5+(xp*dec)); /* refined lag */
-    *pe = yp*(1.0 - (lag_wt* *lp)); /* refined amplitude */
+  {
+    int i, j, *lp;
+    float xp, yp;
+    float *pe;
+    for(i = *ncand, lp = locs, pe = peaks; i--; pe++, lp++) {
+      j = *lp - decstart - 1;
+      peak(&corp[j],&xp,&yp);
+      *lp = (*lp * dec) + (int)(0.5+(xp*dec)); /* refined lag */
+      *pe = yp*(1.0 - (lag_wt* *lp)); /* refined amplitude */
+    }
   }
   
   if(*ncand >= par->n_cands) {	/* need to prune candidates? */
     register int *loc, *locm, lt;
     register float smaxval, *pem;
     register int outer, inner, lim;
+    float *pe;
     for(outer=0, lim = par->n_cands-1; outer < lim; outer++)
       for(inner = *ncand - 1 - outer,
 	  pe = peaks + (*ncand) -1, pem = pe-1,
