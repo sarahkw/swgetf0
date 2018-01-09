@@ -55,6 +55,8 @@
    ccf is computed only in the vicinity of these estimated peak
    locations. */
 
+#include "dp_f0.h"
+
 #include <math.h>
 #include <malloc.h>
 #include <limits.h>
@@ -145,11 +147,7 @@ get_Nframes(buffsize, pad, step)
 
 
 /*--------------------------------------------------------------------*/
-int
-init_dp_f0(freq, par, buffsize, sdstep)
-    double	freq;
-    F0_params	*par;
-    long	*buffsize, *sdstep;
+int init_dp_f0(double freq, F0_params* par, long* buffsize, long* sdstep)
 {
   int nframes;
   int i;
@@ -298,15 +296,9 @@ init_dp_f0(freq, par, buffsize, sdstep)
   
 
 /*--------------------------------------------------------------------*/
-int
-dp_f0(fdata, buff_size, sdstep, freq,
-      par, f0p_pt, vuvp_pt, rms_speech_pt, acpkp_pt, vecsize, last_time)
-    float	*fdata;
-    int		buff_size, sdstep;
-    double	freq;
-    F0_params	*par;		/* analysis control parameters */
-    float	**f0p_pt, **vuvp_pt, **rms_speech_pt, **acpkp_pt;
-    int		*vecsize, last_time;
+int dp_f0(float* fdata, int buff_size, int sdstep, double freq, F0_params* par,
+          float** f0p_pt, float** vuvp_pt, float** rms_speech_pt,
+          float** acpkp_pt, int* vecsize, int last_time)
 {
   float  maxval, engref, *sta, *rms_ratio, *dsdata;
   register float ttemp, ftemp, ft1, ferr, err, errmin;

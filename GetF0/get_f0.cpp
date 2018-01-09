@@ -30,16 +30,10 @@
 
 #include "f0.h"
 
-
-// ----------------------------------------
-// Externs
 extern "C" {
-int init_dp_f0(double freq, F0_params *par, long *buffsize, long *sdstep);
-int dp_f0(float *fdata, int buff_size, int sdstep, double freq, F0_params *par,
-          float **f0p_pt, float **vuvp_pt, float **rms_speech_pt,
-          float **acpkp_pt, int *vecsize, int last_time);
+#include "dp_f0.h"
 
-int	    debug_level = 0;
+int debug_level = 0; // global used by C
 }
 
 
