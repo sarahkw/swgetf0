@@ -53,8 +53,11 @@ void ViewerWidget::renderNow() {
 
   painter.fillRect(rect(), Qt::black);
 
-  const QPen penWhite(QColor(255, 255, 255));
-  const QBrush brushWhite(QColor(255, 255, 255));
+  const QPen penNote(QColor(255, 255, 255));
+  const QBrush brushNote(QColor(255, 255, 255));
+
+  const QPen penWave(Qt::darkGray);
+  const QBrush brushWave(Qt::darkGray);
 
   const auto& uiConfig = m_parent->config().uiConfig;
 
@@ -77,16 +80,21 @@ void ViewerWidget::renderNow() {
     std::lock_guard<std::mutex> lockGuard(m_parent->f0thread().mutex());
 
     double position = 0;
-    for (auto f0 : m_parent->f0thread().cb()) {
-      if (f0 != 0) {
-        double ypos = noteToPos(f0);
+    for (auto f0point : m_parent->f0thread().cb()) {
 
-        painter.setPen(penWhite);
-        painter.setBrush(brushWhite);
+      // Draw the waveform (before the note in order to not cover it)
+      painter.setPen(penWave);
+      painter.setBrush(brushWave);
+      float scaledMaxSampleVal = f0point.maxsampleval / 300; // TODO Don't hardcode
+      painter.drawRect(position, 0, noteWidth, scaledMaxSampleVal);
 
-        painter.drawRect(position, ypos - 1, noteWidth, noteWidth);
-      }
+      // Draw the note
+      double ypos = noteToPos(f0point.f0);
+      painter.setPen(penNote);
+      painter.setBrush(brushNote);
+      painter.drawRect(position, ypos - 1, noteWidth, noteWidth);
 
+      // Advance
       position += noteWidth;
     }
   }

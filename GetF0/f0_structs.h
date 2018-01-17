@@ -57,6 +57,8 @@ typedef struct frame_rec{
   Cross *cp;
   Dprec *dp;
   float rms;
+  float maxsampleval; /* Added for drawing the waveform, to line up a
+                         waveform point with a f0 point. */
   struct frame_rec *next;
   struct frame_rec *prev;
 } Frame;

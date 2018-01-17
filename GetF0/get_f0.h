@@ -105,7 +105,8 @@ protected:
   /// In some cases we can save an iteration if the implementer
   /// reverses to proper order.
   virtual void write_output_reversed(float* f0p, float* vuvp, float* rms_speech,
-                                     float* acpkp, int vecsize) = 0;
+                                     float* acpkp, float* maxsamplevalp,
+                                     int vecsize) = 0;
 
 private:
 

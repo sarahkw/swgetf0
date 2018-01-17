@@ -121,7 +121,7 @@ static int wReuse = 0;  /* number of windows seen before resued */
 static Windstat *windstat;
 
 static float *f0p = NULL, *vuvp = NULL, *rms_speech = NULL, 
-             *acpkp = NULL, *peaks = NULL;
+             *acpkp = NULL, *maxsamplevalp = NULL, *peaks = NULL;
 static int first_time = 1, pad;
 
 
@@ -263,6 +263,8 @@ int init_dp_f0(double freq, F0_params* par, long* buffsize, long* sdstep)
   spsassert(vuvp,"vuvp malloc failed");
   acpkp = (float*)malloc(sizeof(float) * output_buf_size);
   spsassert(acpkp,"acpkp malloc failed");
+  maxsamplevalp = (float*)malloc(sizeof(float) * output_buf_size);
+  spsassert(maxsamplevalp,"maxsamplevalp malloc failed");
 
   /* Allocate space for peak location and amplitude scratch arrays. */
   peaks = (float*)malloc(sizeof(float) * maxpeaks);
@@ -298,7 +300,8 @@ int init_dp_f0(double freq, F0_params* par, long* buffsize, long* sdstep)
 /*--------------------------------------------------------------------*/
 int dp_f0(const float* fdata, int buff_size, int sdstep, double freq,
           F0_params* par, float** f0p_pt, float** vuvp_pt,
-          float** rms_speech_pt, float** acpkp_pt, int* vecsize, int last_time)
+          float** rms_speech_pt, float** acpkp_pt, float** maxsamplevalp_pt,
+          int* vecsize, int last_time)
 {
   float  maxval, engref, *sta, *rms_ratio;
   const float *dsdata;
@@ -382,7 +385,16 @@ int dp_f0(const float* fdata, int buff_size, int sdstep, double freq,
     get_fast_cands(fdata, dsdata, i, step, size, decimate, start,
 		   nlags, &engref, &maxloc,
 		   &maxval, headF->cp, peaks, locs, &ncand, par);
-    
+
+    {
+        headF->maxsampleval = 0.0f;
+        for (int xx = 0; xx < step; ++xx) {
+            float candidate = fabsf((fdata + (i * step))[xx]);
+            if (candidate > headF->maxsampleval) {
+                headF->maxsampleval = candidate;
+            }
+        }
+    }
 
     /*    Move the peak value and location arrays into the dp structure */
     {
@@ -577,9 +589,13 @@ int dp_f0(const float* fdata, int buff_size, int sdstep, double freq,
 	spsassert(vuvp, "vuvp realloc failed in dp_f0()");
 	acpkp = (float *) realloc(acpkp, sizeof(float) * output_buf_size);
 	spsassert(acpkp, "acpkp realloc failed in dp_f0()");
+	maxsamplevalp = (float *) realloc(maxsamplevalp,
+                                          sizeof(float) * output_buf_size);
+	spsassert(maxsamplevalp, "maxsamplevalp realloc failed in dp_f0()");
       }
       rms_speech[i] = frm->rms;
       acpkp[i] =  frm->dp->pvals[best_cand];
+      maxsamplevalp[i] = frm->maxsampleval;
       loc1 = frm->dp->locs[best_cand];
       vuvp[i] = 1.0;
       best_cand = frm->dp->prept[best_cand];
@@ -629,6 +645,7 @@ int dp_f0(const float* fdata, int buff_size, int sdstep, double freq,
   *acpkp_pt = acpkp;
   *rms_speech_pt = rms_speech;
   *acpkp_pt = acpkp;
+  *maxsamplevalp_pt = maxsamplevalp;
   
   if(first_time) first_time = 0;
   return(0);
