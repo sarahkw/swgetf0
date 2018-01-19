@@ -32,7 +32,7 @@
 #define FALSE 0
 
 // Forward declarations
-void hnwindow(float* din, float* dout, int n, float preemp);
+void hnwindow(const float* din, float* dout, int n, float preemp);
 
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 /* Return a time-weighting Hanning window of length n in dout.
@@ -67,10 +67,10 @@ void get_hnwindow(dout, n)
  * in din.  Return the floating-point result sequence in dout.  If preemp
  * is non-zero, apply preemphasis to tha data as it is windowed.
  */
-void hnwindow(float* din, float* dout, int n, float preemp)
+void hnwindow(const float* din, float* dout, int n, float preemp)
 {
   register int i;
-  register float *p;
+  register const float *p;
   static int wsize = 0;
   static float *wind=NULL;
   register float *q;
@@ -199,9 +199,7 @@ void a_to_aca(float* a, float* b, float* c, int p)
  * r is assumed normalized and r[0]=1 is not explicitely accessed.
  * Values returned by the function are >= 1.
  */
-float itakura ( p, b, c, r, gain )
-     register float *b, *c, *r, *gain;
-     register int p;
+float itakura(int p, float* b, float* c, float* r, float* gain)
 {
   register float s;
 
@@ -216,9 +214,9 @@ float itakura ( p, b, c, r, gain )
  * is weighted by a window of type w_type before RMS computation.  w_type
  * is decoded above in window().
  */
-float wind_energy(data,size)
-     register float *data;	/* input PCM data */
-     register int size;		/* size of window */
+float wind_energy(const float* data, /* input PCM data */
+                  int size           /* size of window */
+                  )
 {
   static int nwind = 0;
   static float *dwind = NULL;
@@ -252,7 +250,7 @@ int lpc(
     int lpc_ord,     /* Analysis order */
     float lpc_stabl, /* Stability factor to prevent numerical problems. */
     int wsize,       /* window size in points */
-    float* data,     /* input data sequence; assumed to be wsize+1 long */
+    const float* data,/* input data sequence; assumed to be wsize+1 long */
     float* lpca,     /* if non-NULL, return vvector for predictors */
     float* ar,       /* if non-NULL, return vector for normalized autoc. */
     float* lpck,     /* if non-NULL, return vector for PARCOR's */

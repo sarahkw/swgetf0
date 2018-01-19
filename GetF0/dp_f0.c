@@ -128,7 +128,7 @@ static int first_time = 1, pad;
 /*
  * Forward declarations
  */
-static Stat *get_stationarity(float *fdata, double freq, int buff_size,
+static Stat* get_stationarity(const float* fdata, double freq, int buff_size,
                               int nframes, int frame_step, int first_time);
 
 static Frame *alloc_frame(int nlags, int ncands);
@@ -296,11 +296,12 @@ int init_dp_f0(double freq, F0_params* par, long* buffsize, long* sdstep)
   
 
 /*--------------------------------------------------------------------*/
-int dp_f0(float* fdata, int buff_size, int sdstep, double freq, F0_params* par,
-          float** f0p_pt, float** vuvp_pt, float** rms_speech_pt,
-          float** acpkp_pt, int* vecsize, int last_time)
+int dp_f0(const float* fdata, int buff_size, int sdstep, double freq,
+          F0_params* par, float** f0p_pt, float** vuvp_pt,
+          float** rms_speech_pt, float** acpkp_pt, int* vecsize, int last_time)
 {
-  float  maxval, engref, *sta, *rms_ratio, *dsdata;
+  float  maxval, engref, *sta, *rms_ratio;
+  const float *dsdata;
   register float ttemp, ftemp, ft1, ferr, err, errmin;
   register int  i, j, k, loc1, loc2;
   int   nframes, maxloc, ncand, ncandp, minloc,
@@ -725,17 +726,12 @@ retrieve_windstat(rho, order, err, rms)
 
 
 /*--------------------------------------------------------------------*/
-static float
-get_similarity(order, size, pdata, cdata,
-	       rmsa, rms_ratio, pre, stab, init)
-    int     order, size;
-    float   *pdata, *cdata;
-    float   *rmsa, *rms_ratio, pre, stab;
-    int     init;
+static float get_similarity(int order, int size, const float* pdata,
+                            const float* cdata, float* rmsa, float* rms_ratio,
+                            float pre, float stab, int init)
 {
   float rho3[BIGSORD+1], err3, rms3, rmsd3, b0, t, a2[BIGSORD+1], 
       rho1[BIGSORD+1], a1[BIGSORD+1], b[BIGSORD+1], err1, rms1, rmsd1;
-  float itakura(), wind_energy();
 
 /* (In the lpc() calls below, size-1 is used, since the windowing and
    preemphasis function assumes an extra point is available in the
@@ -804,17 +800,14 @@ get_similarity(order, size, pdata, cdata,
    
 */
 
-static Stat*
-get_stationarity(fdata, freq, buff_size, nframes, frame_step, first_time)
-    float   *fdata;
-    double  freq;
-    int     buff_size, nframes, frame_step, first_time;
+static Stat* get_stationarity(const float* fdata, double freq, int buff_size,
+                              int nframes, int frame_step, int first_time)
 {
   static Stat *stat;
   static int nframes_old = 0, memsize;
   static float *mem;
   float preemp = 0.4, stab = 30.0;
-  float *p, *q, *r, *datend;
+  const float *p, *q, *r, *datend;
   int ind, i, j, m, size, order, agap;
 
   agap = (int) (STAT_AINT *freq);

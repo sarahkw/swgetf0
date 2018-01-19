@@ -32,8 +32,18 @@
 #define TRUE 1
 #define FALSE 0
 
-static void peak(), do_ffir();
-static int lc_lin_fir(), downsamp();
+static void peak(float* y, float* xp, float* yp);
+
+static int downsamp(const float* in, float* out, int samples, int* outsamps,
+                    int state_idx, int decimate, int ncoef, float fc[],
+                    int init);
+
+static void do_ffir(const float* buf, int in_samps, float* bufo, int* out_samps,
+                    int idx, int ncoef, float* fc, int invert, int skip,
+                    int init);
+
+static int lc_lin_fir(float fc, int* nf, float* coef);
+
 
 static void get_cand(Cross* const cross, float* peak, int* loc, int nlags,
                      int* ncand, float cand_thresh);
@@ -130,8 +140,9 @@ void get_fast_cands(const float* const fdata, const float* const fdsdata,
 }
 
 /* ----------------------------------------------------------------------- */
-float* downsample(float* input, int samsin, int state_idx, double freq,
-                  int* samsout, int decimate, int first_time, int last_time)
+const float* downsample(const float* input, int samsin, int state_idx,
+                        double freq, int* samsout, int decimate, int first_time,
+                        int last_time)
 {
   static float	b[2048];
   static float *foutput;
@@ -205,11 +216,9 @@ static void get_cand(Cross* const cross, float* peak, int* loc, int nlags,
 /* ----------------------------------------------------------------------- */
 /* buffer-to-buffer downsample operation */
 /* This is STRICTLY a decimator! (no upsample) */
-static int downsamp(in, out, samples, outsamps, state_idx, decimate, ncoef, fc, init)
-     float *in, *out;
-     int samples, *outsamps, decimate, ncoef, state_idx;
-     float fc[];
-     int init;
+static int downsamp(const float* in, float* out, int samples, int* outsamps,
+                    int state_idx, int decimate, int ncoef, float fc[],
+                    int init)
 {
   if(in && out) {
     do_ffir(in, samples, out, outsamps, state_idx, ncoef, fc, 0, decimate, init);
@@ -220,25 +229,24 @@ static int downsamp(in, out, samples, outsamps, state_idx, decimate, ncoef, fc, 
 }
 
 /*      ----------------------------------------------------------      */
-static void do_ffir(buf,in_samps,bufo,out_samps,idx, ncoef,fc,invert,skip,init)
 /* fc contains 1/2 the coefficients of a symmetric FIR filter with unity
     passband gain.  This filter is convolved with the signal in buf.
     The output is placed in buf2.  If(invert), the filter magnitude
     response will be inverted.  If(init&1), beginning of signal is in buf;
     if(init&2), end of signal is in buf.  out_samps is set to the number of
     output points placed in bufo. */
-register float	*buf, *bufo;
-float *fc;
-register int in_samps, ncoef, invert, skip, init, *out_samps;
-int idx;
+static void do_ffir(const float* buf, int in_samps, float* bufo, int* out_samps,
+                    int idx, int ncoef, float* fc, int invert, int skip,
+                    int init)
 {
-  register float *dp1, *dp2, *dp3, sum, integral;
+  register float *dp1, *dp2, sum, integral;
+  register const float *dp3;
   static float *co=NULL, *mem=NULL;
   static float state[1000];
   static int fsize=0, resid=0;
   register int i, j, k, l;
   register float *sp;
-  register float *buf1;
+  register const float *buf1;
 
   buf1 = buf;
   if(ncoef > fsize) {/*allocate memory for full coeff. array and filter memory */
@@ -336,12 +344,9 @@ int idx;
 }
 
 /*      ----------------------------------------------------------      */
-static int lc_lin_fir(fc,nf,coef)
 /* create the coefficients for a symmetric FIR lowpass filter using the
    window technique with a Hanning window. */
-register float	fc;
-float	*coef;
-int	*nf;
+static int lc_lin_fir(float fc, int* nf, float* coef)
 {
     register int	i, n;
     register double	twopi, fn, c;
@@ -370,9 +375,11 @@ int	*nf;
 /* ----------------------------------------------------------------------- */
 /* Use parabolic interpolation over the three points defining the peak
  * vicinity to estimate the "true" peak. */
-static void peak(y, xp, yp)
-     float *y,			/* vector of length 3 defining peak */
-       *xp, *yp;  /* x,y values of parabolic peak fitting the input points. */
+static void peak(
+    float* y,  /* vector of length 3 defining peak */
+    float* xp, /* x,y values of parabolic peak fitting the input points. */
+    float* yp  /* x,y values of parabolic peak fitting the input points. */
+    )
 {
   register float a, c;
   

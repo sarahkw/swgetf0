@@ -11,8 +11,8 @@ void get_fast_cands(const float* const fdata, const float* const fdsdata,
                     float* peaks, int* locs, int* ncand,
                     const F0_params* const par);
 
-
-float* downsample(float* input, int samsin, int state_idx, double freq,
-                  int* samsout, int decimate, int first_time, int last_time);
+const float* downsample(const float* input, int samsin, int state_idx,
+                        double freq, int* samsout, int decimate, int first_time,
+                        int last_time);
 
 #endif
