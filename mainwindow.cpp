@@ -75,6 +75,7 @@ void ViewerWidget::renderNow() {
   };
 
   const double noteWidth = uiConfig.note_width;
+  const double waveformScale = uiConfig.waveform_scale;
 
   {
     std::lock_guard<std::mutex> lockGuard(m_parent->f0thread().mutex());
@@ -83,10 +84,12 @@ void ViewerWidget::renderNow() {
     for (auto f0point : m_parent->f0thread().cb()) {
 
       // Draw the waveform (before the note in order to not cover it)
-      painter.setPen(penWave);
-      painter.setBrush(brushWave);
-      float scaledMaxSampleVal = f0point.maxsampleval / 300; // TODO Don't hardcode
-      painter.drawRect(position, 0, noteWidth, scaledMaxSampleVal);
+      if (waveformScale != 0) {
+          painter.setPen(penWave);
+          painter.setBrush(brushWave);
+          float scaledMaxSampleVal = f0point.maxsampleval / waveformScale;
+          painter.drawRect(position, 0, noteWidth, scaledMaxSampleVal);
+      }
 
       // Draw the note
       double ypos = noteToPos(f0point.f0);
