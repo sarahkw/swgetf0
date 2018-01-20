@@ -30,11 +30,20 @@
 
 class F0Thread : public QThread {
   Q_OBJECT
+
+public:
+  struct F0Point
+  {
+      float f0;
+      float maxsampleval;
+  };
+
 private:
 
   struct F0StreamImpl : public GetF0::GetF0Stream {
 
-    F0StreamImpl(F0Thread& parent, std::mutex& mutex, CircularBuffer<float>& cb)
+    F0StreamImpl(F0Thread& parent, std::mutex& mutex,
+                 CircularBuffer<F0Point>& cb)
         : s_(nullptr), parent_(parent), mutex_i_(mutex), cb_i_(cb), stop_(false)
     {
     }
@@ -46,13 +55,14 @@ private:
     }
 
     void write_output_reversed(float* f0p, float* vuvp, float* rms_speech,
-                               float* acpkp, int vecsize) override
+                               float* acpkp, float* maxsamplevalp,
+                               int vecsize) override
     {
       {
         std::lock_guard<std::mutex> lockGuard(mutex_i_);
 
         for (int i = vecsize - 1; i >= 0; --i) {
-          cb_i_.push_back(f0p[i]);
+          cb_i_.push_back({f0p[i], maxsamplevalp[i]});
         }
       }
 
@@ -85,7 +95,7 @@ private:
     portaudio::BlockingStream *s_;
 
     std::mutex& mutex_i_;
-    CircularBuffer<float>& cb_i_;
+    CircularBuffer<F0Thread::F0Point>& cb_i_;
 
     volatile bool stop_;
   };
@@ -97,7 +107,7 @@ public:
   {
   }
 
-  CircularBuffer<float>& cb() { return cb_; }
+  CircularBuffer<F0Point>& cb() { return cb_; }
 
   std::mutex& mutex() { return mutex_; }
 
@@ -117,7 +127,7 @@ protected:
 private:
 
   std::mutex mutex_;
-  CircularBuffer<float> cb_;
+  CircularBuffer<F0Point> cb_;
 
   F0StreamImpl f0_;
 };

@@ -20,6 +20,8 @@
  *
  */
 
+#include "sigproc.h"
+
 #include <math.h>
 #include <malloc.h>
 #include <stdlib.h>
@@ -29,14 +31,16 @@
 #define TRUE 1
 #define FALSE 0
 
+// Forward declarations
+void hnwindow(const float* din, float* dout, int n, float preemp);
+
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-/* Return a time-weighting window of type type and length n in dout.
- * Dout is assumed to be at least n elements long.  Type is decoded in
- * the switch statement below.
+/* Return a time-weighting Hanning window of length n in dout.
+ * Dout is assumed to be at least n elements long.
  */
-int get_window(dout, n, type)
+void get_hnwindow(dout, n)
      register float *dout;
-     register int n, type;
+     register int n;
 {
   static float *din = NULL;
   static int n0 = 0;
@@ -50,111 +54,23 @@ int get_window(dout, n, type)
     din = NULL;
     if(!(din = (float*)malloc(sizeof(float)*n))) {
       Fprintf(stderr,"Allocation problems in get_window()\n");
-      return(FALSE);
+      return;
     }
     for(i=0, p=din; i++ < n; ) *p++ = 1;
     n0 = n;
   }
-  return(window(din, dout, n, preemp, type));
-}
-  
-/*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-/* Apply a rectangular window (i.e. none).  Optionally, preemphasize. */
-void rwindow(din, dout, n, preemp)
-     register float *din;
-     register float *dout, preemp;
-     register int n;
-{
-  register float *p;
- 
-/* If preemphasis is to be performed,  this assumes that there are n+1 valid
-   samples in the input buffer (din). */
-  if(preemp != 0.0) {
-    for( p=din+1; n-- > 0; )
-      *dout++ = (float)(*p++) - (preemp * *din++);
-  } else {
-    for( ; n-- > 0; )
-      *dout++ =  *din++;
-  }
+  hnwindow(din, dout, n, preemp);
 }
 
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-/* Generate a cos^4 window, if one does not already exist. */
-void cwindow(din, dout, n, preemp)
-     register float *din;
-     register float *dout, preemp;
-     register int n;
+/* Apply a Hanning window to the short PCM sequence of length n
+ * in din.  Return the floating-point result sequence in dout.  If preemp
+ * is non-zero, apply preemphasis to tha data as it is windowed.
+ */
+void hnwindow(const float* din, float* dout, int n, float preemp)
 {
   register int i;
-  register float *p;
-  static int wsize = 0;
-  static float *wind=NULL;
-  register float *q, co;
- 
-  if(wsize != n) {		/* Need to create a new cos**4 window? */
-    register double arg, half=0.5;
-    
-    if(wind) wind = (float*)realloc(wind,n*sizeof(float));
-    else wind = (float*)malloc(n*sizeof(float));
-    wsize = n;
-    for(i=0, arg=3.1415927*2.0/(wsize), q=wind; i < n; ) {
-      co = half*(1.0 - cos((half + (double)i++) * arg));
-      *q++ = co * co * co * co;
-    }
-  }
-/* If preemphasis is to be performed,  this assumes that there are n+1 valid
-   samples in the input buffer (din). */
-  if(preemp != 0.0) {
-    for(i=n, p=din+1, q=wind; i--; )
-      *dout++ = *q++ * ((float)(*p++) - (preemp * *din++));
-  } else {
-    for(i=n, q=wind; i--; )
-      *dout++ = *q++ * *din++;
-  }
-}
-
-/*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-/* Generate a Hamming window, if one does not already exist. */
-void hwindow(din, dout, n, preemp)
-     register float *din;
-     register float *dout, preemp;
-     register int n;
-{
-  register int i;
-  register float *p;
-  static int wsize = 0;
-  static float *wind=NULL;
-  register float *q;
-
-  if(wsize != n) {		/* Need to create a new Hamming window? */
-    register double arg, half=0.5;
-    
-    if(wind) wind = (float*)realloc(wind,n*sizeof(float));
-    else wind = (float*)malloc(n*sizeof(float));
-    wsize = n;
-    for(i=0, arg=3.1415927*2.0/(wsize), q=wind; i < n; )
-      *q++ = (.54 - .46 * cos((half + (double)i++) * arg));
-  }
-/* If preemphasis is to be performed,  this assumes that there are n+1 valid
-   samples in the input buffer (din). */
-  if(preemp != 0.0) {
-    for(i=n, p=din+1, q=wind; i--; )
-      *dout++ = *q++ * ((float)(*p++) - (preemp * *din++));
-  } else {
-    for(i=n, q=wind; i--; )
-      *dout++ = *q++ * *din++;
-  }
-}
-
-/*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-/* Generate a Hanning window, if one does not already exist. */
-void hnwindow(din, dout, n, preemp)
-     register float *din;
-     register float *dout, preemp;
-     register int n;
-{
-  register int i;
-  register float *p;
+  register const float *p;
   static int wsize = 0;
   static float *wind=NULL;
   register float *q;
@@ -177,37 +93,6 @@ void hnwindow(din, dout, n, preemp)
     for(i=n, q=wind; i--; )
       *dout++ = *q++ * *din++;
   }
-}
-
-/*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-/* Apply a window of type type to the short PCM sequence of length n
- * in din.  Return the floating-point result sequence in dout.  If preemp
- * is non-zero, apply preemphasis to tha data as it is windowed.
- */
-int window(din, dout, n, preemp, type)
-     register float *din;
-     register float *dout, preemp;
-     register int n;
-     int type;
-{
-  switch(type) {
-  case 0:			/* rectangular */
-    rwindow(din, dout, n, preemp);
-    break;
-  case 1:			/* Hamming */
-    hwindow(din, dout, n, preemp);
-    break;
-  case 2:			/* cos^4 */
-    cwindow(din, dout, n, preemp);
-    break;
-  case 3:			/* Hanning */
-    hnwindow(din, dout, n, preemp);
-    break;
-  default:
-    Fprintf(stderr,"Unknown window type (%d) requested in window()\n",type);
-    return(FALSE);
-  }
-  return(TRUE);
 }
 
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
@@ -288,9 +173,7 @@ void durbin ( r, k, a, p, ex)
  *  The magnitude of a is returned in c.
  *  2* the other autocorrelation coefficients are returned in b.
  */
-void a_to_aca ( a, b, c, p )
-float *a, *b, *c;
-register int p;
+void a_to_aca(float* a, float* b, float* c, int p)
 {
   register float  s, *ap, *a0;
   register int  i, j;
@@ -316,9 +199,7 @@ register int p;
  * r is assumed normalized and r[0]=1 is not explicitely accessed.
  * Values returned by the function are >= 1.
  */
-float itakura ( p, b, c, r, gain )
-     register float *b, *c, *r, *gain;
-     register int p;
+float itakura(int p, float* b, float* c, float* r, float* gain)
 {
   register float s;
 
@@ -333,10 +214,9 @@ float itakura ( p, b, c, r, gain )
  * is weighted by a window of type w_type before RMS computation.  w_type
  * is decoded above in window().
  */
-float wind_energy(data,size,w_type)
-     register float *data;	/* input PCM data */
-     register int size,		/* size of window */
-       w_type;			/* window type */
+float wind_energy(const float* data, /* input PCM data */
+                  int size           /* size of window */
+                  )
 {
   static int nwind = 0;
   static float *dwind = NULL;
@@ -352,7 +232,7 @@ float wind_energy(data,size,w_type)
     }
   }
   if(nwind != size) {
-    get_window(dwind, size, w_type);
+    get_hnwindow(dwind, size);
     nwind = size;
   }
   for(i=size, dp = dwind, sum = 0.0; i-- > 0; ) {
@@ -366,18 +246,18 @@ float wind_energy(data,size,w_type)
 /* Generic autocorrelation LPC analysis of the short-integer data
  * sequence in data.
  */
-int lpc(lpc_ord,lpc_stabl,wsize,data,lpca,ar,lpck,normerr,rms,preemp,type)
-     int lpc_ord,		/* Analysis order */
-       wsize,			/* window size in points */
-       type;		/* window type (decoded in window() above) */
-     float lpc_stabl,	/* Stability factor to prevent numerical problems. */
-       *lpca,		/* if non-NULL, return vvector for predictors */
-       *ar,		/* if non-NULL, return vector for normalized autoc. */
-       *lpck,		/* if non-NULL, return vector for PARCOR's */
-       *normerr,		/* return scaler for normalized error */
-       *rms,		/* return scaler for energy in preemphasized window */
-       preemp;
-     float *data;	/* input data sequence; assumed to be wsize+1 long */
+int lpc(
+    int lpc_ord,     /* Analysis order */
+    float lpc_stabl, /* Stability factor to prevent numerical problems. */
+    int wsize,       /* window size in points */
+    const float* data,/* input data sequence; assumed to be wsize+1 long */
+    float* lpca,     /* if non-NULL, return vvector for predictors */
+    float* ar,       /* if non-NULL, return vector for normalized autoc. */
+    float* lpck,     /* if non-NULL, return vector for PARCOR's */
+    float* normerr,  /* return scaler for normalized error */
+    float* rms,      /* return scaler for energy in preemphasized window */
+    float preemp
+    )
 {
   static float *dwind=NULL;
   static int nwind=0;
@@ -395,7 +275,7 @@ int lpc(lpc_ord,lpc_stabl,wsize,data,lpca,ar,lpck,normerr,rms,preemp,type)
     nwind = wsize;
   }
   
-  window(data, dwind, wsize, preemp, type);
+  hnwindow(data, dwind, wsize, preemp);
   if(!(r = ar)) r = rho;	/* Permit optional return of the various */
   if(!(kp = lpck)) kp = k;	/* coefficients and intermediate results. */
   if(!(ap = lpca)) ap = a;
@@ -411,20 +291,7 @@ int lpc(lpc_ord,lpc_stabl,wsize,data,lpca,ar,lpck,normerr,rms,preemp,type)
       for(i=0;i<=lpc_ord; i++) ar[i] = r[i];
   }
   durbin ( r, kp, &ap[1], lpc_ord, &er);
-  switch(type) {		/* rms correction for window */
-  case 0:
-    wfact = 1.0;		/* rectangular */
-    break;
-  case 1:
-    wfact = .630397;		/* Hamming */
-    break;
-  case 2:
-    wfact = .443149;		/* (.5 - .5*cos)^4 */
-    break;
-  case 3:
-    wfact = .612372;		/* Hanning */
-    break;
-  }
+  wfact = .612372;		/* rms correction for Hanning window */
   *ap = 1.0;
   if(rms) *rms = en/wfact;
   if(normerr) *normerr = er;
@@ -446,16 +313,15 @@ int lpc(lpc_ord,lpc_stabl,wsize,data,lpca,ar,lpck,normerr,rms,preemp,type)
   correl is the array of nlags cross-correlation coefficients (-1.0 to 1.0)
  *
  */
-void crossf(data, size, start, nlags, engref, maxloc, maxval, correl)
-     int *maxloc;
-     float *engref, *maxval, *data, *correl;
-     int size, start, nlags;
+void crossf(const float* data, int size, int start, int nlags, float* engref,
+            int* maxloc, float* maxval, float* correl)
 {
   static float *dbdata=NULL;
   static int dbsize = 0;
   register float *dp, *ds, sum, st;
   register int j;
-  register  float *dq, t, *p, engr, *dds, amax;
+  register  float *dq, t, engr, *dds, amax;
+  const float *p;
   register  double engc;
   int i, iloc, total;
   int sizei, sizeo, maxsize;
@@ -516,8 +382,11 @@ void crossf(data, size, start, nlags, engref, maxloc, maxval, correl)
   } else {	/* No energy in signal; fake reasonable return vals. */
     *maxloc = 0;
     *maxval = 0.0;
-    for(p=correl,i=nlags; i-- > 0; )
-      *p++ = 0.0;
+    {
+      float* pp;
+      for(pp=correl,i=nlags; i-- > 0; )
+        *pp++ = 0.0;
+    }
   }
 }
 
@@ -543,16 +412,16 @@ void crossf(data, size, start, nlags, engref, maxloc, maxval, correl)
   nlocs is the number of correlation patches to compute.
  *
  */
-void crossfi(data, size, start0, nlags0, nlags, engref, maxloc, maxval, correl, locs, nlocs)
-     int *maxloc;
-     float *engref, *maxval, *data, *correl;
-     int size, start0, nlags0, nlags, *locs, nlocs;
+void crossfi(const float* data, int size, int start0, int nlags0, int nlags,
+             float* engref, int* maxloc, float* maxval, float* correl,
+             int* locs, int nlocs)
 {
   static float *dbdata=NULL;
   static int dbsize = 0;
   register float *dp, *ds, sum, st;
   register int j;
-  register  float *dq, t, *p, engr, *dds, amax;
+  register  float *dq, t, engr, *dds, amax;
+  const float* p;
   register  double engc;
   int i, iloc, start, total;
 
@@ -582,8 +451,11 @@ void crossfi(data, size, start0, nlags0, nlags, engref, maxloc, maxval, correl, 
 
   /* Zero the correlation output array to avoid confusing the peak
      picker (since all lags will not be computed). */
-  for(p=correl,i=nlags0; i-- > 0; )
-    *p++ = 0.0;
+  {
+    float* pp;
+    for(pp=correl,i=nlags0; i-- > 0; )
+      *pp++ = 0.0;
+  }
 
   /* compute energy in reference window */
   for(j=size, dp=dbdata, sum=0.0; j--; ) {

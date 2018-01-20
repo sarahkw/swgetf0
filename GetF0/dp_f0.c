@@ -55,6 +55,8 @@
    ccf is computed only in the vicinity of these estimated peak
    locations. */
 
+#include "dp_f0.h"
+
 #include <math.h>
 #include <malloc.h>
 #include <limits.h>
@@ -62,6 +64,8 @@
 #include "f0.h"
 #include "f0_structs.h"
 #include "spsassert.h"
+#include "get_cands.h"
+#include "sigproc.h"
 
 extern int  debug_level;
   
@@ -117,14 +121,14 @@ static int wReuse = 0;  /* number of windows seen before resued */
 static Windstat *windstat;
 
 static float *f0p = NULL, *vuvp = NULL, *rms_speech = NULL, 
-             *acpkp = NULL, *peaks = NULL;
+             *acpkp = NULL, *maxsamplevalp = NULL, *peaks = NULL;
 static int first_time = 1, pad;
 
 
 /*
  * Forward declarations
  */
-static Stat *get_stationarity(float *fdata, double freq, int buff_size,
+static Stat* get_stationarity(const float* fdata, double freq, int buff_size,
                               int nframes, int frame_step, int first_time);
 
 static Frame *alloc_frame(int nlags, int ncands);
@@ -143,11 +147,7 @@ get_Nframes(buffsize, pad, step)
 
 
 /*--------------------------------------------------------------------*/
-int
-init_dp_f0(freq, par, buffsize, sdstep)
-    double	freq;
-    F0_params	*par;
-    long	*buffsize, *sdstep;
+int init_dp_f0(double freq, F0_params* par, long* buffsize, long* sdstep)
 {
   int nframes;
   int i;
@@ -263,6 +263,8 @@ init_dp_f0(freq, par, buffsize, sdstep)
   spsassert(vuvp,"vuvp malloc failed");
   acpkp = (float*)malloc(sizeof(float) * output_buf_size);
   spsassert(acpkp,"acpkp malloc failed");
+  maxsamplevalp = (float*)malloc(sizeof(float) * output_buf_size);
+  spsassert(maxsamplevalp,"maxsamplevalp malloc failed");
 
   /* Allocate space for peak location and amplitude scratch arrays. */
   peaks = (float*)malloc(sizeof(float) * maxpeaks);
@@ -296,17 +298,13 @@ init_dp_f0(freq, par, buffsize, sdstep)
   
 
 /*--------------------------------------------------------------------*/
-int
-dp_f0(fdata, buff_size, sdstep, freq,
-      par, f0p_pt, vuvp_pt, rms_speech_pt, acpkp_pt, vecsize, last_time)
-    float	*fdata;
-    int		buff_size, sdstep;
-    double	freq;
-    F0_params	*par;		/* analysis control parameters */
-    float	**f0p_pt, **vuvp_pt, **rms_speech_pt, **acpkp_pt;
-    int		*vecsize, last_time;
+int dp_f0(const float* fdata, int buff_size, int sdstep, double freq,
+          F0_params* par, float** f0p_pt, float** vuvp_pt,
+          float** rms_speech_pt, float** acpkp_pt, float** maxsamplevalp_pt,
+          int* vecsize, int last_time)
 {
-  float  maxval, engref, *sta, *rms_ratio, *dsdata, *downsample();
+  float  maxval, engref, *sta, *rms_ratio;
+  const float *dsdata;
   register float ttemp, ftemp, ft1, ferr, err, errmin;
   register int  i, j, k, loc1, loc2;
   int   nframes, maxloc, ncand, ncandp, minloc,
@@ -387,7 +385,16 @@ dp_f0(fdata, buff_size, sdstep, freq,
     get_fast_cands(fdata, dsdata, i, step, size, decimate, start,
 		   nlags, &engref, &maxloc,
 		   &maxval, headF->cp, peaks, locs, &ncand, par);
-    
+
+    {
+        headF->maxsampleval = 0.0f;
+        for (int xx = 0; xx < step; ++xx) {
+            float candidate = fabsf((fdata + (i * step))[xx]);
+            if (candidate > headF->maxsampleval) {
+                headF->maxsampleval = candidate;
+            }
+        }
+    }
 
     /*    Move the peak value and location arrays into the dp structure */
     {
@@ -582,9 +589,13 @@ dp_f0(fdata, buff_size, sdstep, freq,
 	spsassert(vuvp, "vuvp realloc failed in dp_f0()");
 	acpkp = (float *) realloc(acpkp, sizeof(float) * output_buf_size);
 	spsassert(acpkp, "acpkp realloc failed in dp_f0()");
+	maxsamplevalp = (float *) realloc(maxsamplevalp,
+                                          sizeof(float) * output_buf_size);
+	spsassert(maxsamplevalp, "maxsamplevalp realloc failed in dp_f0()");
       }
       rms_speech[i] = frm->rms;
       acpkp[i] =  frm->dp->pvals[best_cand];
+      maxsamplevalp[i] = frm->maxsampleval;
       loc1 = frm->dp->locs[best_cand];
       vuvp[i] = 1.0;
       best_cand = frm->dp->prept[best_cand];
@@ -634,6 +645,7 @@ dp_f0(fdata, buff_size, sdstep, freq,
   *acpkp_pt = acpkp;
   *rms_speech_pt = rms_speech;
   *acpkp_pt = acpkp;
+  *maxsamplevalp_pt = maxsamplevalp;
   
   if(first_time) first_time = 0;
   return(0);
@@ -731,17 +743,12 @@ retrieve_windstat(rho, order, err, rms)
 
 
 /*--------------------------------------------------------------------*/
-static float
-get_similarity(order, size, pdata, cdata,
-	       rmsa, rms_ratio, pre, stab, w_type, init)
-    int     order, size;
-    float   *pdata, *cdata;
-    float   *rmsa, *rms_ratio, pre, stab;
-    int     w_type, init;
+static float get_similarity(int order, int size, const float* pdata,
+                            const float* cdata, float* rmsa, float* rms_ratio,
+                            float pre, float stab, int init)
 {
   float rho3[BIGSORD+1], err3, rms3, rmsd3, b0, t, a2[BIGSORD+1], 
       rho1[BIGSORD+1], a1[BIGSORD+1], b[BIGSORD+1], err1, rms1, rmsd1;
-  float itakura(), wind_energy();
 
 /* (In the lpc() calls below, size-1 is used, since the windowing and
    preemphasis function assumes an extra point is available in the
@@ -750,15 +757,15 @@ get_similarity(order, size, pdata, cdata,
 
   /* get current window stat */
   lpc(order, stab, size-1, cdata,
-      a2, rho3, (float *) NULL, &err3, &rmsd3, pre, w_type);
-  rms3 = wind_energy(cdata, size, w_type);
+      a2, rho3, (float *) NULL, &err3, &rmsd3, pre);
+  rms3 = wind_energy(cdata, size);
   
   if(!init) {
       /* get previous window stat */
       if( !retrieve_windstat(rho1, order, &err1, &rms1)){
 	  lpc(order, stab, size-1, pdata,
-	      a1, rho1, (float *) NULL, &err1, &rmsd1, pre, w_type);
-	  rms1 = wind_energy(pdata, size, w_type);
+	      a1, rho1, (float *) NULL, &err1, &rmsd1, pre);
+	  rms1 = wind_energy(pdata, size);
       }
       a_to_aca(a2+1,b,&b0,order);
       t = itakura(order,b,&b0,rho1+1,&err1) - .8;
@@ -810,18 +817,15 @@ get_similarity(order, size, pdata, cdata,
    
 */
 
-static Stat*
-get_stationarity(fdata, freq, buff_size, nframes, frame_step, first_time)
-    float   *fdata;
-    double  freq;
-    int     buff_size, nframes, frame_step, first_time;
+static Stat* get_stationarity(const float* fdata, double freq, int buff_size,
+                              int nframes, int frame_step, int first_time)
 {
   static Stat *stat;
   static int nframes_old = 0, memsize;
   static float *mem;
   float preemp = 0.4, stab = 30.0;
-  float *p, *q, *r, *datend;
-  int ind, i, j, m, size, order, agap, w_type = 3;
+  const float *p, *q, *r, *datend;
+  int ind, i, j, m, size, order, agap;
 
   agap = (int) (STAT_AINT *freq);
   size = (int) (STAT_WSIZE * freq);
@@ -872,14 +876,14 @@ get_stationarity(fdata, freq, buff_size, nframes, frame_step, first_time)
 	  stat->stat[j] = get_similarity(order,size, p, q, 
 					     &(stat->rms[j]),
 					     &(stat->rms_ratio[j]),preemp,
-					     stab,w_type, 0);
+					     stab, 0);
       else {
 	  if(first_time) {
 	      if( (p < fdata) && (q >= fdata) && (q+size <=datend) )
 		  stat->stat[j] = get_similarity(order,size, NULL, q,
 						     &(stat->rms[j]),
 						     &(stat->rms_ratio[j]),
-						     preemp,stab,w_type, 1);
+						     preemp,stab, 1);
 	      else{
 		  stat->rms[j] = 0.0;
 		  stat->stat[j] = 0.01 * 0.2;   /* a big transition */
@@ -891,7 +895,7 @@ get_stationarity(fdata, freq, buff_size, nframes, frame_step, first_time)
 						     mem + (memsize/2) + ind,
 						     &(stat->rms[j]),
 						     &(stat->rms_ratio[j]),
-						     preemp, stab,w_type, 0);
+						     preemp, stab, 0);
 		  /* prepare for the next frame_step if needed */
 		  if(p + frame_step < fdata ){
 		      for( m=0; m<(memsize-frame_step); m++) 

@@ -40,7 +40,7 @@ struct UiConfig {
   UiConfig() {}
   UiConfig(schemeinterface::PtrIter sexp) {
       schemeinterface::loadValues(sexp, width, height, maximized, note_width,
-                                  min_note, max_note);
+                                  min_note, max_note, waveform_scale);
   }
 
   long width;
@@ -49,6 +49,7 @@ struct UiConfig {
   long note_width;
   long min_note;
   long max_note;
+  double waveform_scale;
 
 };
 

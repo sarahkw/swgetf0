@@ -7,13 +7,10 @@
 ;; UI --------------------------------------------------------------------------
 
 (ui-config
- :width 1024
- :height 800
- :maximized #f
-
+ :width 1024 :height 800 :maximized #f
  :note-width 1
- :min-note 100
- :max-note 400
+ :min-note 100 :max-note 400
+ :waveform-scale 300 ; divide by this to show waveform; 0 to disable
  )
 
 (define color-normal (rgb 100 0 0))
@@ -22,11 +19,9 @@
 
 (ui-marker-lines
  220 color-target ; A3
+ 196 color-target ; G3
  247 color-normal ; B3
  262 color-normal ; C4
- 294 color-normal ; D4
- 311 color-sub    ; D#4
- 330 color-normal ; E4
  131 color-normal ; C3
  )
 

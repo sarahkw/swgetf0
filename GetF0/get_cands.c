@@ -18,6 +18,8 @@
  *
  */
 
+#include "get_cands.h"
+
 #include <stdio.h>
 #include <math.h>
 #include <malloc.h>
@@ -25,33 +27,49 @@
 #include "f0_structs.h"
 #include "f0.h"
 #include "spsassert.h"
+#include "sigproc.h"
 
 #define TRUE 1
 #define FALSE 0
 
-static void get_cand(), peak(), do_ffir();
-static int lc_lin_fir(), downsamp();
+static void peak(float* y, float* xp, float* yp);
+
+static int downsamp(const float* in, float* out, int samples, int* outsamps,
+                    int state_idx, int decimate, int ncoef, float fc[],
+                    int init);
+
+static void do_ffir(const float* buf, int in_samps, float* bufo, int* out_samps,
+                    int idx, int ncoef, float* fc, int invert, int skip,
+                    int init);
+
+static int lc_lin_fir(float fc, int* nf, float* coef);
+
+
+static void get_cand(Cross* const cross, float* peak, int* loc, int nlags,
+                     int* ncand, float cand_thresh);
+
+
+static int clamp_min(int input, int minvalue)
+{
+    return input < minvalue ? minvalue : input;
+}
 
 /* ----------------------------------------------------------------------- */
-void get_fast_cands(fdata, fdsdata, ind, step, size, dec, start, nlags, engref, maxloc, maxval, cp, peaks, locs, ncand, par)
-     float *fdata, *fdsdata, *engref, *maxval, *peaks;
-     int size, start, nlags, *maxloc, *locs, *ncand, ind, step, dec;
-     Cross *cp;
-     F0_params *par;
+void get_fast_cands(const float* const fdata, const float* const fdsdata,
+                    const int ind, const int step, const int size,
+                    const int dec, const int start, const int nlags,
+                    float* engref, int* maxloc, float* maxval, Cross* cp,
+                    float* peaks, int* locs, int* ncand,
+                    const F0_params* const par)
 {
-  int decind, decstart, decnlags, decsize, i, j, *lp;
-  float *corp, xp, yp, lag_wt;
-  register float *pe;
+  const float lag_wt = par->lag_weight/nlags;
+  const int decnlags = 1 + (nlags/dec);
+  const int decstart = clamp_min(start/dec, 1);
+  const int decind = (ind * step)/dec;
+  const int decsize = 1 + (size/dec);
 
-  lag_wt = par->lag_weight/nlags;
-  decnlags = 1 + (nlags/dec);
-  if((decstart = start/dec) < 1) decstart = 1;
-  decind = (ind * step)/dec;
-  decsize = 1 + (size/dec);
-  corp = cp->correl;
-    
   crossf(fdsdata + decind, decsize, decstart, decnlags, engref, maxloc,
-	maxval, corp);
+	maxval, cp->correl);
   cp->maxloc = *maxloc;	/* location of maximum in correlation */
   cp->maxval = *maxval;	/* max. correlation value (found at maxloc) */
   cp->rms = sqrt(*engref/size); /* rms in reference window */
@@ -60,17 +78,23 @@ void get_fast_cands(fdata, fdsdata, ind, step, size, dec, start, nlags, engref, 
   get_cand(cp,peaks,locs,decnlags,ncand,par->cand_thresh); /* return high peaks in xcorr */
 
   /* Interpolate to estimate peak locations and values at high sample rate. */
-  for(i = *ncand, lp = locs, pe = peaks; i--; pe++, lp++) {
-    j = *lp - decstart - 1;
-    peak(&corp[j],&xp,&yp);
-    *lp = (*lp * dec) + (int)(0.5+(xp*dec)); /* refined lag */
-    *pe = yp*(1.0 - (lag_wt* *lp)); /* refined amplitude */
+  {
+    int i, j, *lp;
+    float xp, yp;
+    float *pe;
+    for(i = *ncand, lp = locs, pe = peaks; i--; pe++, lp++) {
+      j = *lp - decstart - 1;
+      peak(&cp->correl[j],&xp,&yp);
+      *lp = (*lp * dec) + (int)(0.5+(xp*dec)); /* refined lag */
+      *pe = yp*(1.0 - (lag_wt* *lp)); /* refined amplitude */
+    }
   }
   
   if(*ncand >= par->n_cands) {	/* need to prune candidates? */
     register int *loc, *locm, lt;
     register float smaxval, *pem;
     register int outer, inner, lim;
+    float *pe;
     for(outer=0, lim = par->n_cands-1; outer < lim; outer++)
       for(inner = *ncand - 1 - outer,
 	  pe = peaks + (*ncand) -1, pem = pe-1,
@@ -87,7 +111,7 @@ void get_fast_cands(fdata, fdsdata, ind, step, size, dec, start, nlags, engref, 
     *ncand = par->n_cands-1;  /* leave room for the unvoiced hypothesis */
   }
   crossfi(fdata + (ind * step), size, start, nlags, 7, engref, maxloc,
-	  maxval, corp, locs, *ncand);
+	  maxval, cp->correl, locs, *ncand);
 
   cp->maxloc = *maxloc;	/* location of maximum in correlation */
   cp->maxval = *maxval;	/* max. correlation value (found at maxloc) */
@@ -116,10 +140,9 @@ void get_fast_cands(fdata, fdsdata, ind, step, size, dec, start, nlags, engref, 
 }
 
 /* ----------------------------------------------------------------------- */
-float *downsample(input,samsin,state_idx,freq,samsout,decimate, first_time, last_time)
-     double freq;
-     float *input;
-      int samsin, *samsout, decimate, state_idx, first_time, last_time;
+const float* downsample(const float* input, int samsin, int state_idx,
+                        double freq, int* samsout, int decimate, int first_time,
+                        int last_time)
 {
   static float	b[2048];
   static float *foutput;
@@ -166,57 +189,36 @@ float *downsample(input,samsin,state_idx,freq,samsout,decimate, first_time, last
 
 /* ----------------------------------------------------------------------- */
 /* Get likely candidates for F0 peaks. */
-static void get_cand(cross,peak,loc,nlags,ncand,cand_thresh)
-     Cross *cross;
-     float *peak, cand_thresh;
-     int *loc;
-     int  *ncand, nlags;
+static void get_cand(Cross* const cross, float* peak, int* loc, int nlags,
+                     int* ncand, float cand_thresh)
 {
-  register int i, lastl, *t;
-  register float o, p, q, *r, *s, clip;
-  int start, ncan, maxl;
+  const float clip = cand_thresh * cross->maxval;
+  const int lastl = nlags - 2;
+  const int start = cross->firstlag;
 
-  clip = cand_thresh * cross->maxval;
-  maxl = cross->maxloc;
-  lastl = nlags - 2;
-  start = cross->firstlag;
-
-  r = cross->correl;
-  o= *r++;			/* first point */
-  q = *r++;	                /* middle point */
-  p = *r++;
-  s = peak;
-  t = loc;
-  ncan=0;
+  float* r = cross->correl;
+  float o= *r++;			/* first point */
+  float q = *r++;	                /* middle point */
+  float p = *r++;
+  *ncand = 0;
+  int i;
   for(i=1; i < lastl; i++, o=q, q=p, p= *r++){
     if((q > clip) &&		/* is this a high enough value? */
       (q >= p) && (q >= o)){ /* NOTE: this finds SHOLDERS and PLATEAUS
 				      as well as peaks (is this a good idea?) */
-	*s++ = q;		/* record the peak value */
-	*t++ = i + start;	/* and its location */
-	ncan++;			/* count number of peaks found */
+	*peak++ = q;		/* record the peak value */
+	*loc++ = i + start;	/* and its location */
+	(*ncand)++;		/* count number of peaks found */
       }
   }
-/*
-  o = q;
-  q = p;
-  if( (q > clip) && (q >=0)){
-    *s++ = q;
-    *t++ = i+start;
-    ncan++;
-  }
-*/
-  *ncand = ncan;
 }
 
 /* ----------------------------------------------------------------------- */
 /* buffer-to-buffer downsample operation */
 /* This is STRICTLY a decimator! (no upsample) */
-static int downsamp(in, out, samples, outsamps, state_idx, decimate, ncoef, fc, init)
-     float *in, *out;
-     int samples, *outsamps, decimate, ncoef, state_idx;
-     float fc[];
-     int init;
+static int downsamp(const float* in, float* out, int samples, int* outsamps,
+                    int state_idx, int decimate, int ncoef, float fc[],
+                    int init)
 {
   if(in && out) {
     do_ffir(in, samples, out, outsamps, state_idx, ncoef, fc, 0, decimate, init);
@@ -227,25 +229,24 @@ static int downsamp(in, out, samples, outsamps, state_idx, decimate, ncoef, fc, 
 }
 
 /*      ----------------------------------------------------------      */
-static void do_ffir(buf,in_samps,bufo,out_samps,idx, ncoef,fc,invert,skip,init)
 /* fc contains 1/2 the coefficients of a symmetric FIR filter with unity
     passband gain.  This filter is convolved with the signal in buf.
     The output is placed in buf2.  If(invert), the filter magnitude
     response will be inverted.  If(init&1), beginning of signal is in buf;
     if(init&2), end of signal is in buf.  out_samps is set to the number of
     output points placed in bufo. */
-register float	*buf, *bufo;
-float *fc;
-register int in_samps, ncoef, invert, skip, init, *out_samps;
-int idx;
+static void do_ffir(const float* buf, int in_samps, float* bufo, int* out_samps,
+                    int idx, int ncoef, float* fc, int invert, int skip,
+                    int init)
 {
-  register float *dp1, *dp2, *dp3, sum, integral;
+  register float *dp1, *dp2, sum, integral;
+  register const float *dp3;
   static float *co=NULL, *mem=NULL;
   static float state[1000];
   static int fsize=0, resid=0;
   register int i, j, k, l;
   register float *sp;
-  register float *buf1;
+  register const float *buf1;
 
   buf1 = buf;
   if(ncoef > fsize) {/*allocate memory for full coeff. array and filter memory */
@@ -343,12 +344,9 @@ int idx;
 }
 
 /*      ----------------------------------------------------------      */
-static int lc_lin_fir(fc,nf,coef)
 /* create the coefficients for a symmetric FIR lowpass filter using the
    window technique with a Hanning window. */
-register float	fc;
-float	*coef;
-int	*nf;
+static int lc_lin_fir(float fc, int* nf, float* coef)
 {
     register int	i, n;
     register double	twopi, fn, c;
@@ -377,9 +375,11 @@ int	*nf;
 /* ----------------------------------------------------------------------- */
 /* Use parabolic interpolation over the three points defining the peak
  * vicinity to estimate the "true" peak. */
-static void peak(y, xp, yp)
-     float *y,			/* vector of length 3 defining peak */
-       *xp, *yp;  /* x,y values of parabolic peak fitting the input points. */
+static void peak(
+    float* y,  /* vector of length 3 defining peak */
+    float* xp, /* x,y values of parabolic peak fitting the input points. */
+    float* yp  /* x,y values of parabolic peak fitting the input points. */
+    )
 {
   register float a, c;
   

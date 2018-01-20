@@ -30,16 +30,10 @@
 
 #include "f0.h"
 
-
-// ----------------------------------------
-// Externs
 extern "C" {
-int init_dp_f0(double freq, F0_params *par, long *buffsize, long *sdstep);
-int dp_f0(float *fdata, int buff_size, int sdstep, double freq, F0_params *par,
-          float **f0p_pt, float **vuvp_pt, float **rms_speech_pt,
-          float **acpkp_pt, int *vecsize, int last_time);
+#include "dp_f0.h"
 
-int	    debug_level = 0;
+int debug_level = 0; // global used by C
 }
 
 
@@ -109,7 +103,7 @@ void GetF0::run()
   THROW_ERROR(!m_initialized, LogicError, "Not initialized");
 
   float* fdata = nullptr;
-  float* f0p, *vuvp, *rms_speech, *acpkp;
+  float* f0p, *vuvp, *rms_speech, *acpkp, *maxsamplevalp;
   int done;
   int vecsize;
 
@@ -118,12 +112,12 @@ void GetF0::run()
   while (true) {
     done = (actsize < m_streamBufferSize);
 
-    THROW_ERROR(
-        dp_f0(fdata, (int)actsize, (int)m_streamOverlapSize, m_sampleFrequency,
-              m_par, &f0p, &vuvp, &rms_speech, &acpkp, &vecsize, done),
-        ProcessingError, "problem in dp_f0().");
+    THROW_ERROR(dp_f0(fdata, (int)actsize, (int)m_streamOverlapSize,
+                      m_sampleFrequency, m_par, &f0p, &vuvp, &rms_speech,
+                      &acpkp, &maxsamplevalp, &vecsize, done),
+                ProcessingError, "problem in dp_f0().");
 
-    write_output_reversed(f0p, vuvp, rms_speech, acpkp, vecsize);
+    write_output_reversed(f0p, vuvp, rms_speech, acpkp, maxsamplevalp, vecsize);
 
     if (done) break;
 
