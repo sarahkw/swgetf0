@@ -141,6 +141,11 @@ void ConfigurationDialog::on_buttonBox_accepted()
     }
 }
 
+void ConfigurationDialog::on_buttonBox_rejected()
+{
+    emit reject();
+}
+
 ConfigurationDialog::~ConfigurationDialog()
 {
     delete ui;
