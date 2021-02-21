@@ -159,3 +159,59 @@ void MainWindow::on_viewer_widthChanged(int width)
   std::lock_guard<std::mutex> lockGuard(m_f0thread.mutex());
   m_f0thread.cb().resize(width / m_config.uiConfig.note_width);
 }
+
+namespace {
+
+bool isSamplesKey(int key) {
+    switch(key) {
+    case Qt::Key_0:
+    case Qt::Key_1:
+    case Qt::Key_2:
+    case Qt::Key_3:
+    case Qt::Key_4:
+    case Qt::Key_5:
+    case Qt::Key_6:
+    case Qt::Key_7:
+    case Qt::Key_8:
+    case Qt::Key_9:
+        return true;
+    }
+    return false;
+}
+
+// A string to show to the user.
+QString convertSamplesKey(int key) {
+    switch(key) {
+    case Qt::Key_0: return "0";
+    case Qt::Key_1: return "1";
+    case Qt::Key_2: return "2";
+    case Qt::Key_3: return "3";
+    case Qt::Key_4: return "4";
+    case Qt::Key_5: return "5";
+    case Qt::Key_6: return "6";
+    case Qt::Key_7: return "7";
+    case Qt::Key_8: return "8";
+    case Qt::Key_9: return "9";
+    }
+    return {};
+}
+
+}  // namespace anonymous
+
+void MainWindow::keyPressEvent(QKeyEvent *event)
+{
+    if (!event->isAutoRepeat() && isSamplesKey(event->key())) {
+        qInfo() << "MainWindow::keyPressEvent " << convertSamplesKey(event->key());
+    } else {
+        QMainWindow::keyPressEvent(event);
+    }
+}
+
+void MainWindow::keyReleaseEvent(QKeyEvent *event)
+{
+    if (!event->isAutoRepeat() && isSamplesKey(event->key())) {
+        qInfo() << "MainWindow::keyReleaseEvent " << convertSamplesKey(event->key());
+    } else {
+        QMainWindow::keyReleaseEvent(event);
+    }
+}

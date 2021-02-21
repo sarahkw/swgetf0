@@ -74,6 +74,12 @@ private slots:
 
   void on_viewer_widthChanged(int width);
 
+protected:
+
+  void keyPressEvent(QKeyEvent *event) override;
+
+  void keyReleaseEvent(QKeyEvent *event) override;
+
 private:
 
   Ui::MainWindow m_ui;
