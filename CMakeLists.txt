@@ -46,6 +46,13 @@ target_link_libraries(swgetf0 GetF0 tinyscheme
   ${PORTAUDIOCPP_LIBRARIES})
 
 ################################################################################
+# headlessgetf0
+
+add_executable(headlessgetf0
+  headlessgetf0.cpp)
+target_link_libraries(headlessgetf0 GetF0)
+
+################################################################################
 # unit tests
 
 option(ENABLE_TESTS "Compile unit tests" OFF)
